@@ -13,7 +13,7 @@ Generate beautiful PDF/HTML shareable notes using [Typst](https://typst.app) wit
 ## Installation
 
 ```bash
-claude /install github:jskswamy/claude-plugins/plugins/typst-notes
+claude /install github:jskswamy/skills/plugins/typst-notes
 ```
 
 ### Prerequisites

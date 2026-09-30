@@ -5,13 +5,7 @@ This repository exposes canonical Agent Skills to Pi through the root `package.j
 ## Install from Git
 
 ```bash
-pi install git:github.com/jskswamy/agent-capabilities@<tag>
-```
-
-Until the repository is renamed, use the current repository URL instead:
-
-```bash
-pi install git:github.com/jskswamy/claude-plugins@<tag>
+pi install git:github.com/jskswamy/skills@<tag>
 ```
 
 ## Local Development

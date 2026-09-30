@@ -65,7 +65,7 @@ how you use the plugin.
 ## Install
 
 ```
-/plugin install craft@jskswamy-plugins
+/plugin install craft@skills
 ```
 
 ## History

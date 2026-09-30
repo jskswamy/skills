@@ -1,11 +1,11 @@
 {
-  "name": "jskswamy-plugins",
+  "name": "skills",
   "owner": {
     "name": "Krishnaswamy Subramanian",
     "email": "jskswamy@gmail.com"
   },
   "metadata": {
-    "description": "A curated collection of Claude Code plugins"
+    "description": "Reusable agent skills and plugins for coding workflows"
   },
   "plugins": [
     {

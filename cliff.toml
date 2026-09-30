@@ -14,7 +14,7 @@ All notable changes to the Claude Code Plugin Marketplace will be documented in 
 # Template for each release
 body = """
 {%- macro remote_url() -%}
-  https://github.com/jskswamy/claude-plugins
+  https://github.com/jskswamy/skills
 {%- endmacro -%}
 
 {% if version -%}
@@ -41,11 +41,11 @@ footer = """
     {% if release.version -%}
         {% if release.previous.version -%}
             [{{ release.version | trim_start_matches(pat="v") }}]: \
-                https://github.com/jskswamy/claude-plugins/compare/{{ release.previous.version }}..{{ release.version }}
+                https://github.com/jskswamy/skills/compare/{{ release.previous.version }}..{{ release.version }}
         {% endif -%}
     {% else -%}
         {% if release.previous.version -%}
-            [unreleased]: https://github.com/jskswamy/claude-plugins/compare/{{ release.previous.version }}..HEAD
+            [unreleased]: https://github.com/jskswamy/skills/compare/{{ release.previous.version }}..HEAD
         {% endif -%}
     {% endif -%}
 {% endfor %}
@@ -148,4 +148,4 @@ sort_commits = "oldest"
 
 [remote.github]
 owner = "jskswamy"
-repo = "claude-plugins"
+repo = "skills"

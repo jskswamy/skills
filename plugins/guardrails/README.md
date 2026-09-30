@@ -24,7 +24,7 @@ The guardrails plugin provides:
 ## Installation
 
 ```bash
-/plugin install github:jskswamy/claude-plugins/plugins/guardrails
+/plugin install github:jskswamy/skills/plugins/guardrails
 ```
 
 Or test locally:

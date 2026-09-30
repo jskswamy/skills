@@ -25,7 +25,7 @@ experimental-features = nix-command flakes
 ## Installation
 
 ```
-/plugin install devenv@claude-plugins
+/plugin install devenv@skills
 ```
 
 ## Usage

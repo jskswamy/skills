@@ -40,7 +40,7 @@ both `/commit` and `/review-commits` so the two share authoring style.
 ## Install
 
 ```
-/plugin install commit-tools@jskswamy-plugins
+/plugin install commit-tools@skills
 ```
 
 ## History

@@ -36,10 +36,8 @@ git push --follow-tags
 Pi users can install a tag:
 
 ```bash
-pi install git:github.com/jskswamy/claude-plugins@vX.Y.Z
+pi install git:github.com/jskswamy/skills@vX.Y.Z
 ```
-
-After repository rename, replace `claude-plugins` with the new repository name.
 
 ## Claude Code Marketplace Notes
 

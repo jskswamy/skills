@@ -1,4 +1,4 @@
-# Agent Capabilities Marketplace
+# Skills Marketplace
 
 A curated collection of reusable agent capabilities focused on developer workflows, code generation, and productivity.
 
@@ -26,19 +26,19 @@ All plugins are open to anyone who finds them helpful.
 1. Add this marketplace to Claude Code:
 
    ```
-   /plugin marketplace add jskswamy/claude-plugins
+   /plugin marketplace add jskswamy/skills
    ```
 
 2. Browse available plugins:
 
    ```
-   /plugin search @claude-plugins
+   /plugin search @skills
    ```
 
 3. Install any plugin:
 
    ```
-   /plugin install <plugin-name>@claude-plugins
+   /plugin install <plugin-name>@skills
    ```
 
 4. Use the plugin via its commands or skills (see individual plugin documentation)
@@ -48,10 +48,8 @@ All plugins are open to anyone who finds them helpful.
 Install the package from git:
 
 ```bash
-pi install git:github.com/jskswamy/claude-plugins@<tag>
+pi install git:github.com/jskswamy/skills@<tag>
 ```
-
-After the repository is renamed, use the new repository URL documented in `harnesses/pi/README.md`.
 
 ### Repository Layout
 
@@ -85,7 +83,7 @@ Intelligent codebase exploration powered by codebase-memory-mcp. Natural languag
 
 **Install:**
 ```
-/plugin install codebase@claude-plugins
+/plugin install codebase@skills
 ```
 
 **Usage:**
@@ -109,7 +107,7 @@ End-to-end commit hygiene: write atomic commits with style enforcement, review a
 
 **Install:**
 ```
-/plugin install commit-tools@claude-plugins
+/plugin install commit-tools@skills
 ```
 
 **Usage:**
@@ -133,7 +131,7 @@ The craft of building software end-to-end: capture ideas, understand problems, d
 
 **Install:**
 ```
-/plugin install craft@claude-plugins
+/plugin install craft@skills
 ```
 
 **Usage:**
@@ -157,7 +155,7 @@ Initialize and manage Nix flake development environments with auto-detection and
 
 **Install:**
 ```
-/plugin install devenv@claude-plugins
+/plugin install devenv@skills
 ```
 
 **Usage:**
@@ -181,7 +179,7 @@ Efficiency guardrails for Claude - IDE refactoring handoff with automatic patter
 
 **Install:**
 ```
-/plugin install guardrails@claude-plugins
+/plugin install guardrails@skills
 ```
 
 **Usage:**
@@ -205,7 +203,7 @@ Quick, low-friction capture of notes, tasks, ideas, session summaries, and tech 
 
 **Install:**
 ```
-/plugin install jot@claude-plugins
+/plugin install jot@skills
 ```
 
 **Usage:**
@@ -232,7 +230,7 @@ Semantic refactoring opportunity detection. Scans committed code for structural 
 
 **Install:**
 ```
-/plugin install refactor@claude-plugins
+/plugin install refactor@skills
 ```
 
 **Usage:**
@@ -257,7 +255,7 @@ Generate visual sketch notes in Excalidraw format from conversations, code archi
 
 **Install:**
 ```
-/plugin install sketch-note@claude-plugins
+/plugin install sketch-note@skills
 ```
 
 **Usage:**
@@ -286,7 +284,7 @@ Adaptive study coach with multi-gear learning sessions (Socratic, Explain, Guide
 
 **Install:**
 ```
-/plugin install study@claude-plugins
+/plugin install study@skills
 ```
 
 **Usage:**
@@ -310,7 +308,7 @@ Generate beautiful PDF/HTML shareable notes using Typst with 7 professional temp
 
 **Install:**
 ```
-/plugin install typst-notes@claude-plugins
+/plugin install typst-notes@skills
 ```
 
 **Usage:**
