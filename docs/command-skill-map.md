@@ -18,6 +18,8 @@ Claude Code commands are thin wrappers around canonical skills. In Pi, invoke th
 | `/configure` | `jot-configure` | `/skill:jot-configure` |
 | `/setup` in jot | `jot-setup` | `/skill:jot-setup` |
 | `/scan` | `refactor-scan` | `/skill:refactor-scan` |
+| `/review-commits --unattended --base <ref>` | `review-commits` | `/skill:review-commits --unattended --base <ref>` |
+| `/validate-commits --unattended --base <ref>` | `validate-commits` | `/skill:validate-commits --unattended --base <ref>` |
 | `/sketch` | `sketch-note` | `/skill:sketch-note` |
 | `/coach` | `study-coach` | `/skill:study-coach` |
 | `/recall` | `study-recall` | `/skill:study-recall` |

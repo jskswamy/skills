@@ -8,7 +8,7 @@ description: >
   Activates on: "validate commits", "check commits before push",
   "any AI leaks", "check for co-author", "are my commits clean",
   "validate before pushing", "check commits".
-argument-hint: "[--base <ref>]"
+argument-hint: "[--base <ref>] [--unattended] [--result <path>] [--test-cmd <cmd>]"
 ---
 
 # Validate Commits
@@ -16,6 +16,39 @@ argument-hint: "[--base <ref>]"
 Run six deterministic checks against unpushed commits. All checks use
 git commands, grep, and the shared `style-check.sh` script — no LLM
 judgment.
+
+## Arguments
+
+| Argument | Type | Default | Description |
+|----------|------|---------|-------------|
+| `--base <ref>` | string | auto; required with `--unattended` | Base for `base..HEAD` |
+| `--unattended` | boolean | false | Run without `AskUserQuestion`; fail instead of prompting and write result JSON |
+| `--result <path>` | string | `.review-commits/validate-result.json` | Machine-readable result file |
+| `--test-cmd <cmd>` | string | auto-detected | Override test command detection |
+
+With `--unattended`, add `.review-commits/` to `.git/info/exclude` before
+writing the default result path.
+
+## Unattended Result File
+
+Write `--result <path>` in every unattended outcome:
+
+```json
+{
+  "outcome": "done | failed",
+  "reason": "no-base | tests | validation | null",
+  "base": "<sha>",
+  "originalHead": "<sha>",
+  "newHead": "<sha>",
+  "decisions": [{"gate": "ai-coauthor-autofix", "chose": "default", "why": "unattended default"}],
+  "validation": {"cleanWorktree": true, "tests": true, "noAICoauthor": true,
+                  "noConflictMarkers": true, "noSquashResidue": true, "style": true},
+  "detail": "..."
+}
+```
+
+Record all six checks as pass/fail with details. Exit code 0 only when
+`outcome` is `done`.
 
 ## Precondition
 
@@ -43,6 +76,11 @@ Establish the base ref for `base..HEAD` in this priority order:
      - "Use latest tag (<tag>)" — if a tag exists
      - "Enter a commit ref" — free text input
 
+With `--unattended`, `--base <ref>` is required. Do not use upstream fallback
+and do not ask. If `--base` is missing or cannot be resolved, write
+`outcome: failed`, reason: `no-base`, leave the repository unchanged, and exit
+non-zero.
+
 Store the resolved base as `$BASE` for all subsequent checks.
 
 If `git log --oneline $BASE..HEAD` produces no commits, report
@@ -62,8 +100,9 @@ Run: `git status --porcelain`
 
 ### Check 2: Tests Pass
 
-Detect the project test command by checking for project files in the
-working directory root:
+If `--test-cmd <cmd>` was provided, use it as the test command. Otherwise
+detect the project test command by checking for project files in the working
+directory root:
 
 | File | Command |
 |------|---------|
@@ -187,6 +226,10 @@ If ANY fail: "Post-commit validation failed." followed by the results.
 
 If Check 3 fails AND all other checks pass (or the user wants to fix
 incrementally), offer to auto-fix:
+
+With `--unattended`, do not ask. Take the default safe choice: do not modify
+commits, record `{"gate":"ai-coauthor-autofix","chose":"no","why":"unattended default"}`,
+write the failed Check 3 detail to the result file, and exit non-zero.
 
 Use AskUserQuestion:
 ```
