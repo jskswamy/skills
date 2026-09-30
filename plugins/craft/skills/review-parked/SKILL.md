@@ -1,120 +1,93 @@
 ---
 name: review-parked
 description: |
-  Review parked ideas on demand. Use when user says:
-  "review parked ideas", "show parked", "what did I park",
-  "check my parking lot", "any ideas parked", "parked ideas"
 ---
 
-# Review Parked Ideas Skill
+# Review Parked Skill
 
-Help users review ideas they parked during work sessions and decide what to do with them.
+List, filter, and batch-manage parked ideas. Use this command to review ideas you've captured and decide what to do with them.
 
-## Workflow
+## Subcommands
 
-### 1. Find Parked Ideas
+| Subcommand | Description | Example |
+|------------|-------------|---------|
+| `list` | List all parked ideas (default) | `/parked list` |
+| `from` | Ideas from a specific task | `/parked from abc123` |
+| `promote` | Promote to real issues | `/parked promote xyz` |
+| `discard` | Delete parked ideas | `/parked discard xyz` |
+| `review` | Interactive review session | `/parked review` |
+
+---
+
+## /parked list (default)
+
+List all parked ideas with filtering options.
+
+### Arguments
+
+| Argument | Short | Type | Default | Description |
+|----------|-------|------|---------|-------------|
+| `--format` | `-f` | string | `brief` | Output format: `brief`, `full`, `json` |
+| `--since` | | string | (none) | Filter by date (e.g., "1 week", "2024-01-01") |
+| `--limit` | `-l` | number | 20 | Maximum results |
+| `--all` | `-a` | boolean | false | Include already-reviewed (keeps tag) |
+
+### Examples
+
+```bash
+/parked
+/parked list
+/parked list --format full
+/parked list --since "1 week"
+```
+
+### Execution
 
 ```bash
 bd list --status=deferred -l parked-idea --json
 ```
 
-If no parked ideas exist:
-> No parked ideas found. Use "park this idea" while working to capture thoughts for later.
-
-### 2. Present Summary
-
+**Brief format:**
 ```
 ## Parked Ideas ({count} total)
 
-1. **{title}** ({id})
-   Parked while: {from context in description}
-   Idea: {first 1-2 lines of idea}
+1. {id} - {title without "PARKED:" prefix}
+   Parked from: {source task or "N/A"}
 
-2. **{title}** ({id})
-   ...
+2. {id} - {title}
+   Parked from: {source task}
 
-What would you like to do?
-- Review each and decide (promote/keep/discard)
-- Keep all parked for later
-- Discard all
+...
+
+Actions:
+- /parked promote <id>   - Make it a real task
+- /parked discard <id>   - Delete it
+- /parked review         - Review all interactively
 ```
 
-### 3. For Each Idea to Review
-
-Show full context:
-```
-## {title} ({id})
-
-**Idea:**
-{full idea text from description}
-
-**Context:**
-{context section from description}
-
-**Options:**
-1. Promote to real issue (open status, remove parked-idea label)
-2. Decompose further (run through decompose workflow)
-3. Keep parked (leave as-is)
-4. Discard (delete the issue)
-```
-
-### 4. Execute Decision
-
-**Promote:**
-```bash
-bd update {id} --status open
-bd label remove {id} parked-idea
-# Optionally update title to remove "PARKED:" prefix
-bd update {id} --title "{title without PARKED: prefix}"
-```
-
-**Decompose:**
-Invoke the decompose skill with the idea content.
-
-**Keep:**
-No action needed.
-
-**Discard:**
-```bash
-bd delete {id}
-```
-
-### 5. Summary
-
-After processing all reviewed ideas:
-```
-## Review Complete
-
-- Promoted: {count} issues
-- Kept parked: {count} ideas
-- Discarded: {count} ideas
-
-Promoted issues are now visible in `bd ready` if they have no blockers.
-```
+**Full format:**
+Includes the full idea text and context for each.
 
 ---
 
-## Batch Operations
+## /parked from <task-id>
 
-If user wants to handle all at once:
+Show ideas parked while working on a specific task.
 
-**Keep all:**
-> All {count} ideas remain parked. Review again anytime with "review parked ideas".
+### Arguments
 
-**Discard all:**
+| Argument | Type | Description |
+|----------|------|-------------|
+| `task-id` | string | The source task ID |
+
+### Examples
+
 ```bash
-# Get all parked idea IDs
-bd list --status=deferred -l parked-idea --json | jq -r '.[].id'
-# Delete each
-bd delete {id1} {id2} ...
+/parked from abc123
+/parked from claude-plugins-xyz
 ```
-> Discarded {count} parked ideas.
 
----
-
-## Filtering by Source Task
-
-If user asks about ideas from a specific task:
+### Execution
 
 ```bash
 # Find ideas that have dependency on specific task
@@ -122,4 +95,227 @@ bd list --status=deferred -l parked-idea --json | \
   jq '.[] | select(.dependencies[]? | contains("{task-id}"))'
 ```
 
-This shows only ideas parked while working on that task.
+**Output:**
+```
+## Ideas Parked During: {task-title} ({task-id})
+
+1. {id} - {idea title}
+   {brief idea text}
+
+2. {id} - {idea title}
+   {brief idea text}
+
+No other ideas? This task had focused work!
+```
+
+If no ideas found:
+```
+No ideas were parked while working on {task-id}.
+
+The work was either very focused, or ideas were captured elsewhere.
+```
+
+---
+
+## /parked promote <id> [id2] [id3]...
+
+Promote one or more parked ideas to real issues.
+
+### Arguments
+
+| Argument | Type | Description |
+|----------|------|-------------|
+| `id` | string | One or more parked idea IDs |
+| `--priority` | `-p` | number | New priority (default: keep existing) |
+| `--decompose` | `-d` | boolean | Run through decomposition for complex ideas |
+
+### Examples
+
+```bash
+/parked promote abc123
+/parked promote abc123 def456 ghi789
+/parked promote abc123 -p 2
+/parked promote abc123 --decompose
+```
+
+### Execution
+
+For each ID:
+
+1. **Update status and remove parked label:**
+   ```bash
+   bd update {id} --status open
+   bd label remove {id} parked-idea
+   ```
+
+2. **Update title (remove PARKED: prefix):**
+   ```bash
+   bd update {id} --title "{title without PARKED: prefix}"
+   ```
+
+3. **Update priority if provided:**
+   ```bash
+   bd update {id} --priority {priority}
+   ```
+
+4. **If `--decompose` flag:**
+   - Extract the idea content
+   - Invoke the decompose skill with that content
+   - Original parked issue becomes part of the decomposition
+
+**Output:**
+```
+Promoted {N} ideas:
+- {id} - {new title} (now P{priority}, open)
+- {id} - {new title} (now P{priority}, open)
+
+These are now visible in `bd ready` if they have no blockers.
+```
+
+---
+
+## /parked discard <id> [id2] [id3]...
+
+Delete one or more parked ideas.
+
+### Arguments
+
+| Argument | Type | Description |
+|----------|------|-------------|
+| `id` | string | One or more parked idea IDs |
+| `--force` | `-f` | boolean | Skip confirmation |
+
+### Examples
+
+```bash
+/parked discard abc123
+/parked discard abc123 def456
+/parked discard abc123 --force
+```
+
+### Execution
+
+1. **Confirm (unless --force):**
+   ```
+   Delete these parked ideas?
+   - {id} - {title}
+   - {id} - {title}
+
+   This cannot be undone. [Delete / Cancel]
+   ```
+
+2. **Delete each:**
+   ```bash
+   bd delete {id1} {id2} ...
+   ```
+
+**Output:**
+```
+Discarded {N} parked ideas.
+```
+
+---
+
+## /parked review
+
+Interactive review session for all parked ideas.
+
+### Arguments
+
+| Argument | Short | Type | Default | Description |
+|----------|-------|------|---------|-------------|
+| `--from` | | string | (none) | Filter to ideas from specific task |
+
+### Examples
+
+```bash
+/parked review
+/parked review --from abc123
+```
+
+### Execution
+
+This invokes the review-parked skill for an interactive session.
+
+**Flow:**
+
+1. **Present summary:**
+   ```
+   ## Parked Ideas Review ({count} total)
+
+   Starting interactive review...
+   ```
+
+2. **For each idea, show:**
+   ```
+   ## [{n}/{total}] {title}
+
+   **Idea:**
+   {full idea text}
+
+   **Context:**
+   Parked while: {source task}
+   Triggered by: {trigger context}
+
+   **What would you like to do?**
+   ○ Promote - Make it a real task
+   ○ Decompose - Break it down further
+   ○ Keep - Leave parked for later
+   ○ Discard - Delete this idea
+   ○ Skip - Decide later
+   ```
+
+3. **Execute decision** (promote, decompose, keep, or discard)
+
+4. **After all reviewed:**
+   ```
+   ## Review Complete
+
+   - Promoted: {count} issues
+   - Decomposed: {count} issues
+   - Kept parked: {count} ideas
+   - Discarded: {count} ideas
+   - Skipped: {count} ideas
+
+   Promoted issues are now visible in `bd ready`.
+   ```
+
+---
+
+## Batch Operations
+
+### Promote all
+```bash
+/parked promote $(bd list --status=deferred -l parked-idea --json | jq -r '.[].id' | tr '\n' ' ')
+```
+
+### Discard all
+```bash
+/parked discard --force $(bd list --status=deferred -l parked-idea --json | jq -r '.[].id' | tr '\n' ' ')
+```
+
+---
+
+## Error Handling
+
+### No parked ideas found
+```
+No parked ideas found.
+
+Park ideas while working with: /park "your idea"
+```
+
+### Invalid idea ID
+```
+Error: "{id}" is not a parked idea.
+
+Either the ID doesn't exist or it's not marked as parked.
+List parked ideas: /parked list
+```
+
+### ID not found
+```
+Error: Issue "{id}" not found.
+
+Check the ID and try again.
+```

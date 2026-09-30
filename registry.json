@@ -144,7 +144,10 @@
       ],
       "resources": {
         "skills": [
-          "sketch-from-capture"
+          "sketch-from-capture",
+          "jot-capture",
+          "jot-configure",
+          "jot-setup"
         ],
         "commands": [
           "jot/capture.md",
@@ -210,7 +213,11 @@
           "park-idea",
           "review-parked",
           "task-commit",
-          "craft-understand"
+          "craft-understand",
+          "craft-backlog",
+          "craft-deps",
+          "craft-epic",
+          "craft-task"
         ],
         "commands": [
           "craft/backlog.md",
@@ -265,7 +272,8 @@
       "resources": {
         "skills": [
           "capture-for-sketch",
-          "excalidraw-format"
+          "excalidraw-format",
+          "sketch-note"
         ],
         "commands": [
           "sketch-note/sketch.md"
@@ -320,7 +328,8 @@
         "skills": [
           "infographics",
           "jot-to-publish",
-          "typst-format"
+          "typst-format",
+          "typst-publish"
         ],
         "commands": [
           "typst-notes/publish.md"
@@ -480,7 +489,11 @@
         "gaps"
       ],
       "resources": {
-        "skills": [],
+        "skills": [
+          "study-coach",
+          "study-recall",
+          "study-setup"
+        ],
         "commands": [
           "study/coach.md",
           "study/recall.md",

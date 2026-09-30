@@ -51,6 +51,8 @@ Install the package from git:
 pi install git:github.com/jskswamy/skills@<tag>
 ```
 
+See [Command to Skill Map](docs/command-skill-map.md) for Pi `/skill:<name>` equivalents to the Claude Code commands.
+
 ### Repository Layout
 
 Canonical reusable resources live at the repository root:

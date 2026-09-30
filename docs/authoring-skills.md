@@ -73,7 +73,8 @@ Forward all arguments exactly as provided.
 ```
 
 This lets Claude users keep command UX while Pi users invoke the same
-workflow directly with `/skill:<name>`.
+workflow directly with `/skill:<name>`. Keep the mapping visible in
+[`docs/command-skill-map.md`](command-skill-map.md).
 
 ## Register Resources
 
