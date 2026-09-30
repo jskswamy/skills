@@ -1,0 +1,17 @@
+{
+  "description": "Safety nets for refactoring detection",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/detect-refactoring-edit.sh",
+            "timeout": 3000
+          }
+        ]
+      }
+    ]
+  }
+}

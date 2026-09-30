@@ -3,8 +3,7 @@
   "version": "1.0.2",
   "description": "End-to-end commit hygiene: write atomic commits with style enforcement, review and consolidate them before push, validate the final history",
   "author": {
-    "name": "Krishnaswamy Subramanian",
-    "email": "jskswamy@gmail.com"
+    "name": "Krishnaswamy Subramanian"
   },
   "keywords": [
     "git",

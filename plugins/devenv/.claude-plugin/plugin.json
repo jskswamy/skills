@@ -3,8 +3,7 @@
   "version": "1.3.2",
   "description": "Initialize and manage Nix flake development environments with auto-detection and security tooling",
   "author": {
-    "name": "Krishnaswamy Subramanian",
-    "email": "jskswamy@gmail.com"
+    "name": "Krishnaswamy Subramanian"
   },
   "keywords": [
     "nix",
@@ -14,6 +13,7 @@
     "environment",
     "pre-commit",
     "gitleaks",
+    "security",
     "direnv",
     "direnv-instant"
   ]

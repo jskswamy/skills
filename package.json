@@ -1,0 +1,26 @@
+{
+  "name": "agent-capabilities",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Reusable agent skills and plugins for coding workflows",
+  "keywords": [
+    "pi-package",
+    "agent-skills",
+    "claude-code",
+    "coding-agents"
+  ],
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "validate": "node scripts/validate.mjs",
+    "test": "node --test tests/**/*.test.mjs"
+  },
+  "pi": {
+    "skills": [
+      "./skills"
+    ],
+    "extensions": [
+      "./harnesses/pi/extensions"
+    ]
+  }
+}

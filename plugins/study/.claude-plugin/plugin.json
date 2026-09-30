@@ -1,12 +1,11 @@
 {
   "name": "study",
   "version": "1.0.3",
-  "description": "Adaptive study coach with multi-gear learning sessions and spaced recall tracking",
+  "description": "Adaptive study coach with multi-gear learning sessions (Socratic, Explain, Guide, Check, Help) and spaced recall tracking via Feynman loops. Saves coaching notes with gap tracking and a recall log that shows improvement over time.",
   "author": {
-    "name": "Krishnaswamy Subramanian",
-    "email": "jskswamy@gmail.com"
+    "name": "Krishnaswamy Subramanian"
   },
-  "tags": [
+  "keywords": [
     "learning",
     "coaching",
     "feynman",
@@ -14,7 +13,6 @@
     "spaced-repetition",
     "study",
     "knowledge",
-    "gaps",
-    "understanding"
+    "gaps"
   ]
 }

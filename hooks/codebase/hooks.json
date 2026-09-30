@@ -1,0 +1,17 @@
+{
+  "description": "Inject codebase-memory graph results before grep/rg Bash calls",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/pretooluse-grep.sh",
+            "timeout": 5000
+          }
+        ]
+      }
+    ]
+  }
+}

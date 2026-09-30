@@ -1,21 +1,17 @@
 {
   "name": "refactor",
   "version": "0.1.0",
-  "description": "Semantic refactoring opportunity detection. Scans committed code for structural duplication (Fowler catalog), code smells (Fowler/Beck), GoF design pattern opportunities, SOLID/DRY principle violations, and language-idiomatic anti-patterns. Creates beads issues with TDD-first refactoring plans.",
+  "description": "Semantic refactoring opportunity detection. Scans committed code for structural duplication (Fowler catalog), code smells (Fowler/Beck), GoF design pattern opportunities, SOLID/DRY principle violations, and language-idiomatic anti-patterns (Go, Python, TypeScript). Creates beads issues with TDD-first refactoring plans. Hooks into craft after each task closes.",
   "author": {
-    "name": "Krishnaswamy Subramanian",
-    "email": "jskswamy@gmail.com"
+    "name": "Krishnaswamy Subramanian"
   },
   "keywords": [
     "refactoring",
-    "code-quality",
     "duplication",
     "fowler",
     "beads",
     "codebase-memory",
-    "semantic-search",
     "tdd",
-    "code-smells",
-    "design-patterns"
+    "semantic-search"
   ]
 }

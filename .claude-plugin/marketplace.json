@@ -5,8 +5,7 @@
     "email": "jskswamy@gmail.com"
   },
   "metadata": {
-    "description": "A curated collection of Claude Code plugins",
-    "version": "2.1.12"
+    "description": "A curated collection of Claude Code plugins"
   },
   "plugins": [
     {

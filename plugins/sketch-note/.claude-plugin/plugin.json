@@ -3,8 +3,7 @@
   "version": "1.2.2",
   "description": "Generate visual sketch notes in Excalidraw format from conversations, code architecture, or custom content",
   "author": {
-    "name": "Krishnaswamy Subramanian",
-    "email": "jskswamy@gmail.com"
+    "name": "Krishnaswamy Subramanian"
   },
   "keywords": [
     "sketch",
@@ -13,6 +12,8 @@
     "visualization",
     "architecture",
     "notes",
-    "hand-drawn"
+    "hand-drawn",
+    "mind-map",
+    "flowchart"
   ]
 }

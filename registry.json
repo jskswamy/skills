@@ -1,0 +1,553 @@
+{
+  "marketplace": {
+    "name": "jskswamy-plugins",
+    "description": "A curated collection of Claude Code plugins",
+    "owner": {
+      "name": "Krishnaswamy Subramanian",
+      "email": "jskswamy@gmail.com"
+    }
+  },
+  "plugins": [
+    {
+      "name": "devenv",
+      "description": "Initialize and manage Nix flake development environments with auto-detection and security tooling",
+      "version": "1.3.2",
+      "author": {
+        "name": "Krishnaswamy Subramanian"
+      },
+      "category": "development",
+      "tags": [
+        "nix",
+        "flake",
+        "devenv",
+        "development",
+        "environment",
+        "pre-commit",
+        "gitleaks",
+        "security",
+        "direnv",
+        "direnv-instant"
+      ],
+      "resources": {
+        "skills": [
+          "devenv"
+        ],
+        "commands": [],
+        "agents": [],
+        "hooks": [
+          "devenv/hooks.json",
+          "devenv/scripts/deadnix.sh",
+          "devenv/scripts/nixfmt.sh",
+          "devenv/scripts/statix.sh",
+          "devenv/scripts/lib/run-nix-tool.sh"
+        ],
+        "templates": [],
+        "extra": [
+          {
+            "from": "templates/devenv/.mcp.json",
+            "to": ".mcp.json"
+          }
+        ]
+      },
+      "harnesses": {
+        "claude-code": {
+          "enabled": true
+        },
+        "pi": {
+          "enabled": true
+        }
+      }
+    },
+    {
+      "name": "commit-tools",
+      "description": "End-to-end commit hygiene: write atomic commits with style enforcement, review and consolidate them before push, validate the final history",
+      "version": "1.0.2",
+      "author": {
+        "name": "Krishnaswamy Subramanian"
+      },
+      "category": "git",
+      "tags": [
+        "git",
+        "commit",
+        "atomic",
+        "classic",
+        "conventional",
+        "review",
+        "squash",
+        "merge",
+        "validate",
+        "hooks",
+        "history",
+        "hygiene"
+      ],
+      "resources": {
+        "skills": [
+          "commit-action",
+          "commit-style",
+          "review-commits",
+          "validate-commits"
+        ],
+        "commands": [
+          "commit-tools/commit.md"
+        ],
+        "agents": [],
+        "hooks": [
+          "commit-tools/hooks.json",
+          "commit-tools/intercept-mcp-commit.md",
+          "commit-tools/scripts/intercept-git-commit.sh"
+        ],
+        "templates": [],
+        "extra": [
+          {
+            "from": "templates/commit-tools/styles",
+            "to": "styles"
+          },
+          {
+            "from": "templates/commit-tools/docs",
+            "to": "docs"
+          }
+        ]
+      },
+      "harnesses": {
+        "claude-code": {
+          "enabled": true
+        },
+        "pi": {
+          "enabled": true
+        }
+      }
+    },
+    {
+      "name": "jot",
+      "description": "Quick, low-friction capture of notes, tasks, ideas, session summaries, and tech radar blips with Obsidian-style auto-linking",
+      "version": "2.0.1",
+      "author": {
+        "name": "Krishnaswamy Subramanian"
+      },
+      "category": "productivity",
+      "tags": [
+        "capture",
+        "notes",
+        "tasks",
+        "ideas",
+        "radar",
+        "blips",
+        "knowledge-management",
+        "obsidian",
+        "wikilinks",
+        "gtd",
+        "productivity",
+        "learning",
+        "feynman",
+        "teach",
+        "teaching-notes"
+      ],
+      "resources": {
+        "skills": [
+          "sketch-from-capture"
+        ],
+        "commands": [
+          "jot/capture.md",
+          "jot/configure.md",
+          "jot/setup.md"
+        ],
+        "agents": [
+          "jot/capture.md",
+          "jot/content-extractor.md"
+        ],
+        "hooks": [],
+        "templates": [
+          "jot/capture/article.md",
+          "jot/capture/blip.md",
+          "jot/capture/book.md",
+          "jot/capture/idea.md",
+          "jot/capture/note.md",
+          "jot/capture/organisation.md",
+          "jot/capture/person.md",
+          "jot/capture/research.md",
+          "jot/capture/session.md",
+          "jot/capture/task.md",
+          "jot/capture/trove.md",
+          "jot/capture/video.md"
+        ],
+        "extra": []
+      },
+      "harnesses": {
+        "claude-code": {
+          "enabled": true
+        },
+        "pi": {
+          "enabled": true
+        }
+      }
+    },
+    {
+      "name": "craft",
+      "description": "The craft of building software end-to-end: capture ideas, understand problems, decompose work into structured units, dispatch subagents to execute them, and commit with full task context",
+      "version": "1.0.1",
+      "author": {
+        "name": "Krishnaswamy Subramanian"
+      },
+      "category": "workflow",
+      "tags": [
+        "craft",
+        "work",
+        "build",
+        "planning",
+        "decomposition",
+        "execution",
+        "subagents",
+        "review",
+        "tasks",
+        "epics",
+        "parking",
+        "workflow"
+      ],
+      "resources": {
+        "skills": [
+          "craft-decompose",
+          "execute-tasks",
+          "park-idea",
+          "review-parked",
+          "task-commit",
+          "craft-understand"
+        ],
+        "commands": [
+          "craft/backlog.md",
+          "craft/decompose.md",
+          "craft/deps.md",
+          "craft/epic.md",
+          "craft/execute.md",
+          "craft/park.md",
+          "craft/parked.md",
+          "craft/task.md"
+        ],
+        "agents": [
+          "craft/issue-writer.md",
+          "craft/quality-reviewer.md",
+          "craft/spec-reviewer.md"
+        ],
+        "hooks": [
+          "craft/hooks.json",
+          "craft/scripts/check-parked-ideas.sh"
+        ],
+        "templates": [],
+        "extra": []
+      },
+      "harnesses": {
+        "claude-code": {
+          "enabled": true
+        },
+        "pi": {
+          "enabled": true
+        }
+      }
+    },
+    {
+      "name": "sketch-note",
+      "description": "Generate visual sketch notes in Excalidraw format from conversations, code architecture, or custom content",
+      "version": "1.2.2",
+      "author": {
+        "name": "Krishnaswamy Subramanian"
+      },
+      "category": "visualization",
+      "tags": [
+        "sketch",
+        "excalidraw",
+        "diagram",
+        "visualization",
+        "architecture",
+        "notes",
+        "hand-drawn",
+        "mind-map",
+        "flowchart"
+      ],
+      "resources": {
+        "skills": [
+          "capture-for-sketch",
+          "excalidraw-format"
+        ],
+        "commands": [
+          "sketch-note/sketch.md"
+        ],
+        "agents": [
+          "sketch-note/sketch.md"
+        ],
+        "hooks": [],
+        "templates": [
+          "sketch-note/code-architecture.md",
+          "sketch-note/conversation.md",
+          "sketch-note/custom.md"
+        ],
+        "extra": [
+          {
+            "from": "templates/sketch-note/styles",
+            "to": "styles"
+          },
+          {
+            "from": "shared-scripts/sketch-note",
+            "to": "scripts"
+          }
+        ]
+      },
+      "harnesses": {
+        "claude-code": {
+          "enabled": true
+        },
+        "pi": {
+          "enabled": true
+        }
+      }
+    },
+    {
+      "name": "typst-notes",
+      "description": "Generate beautiful PDF/HTML shareable notes using Typst with 7 professional templates, infographics, and modern typography",
+      "version": "1.0.3",
+      "author": {
+        "name": "Krishnaswamy Subramanian"
+      },
+      "category": "productivity",
+      "tags": [
+        "typst",
+        "pdf",
+        "html",
+        "notes",
+        "templates",
+        "publish",
+        "infographics"
+      ],
+      "resources": {
+        "skills": [
+          "infographics",
+          "jot-to-publish",
+          "typst-format"
+        ],
+        "commands": [
+          "typst-notes/publish.md"
+        ],
+        "agents": [
+          "typst-notes/content-analyzer.md",
+          "typst-notes/typst-generator.md"
+        ],
+        "hooks": [],
+        "templates": [
+          "typst-notes/base.typ",
+          "typst-notes/cheat-sheet.typ",
+          "typst-notes/creative-portfolio.typ",
+          "typst-notes/executive-summary.typ",
+          "typst-notes/meeting-minutes.typ",
+          "typst-notes/study-guide.typ",
+          "typst-notes/technical-brief.typ",
+          "typst-notes/visual-sketchnote.typ"
+        ],
+        "extra": [
+          {
+            "from": "templates/typst-notes/fonts",
+            "to": "fonts"
+          },
+          {
+            "from": "shared-scripts/typst-notes",
+            "to": "scripts"
+          },
+          {
+            "from": "templates/typst-notes/themes",
+            "to": "themes"
+          }
+        ]
+      },
+      "harnesses": {
+        "claude-code": {
+          "enabled": true
+        },
+        "pi": {
+          "enabled": true
+        }
+      }
+    },
+    {
+      "name": "guardrails",
+      "description": "Efficiency guardrails for Claude - IDE refactoring handoff with automatic pattern detection, extensible to security, cost, and testing patterns",
+      "version": "1.0.1",
+      "author": {
+        "name": "Krishnaswamy Subramanian"
+      },
+      "category": "workflow",
+      "tags": [
+        "guardrails",
+        "refactoring",
+        "ide",
+        "efficiency",
+        "handoff",
+        "intellij",
+        "goland",
+        "vscode",
+        "semantic-refactoring",
+        "ast"
+      ],
+      "resources": {
+        "skills": [
+          "ide-handoff"
+        ],
+        "commands": [
+          "guardrails/handoff.md"
+        ],
+        "agents": [],
+        "hooks": [
+          "guardrails/hooks.json",
+          "guardrails/ide-refactoring-detected.md",
+          "guardrails/scripts/detect-refactoring-edit.sh"
+        ],
+        "templates": [
+          "guardrails/handoff-document.md",
+          "guardrails/intellij-steps.md",
+          "guardrails/vscode-steps.md"
+        ],
+        "extra": []
+      },
+      "harnesses": {
+        "claude-code": {
+          "enabled": true
+        },
+        "pi": {
+          "enabled": true
+        }
+      }
+    },
+    {
+      "name": "codebase",
+      "description": "Intelligent codebase exploration powered by codebase-memory-mcp. Natural language queries, change impact analysis, symbol graph traversal, and automatic brainstorming/planning integration.",
+      "version": "0.1.4",
+      "author": {
+        "name": "Krishnaswamy Subramanian"
+      },
+      "category": "code-intelligence",
+      "tags": [
+        "codebase",
+        "exploration",
+        "semantic-search",
+        "impact-analysis",
+        "codebase-memory",
+        "graph",
+        "architecture"
+      ],
+      "resources": {
+        "skills": [
+          "codebase-explore"
+        ],
+        "commands": [
+          "codebase/ask.md",
+          "codebase/graph.md",
+          "codebase/impact.md",
+          "codebase/index.md"
+        ],
+        "agents": [],
+        "hooks": [
+          "codebase/hooks.json",
+          "codebase/pretooluse-grep.sh"
+        ],
+        "templates": [],
+        "extra": []
+      },
+      "harnesses": {
+        "claude-code": {
+          "enabled": true
+        },
+        "pi": {
+          "enabled": true
+        }
+      }
+    },
+    {
+      "name": "study",
+      "description": "Adaptive study coach with multi-gear learning sessions (Socratic, Explain, Guide, Check, Help) and spaced recall tracking via Feynman loops. Saves coaching notes with gap tracking and a recall log that shows improvement over time.",
+      "version": "1.0.3",
+      "author": {
+        "name": "Krishnaswamy Subramanian"
+      },
+      "category": "productivity",
+      "tags": [
+        "learning",
+        "coaching",
+        "feynman",
+        "recall",
+        "spaced-repetition",
+        "study",
+        "knowledge",
+        "gaps"
+      ],
+      "resources": {
+        "skills": [],
+        "commands": [
+          "study/coach.md",
+          "study/recall.md",
+          "study/setup.md"
+        ],
+        "agents": [
+          "study/coach-agent.md",
+          "study/content-extractor.md",
+          "study/recall-agent.md"
+        ],
+        "hooks": [],
+        "templates": [
+          "study/study-note.md"
+        ],
+        "extra": []
+      },
+      "harnesses": {
+        "claude-code": {
+          "enabled": true
+        },
+        "pi": {
+          "enabled": true
+        }
+      }
+    },
+    {
+      "name": "refactor",
+      "description": "Semantic refactoring opportunity detection. Scans committed code for structural duplication (Fowler catalog), code smells (Fowler/Beck), GoF design pattern opportunities, SOLID/DRY principle violations, and language-idiomatic anti-patterns (Go, Python, TypeScript). Creates beads issues with TDD-first refactoring plans. Hooks into craft after each task closes.",
+      "version": "0.1.0",
+      "author": {
+        "name": "Krishnaswamy Subramanian"
+      },
+      "category": "code-quality",
+      "tags": [
+        "refactoring",
+        "duplication",
+        "fowler",
+        "beads",
+        "codebase-memory",
+        "tdd",
+        "semantic-search"
+      ],
+      "resources": {
+        "skills": [
+          "refactor-scan"
+        ],
+        "commands": [
+          "refactor/scan.md"
+        ],
+        "agents": [
+          "refactor/scanner.md",
+          "refactor/synthesizer.md",
+          "refactor/validator.md"
+        ],
+        "hooks": [],
+        "templates": [],
+        "extra": [
+          {
+            "from": "templates/refactor/fixtures",
+            "to": "fixtures"
+          }
+        ]
+      },
+      "harnesses": {
+        "claude-code": {
+          "enabled": true
+        },
+        "pi": {
+          "enabled": true
+        }
+      }
+    }
+  ]
+}

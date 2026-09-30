@@ -4,5 +4,14 @@
   "description": "Generate beautiful PDF/HTML shareable notes using Typst with 7 professional templates, infographics, and modern typography",
   "author": {
     "name": "Krishnaswamy Subramanian"
-  }
+  },
+  "keywords": [
+    "typst",
+    "pdf",
+    "html",
+    "notes",
+    "templates",
+    "publish",
+    "infographics"
+  ]
 }

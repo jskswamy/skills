@@ -1,0 +1,61 @@
+# Example candidate file produced by a scanner shard.
+# Path on disk in real scans: .refactor-scan/<ts>/candidates/<package>.yaml
+package: internal/api
+generated_at: 2026-05-05T10:22:31Z
+scope: all                    # diff | package | all
+base_sha: ""                  # only set when scope=diff
+candidates:
+  - id: cand-001              # stable per-scan, scoped to this file
+    pass: A                   # A=similarity | B=call-graph | C=hierarchy | D=type-discriminant | E=idiom
+    pattern: Replace Inline Code with Function Call
+    confidence: high          # high | medium
+    new_function:
+      file: internal/api/users.go
+      line_start: 45
+      line_end: 58
+      qualified_name: internal.api.writeJSONResponse
+      source: |
+        func writeJSONResponse(w http.ResponseWriter, status int, body any) error {
+            w.Header().Set("Content-Type", "application/json")
+            w.WriteHeader(status)
+            return json.NewEncoder(w).Encode(body)
+        }
+    matches:
+      - file: internal/handlers/auth.go
+        line_start: 78
+        line_end: 92
+        qualified_name: internal.handlers.respond
+        similarity: 0.91
+        source: |
+          func respond(w http.ResponseWriter, code int, payload interface{}) {
+              w.Header().Set("Content-Type", "application/json")
+              w.WriteHeader(code)
+              _ = json.NewEncoder(w).Encode(payload)
+          }
+    related_callers:
+      - internal.api.handleGetUsers
+      - internal.api.handleCreateUser
+    related_callees:
+      - encoding/json.NewEncoder
+    note: "Three near-identical JSON response writers across api and handlers packages."
+  - id: cand-002
+    pass: B
+    pattern: Move Function (feature envy)
+    confidence: medium
+    new_function:
+      file: internal/api/orders.go
+      line_start: 23
+      line_end: 34
+      qualified_name: internal.api.formatPrice
+      source: |
+        func formatPrice(o *order.Order) string {
+            // formats price using order package internals exclusively
+        }
+    matches: []
+    related_callers:
+      - internal.api.renderOrder
+    related_callees:
+      - order.Order.Subtotal
+      - order.Order.TaxRate
+      - order.Order.Currency
+    note: "All callees are in the order package; function should likely live there."
