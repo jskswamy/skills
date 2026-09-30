@@ -6,7 +6,18 @@ Intelligent codebase exploration powered by [codebase-memory-mcp](https://github
 
 - **codebase-memory-mcp** must be installed and configured in your MCP settings (`.claude.json` or `.mcp.json`). Without it, commands will print an error and the explore skill will fall back to grep/glob/read.
 
-## Commands
+## Commands and Skills
+
+Claude Code users can use `/codebase:*` commands. Pi users can invoke the
+same canonical workflows directly as skills:
+
+| Workflow | Claude Code | Pi |
+|----------|-------------|----|
+| Index | `/codebase:index [--mode full|moderate|fast]` | `/skill:codebase-index [--mode full|moderate|fast]` |
+| Ask | `/codebase:ask <question>` | `/skill:codebase-ask <question>` |
+| Impact | `/codebase:impact [--base <sha>]` | `/skill:codebase-impact [--base <sha>]` |
+| Graph | `/codebase:graph <symbol> ...` | `/skill:codebase-graph <symbol> ...` |
+| Explore | auto-triggered skill | `/skill:codebase-explore` |
 
 ### `/codebase:index [--mode full|moderate|fast]`
 

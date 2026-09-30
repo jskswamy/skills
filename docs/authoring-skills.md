@@ -50,6 +50,31 @@ templates/<plugin-name>/<template>
 shared-scripts/<plugin-name>/<script>
 ```
 
+## Command Wrappers
+
+For cross-harness workflows, put the full workflow in
+`skills/<name>/SKILL.md`. Claude command files under `commands/` should be
+thin wrappers that invoke the canonical skill and forward all arguments
+unchanged.
+
+Example command wrapper:
+
+```markdown
+---
+name: ask
+description: Ask a natural language question about the codebase
+argument-hint: "<question>"
+---
+
+# /codebase:ask Command
+
+Invoke the `codebase-ask` skill with the user's question.
+Forward all arguments exactly as provided.
+```
+
+This lets Claude users keep command UX while Pi users invoke the same
+workflow directly with `/skill:<name>`.
+
 ## Register Resources
 
 Update `registry.json`:

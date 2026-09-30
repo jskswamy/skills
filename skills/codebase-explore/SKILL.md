@@ -42,7 +42,7 @@ Decide what to do:
 
 - **No matching indexed project (index missing):** treat as needing an index.
   - `auto_index: always` → call `index_repository` with the resolved mode, then continue.
-  - `auto_index: ask` (or file missing) → use `AskUserQuestion` to prompt:
+  - `auto_index: ask` (or file missing) → ask the user using the harness question mechanism:
     ```
     The codebase isn't indexed yet. Index now?
 
@@ -51,11 +51,11 @@ Decide what to do:
     ○ No (fall back to grep/glob)
     ```
     If a "save" option is selected, write the preference to `.claude/codebase.local.md`. If "Yes", call `index_repository`, then continue. If "No", fall back to grep/glob/read.
-  - `auto_index: never` → print `Codebase is not yet indexed. Run /codebase:index to build the index.` and fall back to grep/glob/read.
+  - `auto_index: never` → print `Codebase is not yet indexed. Run /skill:codebase-index (or /codebase:index in Claude Code) to build the index.` and fall back to grep/glob/read.
 
 - **Index exists but `last_indexed` is missing or >24h old (stale):**
   - `auto_index: always` → call `index_repository` with the resolved mode to refresh, then continue.
-  - `auto_index: ask` → use `AskUserQuestion` to prompt:
+  - `auto_index: ask` → ask the user using the harness question mechanism:
     ```
     Codebase index is stale (last indexed: [time ago]). Refresh now?
 
@@ -64,7 +64,7 @@ Decide what to do:
     ○ No, use stale index
     ```
     If "Yes", refresh then continue. If "No", continue with stale data after printing `⚠ Using stale index (last indexed: [time ago]). Results may be incomplete.`
-  - `auto_index: never` → print `⚠ Index may be stale (last indexed: [time ago]). Run /codebase:index to refresh.` and continue with stale data.
+  - `auto_index: never` → print `⚠ Index may be stale (last indexed: [time ago]). Run /skill:codebase-index (or /codebase:index in Claude Code) to refresh.` and continue with stale data.
 
 - **Index exists and is fresh:** continue.
 
@@ -90,17 +90,12 @@ After a successful auto-index, update `last_indexed` in `.claude/codebase.local.
 
 **If activated on a direct user question:**
 
-Route the question through the same logic as `/codebase:ask`:
-
-1. Classify intent (Location, Understanding, Impact, Similarity, Onboarding)
-2. Call the appropriate `codebase-memory-mcp` tools
-3. Present the answer with file:line references and contextual explanation
-
-See the `/codebase:ask` command (in `${CLAUDE_PLUGIN_ROOT}/commands/ask.md`) for the full intent classification and tool sequence for each intent type.
+Invoke or follow the `codebase-ask` skill with the user's question. In Claude
+Code, `/codebase:ask` remains a convenience command for the same workflow.
 
 ### Step 4: Fallback
 
 If any `codebase-memory-mcp` tool call fails during exploration:
 - Do NOT fail the overall workflow
-- Fall back to `Grep`, `Glob`, and `Read` for the specific information needed
+- Fall back to available search/read tools for the specific information needed, such as `Grep`/`Glob`/`Read` in Claude Code or `grep`/`find`/`read`/`bash` in Pi
 - Continue with whatever results are available
