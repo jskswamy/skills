@@ -1,10 +1,12 @@
-# Claude Plugins Marketplace
+# Agent Capabilities Marketplace
 
-A curated collection of Claude Code plugins focused on developer workflows, code generation, and productivity.
+A curated collection of reusable agent capabilities focused on developer workflows, code generation, and productivity.
 
 ## About
 
-This is a personal collection of useful Claude Code plugins that I've built to enhance my daily development workflow. All plugins are open to anyone who finds them helpful.
+This repository started as a Claude Code plugin marketplace and now keeps reusable behavior in harness-neutral resource directories. Claude Code remains supported through generated multi-plugin marketplace wrappers in `plugins/`, while Pi can load the canonical root `skills/` directly through `package.json` package metadata.
+
+All plugins are open to anyone who finds them helpful.
 
 ## Philosophy
 
@@ -16,9 +18,10 @@ This is a personal collection of useful Claude Code plugins that I've built to e
 
 ### Prerequisites
 
-- [Claude Code](https://claude.ai/code) installed on your machine
+- [Claude Code](https://claude.ai/code) installed on your machine for Claude plugins
+- [Pi](https://pi.dev) installed on your machine for Pi package usage
 
-### Installation
+### Claude Code Installation
 
 1. Add this marketplace to Claude Code:
 
@@ -39,6 +42,30 @@ This is a personal collection of useful Claude Code plugins that I've built to e
    ```
 
 4. Use the plugin via its commands or skills (see individual plugin documentation)
+
+### Pi Installation
+
+Install the package from git:
+
+```bash
+pi install git:github.com/jskswamy/claude-plugins@<tag>
+```
+
+After the repository is renamed, use the new repository URL documented in `harnesses/pi/README.md`.
+
+### Repository Layout
+
+Canonical reusable resources live at the repository root:
+
+```text
+skills/       # Agent Skills source of truth
+commands/     # command markdown grouped by plugin
+agents/       # agent prompts grouped by plugin
+hooks/        # hook definitions and scripts grouped by plugin
+templates/    # reusable templates and static assets
+```
+
+Claude Code install wrappers are generated into `plugins/` from `registry.json` with `npm run build`. Do not edit copied resources under `plugins/<name>/` directly; edit canonical root resources and regenerate.
 
 ## Available Plugins
 

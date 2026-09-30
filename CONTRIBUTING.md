@@ -22,49 +22,68 @@ This project uses [Nix](https://nixos.org/) for reproducible development environ
 
 ## Creating a Plugin
 
-1. Install the official plugin-dev tool:
-   ```
-   /plugin install github:anthropics/claude-code/plugins/plugin-dev
-   ```
+Plugins are described in `registry.json`; reusable resources live in root canonical directories.
 
-2. Run the plugin creation wizard:
+1. Add skills under `skills/<skill-name>/SKILL.md`.
+2. Add commands under `commands/<plugin-name>/`.
+3. Add agents under `agents/<plugin-name>/`.
+4. Add hooks under `hooks/<plugin-name>/`.
+5. Add templates/assets under `templates/<plugin-name>/` or `shared-scripts/<plugin-name>/`.
+6. Register plugin metadata and resource membership in `registry.json`.
+7. Generate Claude Code wrappers:
+   ```bash
+   npm run build
    ```
-   /plugin-dev:create-plugin
-   ```
-
-3. Move your plugin to `plugins/<plugin-name>/`
-
-4. Test locally:
+8. Test locally:
    ```bash
    claude --plugin-dir ./plugins/<plugin-name>
    ```
 
 ## Submitting a Plugin
 
-1. Fork this repository
-2. Create your plugin in `plugins/`
-3. Add your plugin entry to `.claude-plugin/marketplace.json`
-4. Update README.md to list your plugin
-5. Submit a pull request
+1. Fork this repository.
+2. Add canonical resources and update `registry.json`.
+3. Run:
+   ```bash
+   npm run build
+   npm run validate
+   npm test
+   ```
+4. Update README.md to list your plugin if needed.
+5. Submit a pull request including generated `plugins/<plugin-name>/` changes.
 
 ## Plugin Entry Format
 
-Add to the `plugins` array in `.claude-plugin/marketplace.json`:
+Add to the `plugins` array in `registry.json`:
 
 ```json
 {
   "name": "your-plugin",
-  "description": "Brief description of what it does",
   "version": "1.0.0",
+  "description": "Brief description of what it does",
   "author": { "name": "Your Name" },
-  "source": "./plugins/your-plugin",
   "category": "utilities",
-  "tags": ["relevant", "tags"]
+  "tags": ["relevant", "tags"],
+  "resources": {
+    "skills": ["your-skill"],
+    "commands": ["your-plugin/command.md"],
+    "agents": [],
+    "hooks": [],
+    "templates": [],
+    "extra": []
+  },
+  "harnesses": {
+    "claude-code": { "enabled": true },
+    "pi": { "enabled": true }
+  }
 }
 ```
 
 ## Requirements
 
-- Plugin must have a valid `.claude-plugin/plugin.json`
-- Plugin must include a README.md with usage instructions
-- Plugin must be tested locally before submission
+- Skills must have valid `SKILL.md` frontmatter with `name` and `description`.
+- Plugin metadata and resource membership must be declared in `registry.json`.
+- Generated Claude wrappers must be current (`npm run build` then no generated diff).
+- `npm run validate` and `npm test` must pass.
+- Plugin must include usage documentation.
+- Plugin must be tested locally before submission.
