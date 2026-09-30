@@ -1,6 +1,6 @@
 ---
 name: park-idea
-description: |
+description: Quickly park ideas with optional metadata without breaking the current work flow.
 ---
 
 # Park Idea Skill

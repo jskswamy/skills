@@ -1,6 +1,6 @@
 ---
 name: execute-tasks
-description: |
+description: Execute decomposed beads tasks with isolated subagents, review checkpoints, and atomic commits.
 ---
 
 # Execute Tasks Skill

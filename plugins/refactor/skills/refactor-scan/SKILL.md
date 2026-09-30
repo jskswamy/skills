@@ -1,6 +1,6 @@
 ---
 name: refactor-scan
-description: |
+description: Scan committed code, packages, or the full codebase for refactoring opportunities and create reviewable findings.
 ---
 
 # Refactor Scan Skill

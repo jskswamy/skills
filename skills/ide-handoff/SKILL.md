@@ -1,6 +1,6 @@
 ---
 name: ide-handoff
-description: >
+description: Generate IDE refactoring handoff documents with step-by-step instructions for semantic refactors.
 ---
 
 # Ide Handoff Skill

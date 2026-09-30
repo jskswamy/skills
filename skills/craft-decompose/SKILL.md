@@ -1,6 +1,6 @@
 ---
 name: craft-decompose
-description: |
+description: Transform complex tasks into well-structured beads issues. Use when decomposing work, creating epics, or planning implementation tasks.
 ---
 
 # Craft Decompose Skill

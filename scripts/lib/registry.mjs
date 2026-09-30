@@ -117,7 +117,24 @@ async function pathExists(path) {
 function hasValidSkillFrontmatter(content) {
   const match = content.match(/^---\r?\n([\s\S]*?)\r?\n---/);
   if (!match) return false;
-  return /^name:\s*\S+/m.test(match[1]) && /^description:\s*\S+/m.test(match[1]);
+  const frontmatter = match[1];
+  return hasNonEmptyYamlField(frontmatter, "name") && hasNonEmptyYamlField(frontmatter, "description");
+}
+
+function hasNonEmptyYamlField(frontmatter, field) {
+  const lines = frontmatter.split(/\r?\n/);
+  const index = lines.findIndex((line) => line.startsWith(`${field}:`));
+  if (index === -1) return false;
+
+  const value = lines[index].slice(field.length + 1).trim();
+  if (value && value !== "|" && value !== ">") return true;
+  if (value !== "|" && value !== ">") return false;
+
+  for (const line of lines.slice(index + 1)) {
+    if (/^\S/.test(line)) break;
+    if (line.trim()) return true;
+  }
+  return false;
 }
 
 function requireNonEmptyString(value, field, errors) {

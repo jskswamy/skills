@@ -1,6 +1,6 @@
 ---
 name: review-parked
-description: |
+description: List, filter, promote, discard, and review parked ideas captured during development.
 ---
 
 # Review Parked Skill
