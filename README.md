@@ -6,13 +6,13 @@ A curated collection of reusable agent capabilities focused on developer workflo
 
 This repository started as a Claude Code plugin marketplace and now keeps reusable behavior in harness-neutral resource directories. Claude Code remains supported through generated multi-plugin marketplace wrappers in `plugins/`, while Pi can load the canonical root `skills/` directly through `package.json` package metadata.
 
-All plugins are open to anyone who finds them helpful.
+All skills and generated harness adapters are open to anyone who finds them helpful.
 
 ## Philosophy
 
-- **Practical focus**: Plugins solve real, everyday problems in development workflows
-- **Simplicity first**: Each plugin does one thing well without unnecessary complexity
-- **Quality over quantity**: A small number of polished, reliable plugins is better than many half-baked ones
+- **Practical focus**: Skills solve real, everyday problems in development workflows
+- **Simplicity first**: Each workflow does one thing well without unnecessary complexity
+- **Quality over quantity**: A small number of polished, reliable skills is better than many half-baked ones
 
 ## Quick Start
 
@@ -41,7 +41,7 @@ All plugins are open to anyone who finds them helpful.
    /plugin install <plugin-name>@skills
    ```
 
-4. Use the plugin via its commands or skills (see individual plugin documentation)
+4. Use the installed workflows via commands or skills (see individual documentation)
 
 ### Pi Installation
 
@@ -67,32 +67,48 @@ templates/    # reusable templates and static assets
 
 Claude Code install wrappers are generated into `plugins/` from `registry.json` with `npm run build`. Do not edit copied resources under `plugins/<name>/` directly; edit canonical root resources and regenerate.
 
-## Available Plugins
+## Available Capabilities
 
 <!-- PLUGINS:START -->
 
+This repository publishes the same canonical workflows to multiple agent harnesses:
 
+- **Claude Code**: install a generated plugin and use its slash commands.
+- **Pi**: install the package once and invoke canonical skills with `/skill:<name>`.
+
+Install all skills in Pi:
+
+```bash
+pi install git:github.com/jskswamy/skills@main
+```
+
+Install individual Claude Code plugins from the marketplace:
+
+```text
+/plugin marketplace add jskswamy/skills
+/plugin install <plugin-name>@skills
+```
+
+See [Command to Skill Map](docs/command-skill-map.md) for full command equivalents.
 ### codebase
 
 Intelligent codebase exploration powered by codebase-memory-mcp. Natural language queries, change impact analysis, symbol graph traversal, and automatic brainstorming/planning integration.
 
-**Features:**
-- Codebase
-- Exploration
-- Semantic Search
-- Impact Analysis
-- Codebase Memory
+**Claude Code:**
 
-**Install:**
-```
+```text
 /plugin install codebase@skills
+# Commands are documented in the capability README
 ```
+**Pi skills:**
 
-**Usage:**
+```text
+/skill:codebase-explore
+/skill:codebase-ask
+/skill:codebase-index
+/skill:codebase-impact
+/skill:codebase-graph
 ```
-/codebase
-```
-
 [View documentation](./plugins/codebase/README.md)
 
 
@@ -100,23 +116,20 @@ Intelligent codebase exploration powered by codebase-memory-mcp. Natural languag
 
 End-to-end commit hygiene: write atomic commits with style enforcement, review and consolidate them before push, validate the final history
 
-**Features:**
-- Git
-- Commit
-- Atomic
-- Classic
-- Conventional
+**Claude Code:**
 
-**Install:**
-```
+```text
 /plugin install commit-tools@skills
+# Commands are documented in the capability README
 ```
+**Pi skills:**
 
-**Usage:**
+```text
+/skill:commit-action
+/skill:commit-style
+/skill:review-commits
+/skill:validate-commits
 ```
-/committools
-```
-
 [View documentation](./plugins/commit-tools/README.md)
 
 
@@ -124,23 +137,25 @@ End-to-end commit hygiene: write atomic commits with style enforcement, review a
 
 The craft of building software end-to-end: capture ideas, understand problems, decompose work into structured units, dispatch subagents to execute them, and commit with full task context
 
-**Features:**
-- Craft
-- Work
-- Build
-- Planning
-- Decomposition
+**Claude Code:**
 
-**Install:**
-```
+```text
 /plugin install craft@skills
+# Commands are documented in the capability README
 ```
+**Pi skills:**
 
-**Usage:**
+```text
+/skill:craft-decompose
+/skill:execute-tasks
+/skill:park-idea
+/skill:review-parked
+/skill:task-commit
+/skill:craft-understand
+/skill:craft-backlog
+/skill:craft-deps
+# plus 2 more skills in registry.json
 ```
-/craft
-```
-
 [View documentation](./plugins/craft/README.md)
 
 
@@ -148,23 +163,16 @@ The craft of building software end-to-end: capture ideas, understand problems, d
 
 Initialize and manage Nix flake development environments with auto-detection and security tooling
 
-**Features:**
-- Auto-detection: Automatically detects your project's tech stack and suggests appropriate packages
-- Native Nix pre-commit: Uses [git-hooks.nix](https://github.com/cachix/git-hooks.nix) for pure Nix pre-commit integration
-- Security tooling: Built-in support for gitleaks and SAST tools
-- Nix best practices: Generated flakes follow Nix conventions and are automatically linted/formatted
-- No system dependencies: All tools run via Nix, ensuring reproducibility
+**Claude Code:**
 
-**Install:**
-```
+```text
 /plugin install devenv@skills
 ```
+**Pi skills:**
 
-**Usage:**
+```text
+/skill:devenv
 ```
-/devenv
-```
-
 [View documentation](./plugins/devenv/README.md)
 
 
@@ -172,23 +180,17 @@ Initialize and manage Nix flake development environments with auto-detection and
 
 Efficiency guardrails for Claude - IDE refactoring handoff with automatic pattern detection, extensible to security, cost, and testing patterns
 
-**Features:**
-- Guardrails
-- Refactoring
-- Ide
-- Efficiency
-- Handoff
+**Claude Code:**
 
-**Install:**
-```
+```text
 /plugin install guardrails@skills
+# Commands are documented in the capability README
 ```
+**Pi skills:**
 
-**Usage:**
+```text
+/skill:ide-handoff
 ```
-/handoff
-```
-
 [View documentation](./plugins/guardrails/README.md)
 
 
@@ -196,26 +198,20 @@ Efficiency guardrails for Claude - IDE refactoring handoff with automatic patter
 
 Quick, low-friction capture of notes, tasks, ideas, session summaries, and tech radar blips with Obsidian-style auto-linking
 
-**Features:**
-- Quick captures: Task, note, idea, session, blip - minimal friction
-- Full captures: Article, video, blip (GitHub/tools), person, book, organisation, trove, research - URL-based extraction
-- Feynman teaching: Interactive `/teach` command for deepening understanding of papers, videos, articles, and concepts you've already studied
-- Teaching notes: Capture your learning journey with analogies, misconceptions, and applied scenarios
-- Session summaries: Capture Claude Code session outcomes with guided questions
+**Claude Code:**
 
-**Install:**
-```
+```text
 /plugin install jot@skills
+# Commands are documented in the capability README
 ```
+**Pi skills:**
 
-**Usage:**
+```text
+/skill:sketch-from-capture
+/skill:jot-capture
+/skill:jot-configure
+/skill:jot-setup
 ```
-/capture task Buy groceries
-/capture note Meeting notes about project X
-/capture idea What if we tried approach Y
-/capture blip Docker --ring adopt --quadrant platforms
-```
-
 [View documentation](./plugins/jot/README.md)
 
 
@@ -223,24 +219,17 @@ Quick, low-friction capture of notes, tasks, ideas, session summaries, and tech 
 
 Semantic refactoring opportunity detection. Scans committed code for structural duplication (Fowler catalog), code smells (Fowler/Beck), GoF design pattern opportunities, SOLID/DRY principle violations, and language-idiomatic anti-patterns (Go, Python, TypeScript). Creates beads issues with TDD-first refactoring plans. Hooks into craft after each task closes.
 
-**Features:**
-- Refactoring
-- Duplication
-- Fowler
-- Beads
-- Codebase Memory
+**Claude Code:**
 
-**Install:**
-```
+```text
 /plugin install refactor@skills
+# Commands are documented in the capability README
 ```
+**Pi skills:**
 
-**Usage:**
+```text
+/skill:refactor-scan
 ```
-/refactor:scan                   # scan changes since upstream
-/refactor:scan --base abc1234    # scan changes since specific SHA
-```
-
 [View documentation](./plugins/refactor/README.md)
 
 
@@ -248,28 +237,19 @@ Semantic refactoring opportunity detection. Scans committed code for structural 
 
 Generate visual sketch notes in Excalidraw format from conversations, code architecture, or custom content
 
-**Features:**
-- Multiple content modes: Capture conversation summaries, visualize code architecture, or sketch custom content
-- Excalidraw output: Creates `.excalidraw` files that open directly in Excalidraw
-- PNG export: Interactive workflow detects available tools and guides you through export options
-- Customizable styling: Configure background, pen type, roughness, and visual effects
-- Persistent preferences: Settings saved per-project for consistent output
+**Claude Code:**
 
-**Install:**
-```
+```text
 /plugin install sketch-note@skills
+# Commands are documented in the capability README
 ```
+**Pi skills:**
 
-**Usage:**
+```text
+/skill:capture-for-sketch
+/skill:excalidraw-format
+/skill:sketch-note
 ```
-/sketch                           # Interactive mode selection
-/sketch --mode conversation       # Sketch current conversation
-/sketch --mode code               # Visualize code architecture
-/sketch --mode custom             # Custom content input
-/sketch --output my-diagram       # Specify output filename
-/sketch --format png              # PNG via Excalidraw conversion
-```
-
 [View documentation](./plugins/sketch-note/README.md)
 
 
@@ -277,23 +257,19 @@ Generate visual sketch notes in Excalidraw format from conversations, code archi
 
 Adaptive study coach with multi-gear learning sessions (Socratic, Explain, Guide, Check, Help) and spaced recall tracking via Feynman loops. Saves coaching notes with gap tracking and a recall log that shows improvement over time.
 
-**Features:**
-- Learning
-- Coaching
-- Feynman
-- Recall
-- Spaced Repetition
+**Claude Code:**
 
-**Install:**
-```
+```text
 /plugin install study@skills
+# Commands are documented in the capability README
 ```
+**Pi skills:**
 
-**Usage:**
+```text
+/skill:study-coach
+/skill:study-recall
+/skill:study-setup
 ```
-/study
-```
-
 [View documentation](./plugins/study/README.md)
 
 
@@ -301,28 +277,20 @@ Adaptive study coach with multi-gear learning sessions (Socratic, Explain, Guide
 
 Generate beautiful PDF/HTML shareable notes using Typst with 7 professional templates, infographics, and modern typography
 
-**Features:**
-- 7 Professional Templates: Executive summary, cheat sheet, sketchnote, meeting minutes, study guide, technical brief, portfolio
-- Multiple Themes: Light, dark, minimal, and vibrant color schemes
-- Auto Infographics: CeTZ charts, Fletcher flowcharts, Pintorita sequence diagrams
-- Multi-Format Output: Generate PDF, HTML, or both from the same source
-- Jot Integration: Publish your jot captures directly as beautiful documents
+**Claude Code:**
 
-**Install:**
-```
+```text
 /plugin install typst-notes@skills
+# Commands are documented in the capability README
 ```
+**Pi skills:**
 
-**Usage:**
+```text
+/skill:infographics
+/skill:jot-to-publish
+/skill:typst-format
+/skill:typst-publish
 ```
-/publish [--template exec|cheat|sketch|meeting|study|tech|portfolio]
-         [--theme light|dark|minimal|vibrant]
-         [--format pdf|html|both]
-         [--output <name>]
-         [--source conversation|jot:<path>|file:<path>]
-         [content description...]
-```
-
 [View documentation](./plugins/typst-notes/README.md)
 <!-- PLUGINS:END -->
 

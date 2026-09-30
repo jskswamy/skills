@@ -1,99 +1,58 @@
 {{- /*
-  Template for generating the "Available Plugins" section of README.md
-  Uses marketplace.json and individual plugin READMEs as data sources
+  Template for generating the cross-harness capabilities section of README.md.
+  Uses registry.json as the data source.
 */ -}}
-{{- $mp := (datasource "marketplace") -}}
-{{- $pluginsDir := (getenv "PLUGINS_DIR" | default "plugins") -}}
-{{- range $mp.plugins | sort "name" }}
+
+This repository publishes the same canonical workflows to multiple agent harnesses:
+
+- **Claude Code**: install a generated plugin and use its slash commands.
+- **Pi**: install the package once and invoke canonical skills with `/skill:<name>`.
+
+Install all skills in Pi:
+
+```bash
+pi install git:github.com/jskswamy/skills@main
+```
+
+Install individual Claude Code plugins from the marketplace:
+
+```text
+/plugin marketplace add jskswamy/skills
+/plugin install <plugin-name>@skills
+```
+
+See [Command to Skill Map](docs/command-skill-map.md) for full command equivalents.
+
+{{- $registry := (datasource "marketplace") -}}
+{{- range $registry.plugins | sort "name" }}
 ### {{ .name }}
 
 {{ .description }}
 
-**Features:**
-{{- $readmePath := printf "%s/%s/README.md" $pluginsDir .name -}}
-{{- $featuresFound := false -}}
-{{- if file.Exists $readmePath -}}
-{{- $content := file.Read $readmePath -}}
-{{- /* First try: Extract features from ## Features section - get bold-prefixed bullets */ -}}
-{{- $featuresSection := regexp.Find "(?s)## Features\\n\\n([\\s\\S]*?)(?:\\n## |$)" $content -}}
-{{- if $featuresSection -}}
-{{- /* Try bold bullets like "- **Feature**: description" or "- **Feature:** description" */ -}}
-{{- $bullets := regexp.FindAll "- \\*\\*[^*]+\\*\\*:? ?[^\n]+" $featuresSection -}}
-{{- if $bullets -}}
-{{- $featuresFound = true -}}
-{{- range $i, $bullet := $bullets -}}
-{{- if lt $i 5 }}
-{{ $bullet | regexp.Replace "^- \\*\\*([^*:]+):?\\*\\*:? ?" "- $1: " }}
-{{- end }}
-{{- end -}}
-{{- else -}}
-{{- /* Try numbered headings like "### 1. Feature Name" */ -}}
-{{- $headings := regexp.FindAll "### \\d+\\. [^\n`(]+" $featuresSection -}}
-{{- if $headings -}}
-{{- $featuresFound = true -}}
-{{- range $i, $heading := $headings -}}
-{{- if lt $i 5 }}
-- {{ $heading | regexp.Replace "^### \\d+\\. " "" | strings.TrimSpace }}
-{{- end }}
-{{- end -}}
-{{- else -}}
-{{- /* Try plain bullet points */ -}}
-{{- $plainBullets := regexp.FindAll "^- [^\n]+" $featuresSection -}}
-{{- if $plainBullets -}}
-{{- $featuresFound = true -}}
-{{- range $i, $bullet := $plainBullets -}}
-{{- if lt $i 5 }}
-{{ $bullet }}
-{{- end }}
-{{- end -}}
-{{- end -}}
-{{- end -}}
-{{- end -}}
-{{- end -}}
-{{- end -}}
-{{- /* Fallback: generate from tags */ -}}
-{{- if not $featuresFound -}}
-{{- range $i, $tag := .tags -}}
-{{- if lt $i 5 }}
-- {{ $tag | strings.ReplaceAll "-" " " | strings.Title }}
-{{- end }}
-{{- end -}}
-{{- end }}
+**Claude Code:**
 
-**Install:**
-```
+```text
 /plugin install {{ .name }}@skills
+{{- if .resources.commands }}
+# Commands are documented in the capability README
+{{- end }}
 ```
 
-**Usage:**
-{{- $readmePath := printf "%s/%s/README.md" $pluginsDir .name -}}
-{{- $usageExtracted := false -}}
-{{- if file.Exists $readmePath -}}
-{{- $content := file.Read $readmePath -}}
-{{- /* Look for ## Usage section followed by code block */ -}}
-{{- $usageSection := regexp.Find "(?s)## Usage[\\s\\S]*?```[^\n]*\n([\\s\\S]*?)```" $content -}}
-{{- if $usageSection -}}
-{{- $codeContent := regexp.Find "(?s)```[^\n]*\n([\\s\\S]*?)```" $usageSection -}}
-{{- if $codeContent -}}
-{{- $code := $codeContent | regexp.Replace "(?s)^```[^\n]*\n" "" | regexp.Replace "```$" "" | strings.TrimSpace -}}
-{{- $lines := $code | strings.Split "\n" -}}
-{{- $usageExtracted = true }}
-```
-{{- range $i, $line := $lines -}}
-{{- if lt $i 6 }}
-{{ $line }}
-{{- end }}
-{{- end }}
-```
-{{- end -}}
-{{- end -}}
-{{- end -}}
-{{- if not $usageExtracted }}
-```
-/{{ .name | strings.ReplaceAll "-" "" }}
-```
-{{- end }}
+{{- if .resources.skills }}
+**Pi skills:**
 
+```text
+{{- range $i, $skill := .resources.skills }}
+{{- if lt $i 8 }}
+/skill:{{ $skill }}
+{{- end }}
+{{- end }}
+{{- if gt (len .resources.skills) 8 }}
+# plus {{ sub (len .resources.skills) 8 }} more skills in registry.json
+{{- end }}
+```
+
+{{- end }}
 [View documentation](./plugins/{{ .name }}/README.md)
 
 {{ end -}}
