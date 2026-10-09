@@ -56,7 +56,21 @@ flow runs these steps inline.
    codebase-memory-mcp to confirm or dismiss Layer 2's `non-atomic` flags
    via cluster membership and `trace_path`.
 
-4. **Detect logical clusters.** Run both detectors:
+4. **Run hygiene Layer 4.** Resolve the package root as the nearest
+   ancestor containing `registry.json` or `package.json`, then execute:
+
+   ```bash
+   bash "<package-root>/skills/review-commits/lib/detect-tracker-leaks.sh" "$base"
+   ```
+
+   When running from a generated Claude Code plugin, the equivalent generated
+   path is `<plugin-root>/skills/review-commits/lib/detect-tracker-leaks.sh`.
+
+   Convert each TSV row into a hygiene finding. `subject-prefix` and
+   `narrative` findings require `reword`; `trailer` and `parenthetical`
+   findings can usually be stripped while preserving the surrounding prose.
+
+5. **Detect logical clusters.** Run both detectors:
 
    ```bash
    bash plugins/commit-tools/skills/review-commits/lib/detect-clusters.sh "$base"
@@ -109,7 +123,7 @@ flow runs these steps inline.
      review will render a "no cluster proposals" block — see SKILL.md
      Step 5).
 
-5. **Read `$STYLE_FILE` in full.** The "Subject Line Rules" and "Examples"
+6. **Read `$STYLE_FILE` in full.** The "Subject Line Rules" and "Examples"
    sections are the contract. Author **full messages** (subject, blank
    line, body) in this style for:
    - every action that is `reword` or `squash`
@@ -123,6 +137,10 @@ flow runs these steps inline.
    write one coherent body that explains the collapsed change. Do not
    concatenate the originals verbatim. Do not paraphrase line-by-line.
    Read them as raw material, then author fresh prose in the saved style.
+   Do not preserve opaque tracker IDs (`PROJ-123`, `beads-abc.2`,
+   `claude-plugins-xyz`, or project-configured tracker patterns) in the
+   rewritten messages. Translate the intent into human-readable context
+   instead.
 
    Skip the body only when the originals truly had nothing meaningful to
    say (subject-only TDD scaffolds) — in that case a subject-only message
@@ -132,10 +150,10 @@ flow runs these steps inline.
    `bash lib/style-check.sh "<subject>" "$STYLE_FILE"`. There is no
    body-level style check.
 
-6. **Emit `plan.yaml` to `$WORKING_DIR/plan.yaml`** matching
+7. **Emit `plan.yaml` to `$WORKING_DIR/plan.yaml`** matching
    `lib/plan-schema.md`. Cluster collapse uses `pick` on the first commit
    (with `new_message`) and `fixup` on the rest, per `plan-schema.md`'s
    "Logical clustering" section.
 
-7. **Reply with a one-line summary and action counts** before handing off
+8. **Reply with a one-line summary and action counts** before handing off
    to the plan-review user gate.

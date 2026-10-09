@@ -78,7 +78,8 @@ Write `--result <path>` in every outcome:
   "decisions": [{"gate": "plan-review", "chose": "accept", "why": "unattended default"}],
   "plan": [{"action": "pick|fixup|reword|drop|edit", "commit": "<sha>", "subject": "..."}],
   "validation": {"cleanWorktree": true, "tests": true, "noAICoauthor": true,
-                  "noConflictMarkers": true, "noSquashResidue": true, "style": true},
+                  "noConflictMarkers": true, "noSquashResidue": true,
+                  "style": true, "noTrackerLeaks": true},
   "detail": "..."
 }
 ```
@@ -193,7 +194,7 @@ runs in both Branch Flow and Main Flow (Rebase option) before the rebase plan
 is built. It is performed inline by the main agent using the checklist in
 `lib/synthesizer-prompt.md`.
 
-Three detection layers run in order. Each layer adds findings to a shared list.
+Four detection layers run in order. Each layer adds findings to a shared list.
 
 ### Layer 1: Subject-Based (always runs)
 
@@ -299,6 +300,53 @@ If any `codebase-memory-mcp` tool call fails during Layer 3, skip the
 remaining semantic checks for that commit and keep the Layer 2 finding
 as-is. Do not fail the workflow.
 
+### Layer 4: Tracker-ID Leak Detection
+
+Run the deterministic tracker leak detector before presenting hygiene
+findings. Resolve the package root as the nearest ancestor containing
+`registry.json` or `package.json`, then run:
+
+```bash
+bash "<package-root>/skills/review-commits/lib/detect-tracker-leaks.sh" "$base"
+```
+
+When running from a generated Claude Code plugin, the equivalent generated
+path is `<plugin-root>/skills/review-commits/lib/detect-tracker-leaks.sh`.
+
+The helper prints TSV rows:
+
+```text
+<short-hash>\t<kind>\t<match>\t<line>
+```
+
+Where `kind` is one of:
+- `subject-prefix` — commit subject starts with a tracker ID such as
+  `PROJ-123:`
+- `trailer` — body line starts with a configured trailer key such as
+  `Refs: PROJ-123` or `Closes beads-abc.2`
+- `parenthetical` — tracker ID appears inside parentheses
+- `narrative` — tracker ID appears in prose and needs human rewording
+
+Defaults detect common Jira/Linear-style IDs (`PROJ-123`), internal
+beads IDs (`beads-abc.2`, `claude-plugins-xyz`), and lowercase
+project-style IDs with a substantial suffix (`project-abc`).
+
+Projects can add patterns in `.claude/commit-tools.local.md`:
+
+```yaml
+---
+tracker_patterns:
+  - 'BUG-[0-9]+'
+trailer_keys:
+  - Related
+---
+```
+
+For `trailer` and `parenthetical` findings, suggest stripping the opaque
+reference while keeping the surrounding explanation. For `narrative`
+findings, require rewording because the tracker ID is part of prose. For
+`subject-prefix`, require rewording the subject.
+
 ### Present Hygiene Findings
 
 After all layers complete, present findings using AskUserQuestion if any
@@ -320,7 +368,15 @@ Commit hygiene analysis complete.
   Unrelated changes (suggest dropping):
     f4e5d6c — README typo fix, unrelated to auth migration branch
 
-Introduce-then-fix pairs are mandatory fixups. For other findings:
+  Tracking-system references (suggest removing before push):
+    a1b2c3d — subject-prefix PROJ-123: "PROJ-123: add login checks"
+    d4e5f6a — trailer beads-abc.2: "Refs: beads-abc.2"
+    9abcdef — parenthetical PROJ-789: "A future shim (PROJ-789)..."
+    1234567 — narrative claude-plugins-xyz: "After claude-plugins-xyz..."
+
+Introduce-then-fix pairs are mandatory fixups. Tracker subject-prefix and
+narrative findings require rewording. Trailer and parenthetical findings can
+usually be stripped while preserving the surrounding prose. For other findings:
 
 ○ Accept all suggestions
 ○ Review one by one — decide per finding
@@ -347,7 +403,7 @@ Beyond per-commit hygiene, the planner detects "feature clusters": runs of
 discipline produces these — scaffold → helper → test → another helper →
 wire it up). Once the feature lands, that granularity is noise on `main`.
 
-Detection runs after Hygiene Layers 1-3 and uses
+Detection runs after Hygiene Layers 1-4 and uses
 `lib/detect-clusters.sh "$base"`:
 
 - The helper outputs one line per cluster, space-separated short-hashes
@@ -428,7 +484,7 @@ Read each commit in `$base..HEAD` oldest-to-newest using
 so commit bodies are available to the synthesizer. Run the planning
 checklist at `plugins/commit-tools/skills/review-commits/lib/synthesizer-prompt.md`
 and write `$WORKING_DIR/plan.yaml`. Cluster detection runs as part of
-that checklist (Step 4 in the synthesizer prompt) using
+that checklist (Step 5 in the synthesizer prompt) using
 `lib/detect-clusters.sh`.
 
 There is no longer a multi-agent path — the main agent does both
@@ -652,7 +708,7 @@ With `--unattended`, invoke `validate-commits --unattended --base <base>`
 output). If validation fails, restore the original HEAD, write reason:
 `validation`, and exit non-zero. Never delete the branch or remove a worktree.
 
-Invoke the `validate-commits` skill to run all six checks.
+Invoke the `validate-commits` skill to run all seven checks.
 
 After validation passes, ask before cleaning up using AskUserQuestion:
 ```

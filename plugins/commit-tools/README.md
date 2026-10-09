@@ -10,7 +10,7 @@ validate the final history meets project standards.
 |---------|---------|
 | `/commit` | Write an atomic commit with classic or conventional style, intelligent message generation from session context, and pair-programming attribution |
 | `/review-commits` | Plan a rebase to squash/reword/drop commits before push; supports cluster detection (path heuristic + branch heuristic), body preservation through fixup, and a user-gated plan review |
-| `/validate-commits` | Five deterministic checks (clean worktree, tests pass, no AI co-author leaks, no conflict markers, no rebase residue) |
+| `/validate-commits` | Seven deterministic checks (clean worktree, tests pass, no AI co-author leaks, no conflict markers, no rebase residue, style, no tracker-ID leaks) |
 
 ## Skills
 

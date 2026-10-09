@@ -1,21 +1,55 @@
 ---
 name: validate-commits
 description: >
-  Validate commits before pushing. Runs six deterministic checks: clean
+  Validate commits before pushing. Runs seven deterministic checks: clean
   worktree, tests pass, no AI co-author leaks (Claude, Anthropic, GPT,
-  OpenAI, Copilot), no conflict markers, no squash/fixup residue, and
-  subject lines conform to the configured style (classic or conventional).
+  OpenAI, Copilot), no conflict markers, no squash/fixup residue,
+  subject lines conform to the configured style (classic or conventional),
+  and no tracker-ID leaks.
   Activates on: "validate commits", "check commits before push",
   "any AI leaks", "check for co-author", "are my commits clean",
   "validate before pushing", "check commits".
-argument-hint: "[--base <ref>]"
+argument-hint: "[--base <ref>] [--unattended] [--result <path>] [--test-cmd <cmd>]"
 ---
 
 # Validate Commits
 
-Run six deterministic checks against unpushed commits. All checks use
-git commands, grep, and the shared `style-check.sh` script — no LLM
-judgment.
+Run seven deterministic checks against unpushed commits. All checks use
+git commands, grep, and shared helper scripts — no LLM judgment.
+
+## Arguments
+
+| Argument | Type | Default | Description |
+|----------|------|---------|-------------|
+| `--base <ref>` | string | auto; required with `--unattended` | Base for `base..HEAD` |
+| `--unattended` | boolean | false | Run without `AskUserQuestion`; fail instead of prompting and write result JSON |
+| `--result <path>` | string | `.review-commits/validate-result.json` | Machine-readable result file |
+| `--test-cmd <cmd>` | string | auto-detected | Override test command detection |
+
+With `--unattended`, add `.review-commits/` to `.git/info/exclude` before
+writing the default result path.
+
+## Unattended Result File
+
+Write `--result <path>` in every unattended outcome:
+
+```json
+{
+  "outcome": "done | failed",
+  "reason": "no-base | tests | validation | null",
+  "base": "<sha>",
+  "originalHead": "<sha>",
+  "newHead": "<sha>",
+  "decisions": [{"gate": "ai-coauthor-autofix", "chose": "default", "why": "unattended default"}],
+  "validation": {"cleanWorktree": true, "tests": true, "noAICoauthor": true,
+                  "noConflictMarkers": true, "noSquashResidue": true,
+                  "style": true, "noTrackerLeaks": true},
+  "detail": "..."
+}
+```
+
+Record all seven checks as pass/fail with details. Exit code 0 only when
+`outcome` is `done`.
 
 ## Precondition
 
@@ -43,6 +77,11 @@ Establish the base ref for `base..HEAD` in this priority order:
      - "Use latest tag (<tag>)" — if a tag exists
      - "Enter a commit ref" — free text input
 
+With `--unattended`, `--base <ref>` is required. Do not use upstream fallback
+and do not ask. If `--base` is missing or cannot be resolved, write
+`outcome: failed`, reason: `no-base`, leave the repository unchanged, and exit
+non-zero.
+
 Store the resolved base as `$BASE` for all subsequent checks.
 
 If `git log --oneline $BASE..HEAD` produces no commits, report
@@ -50,7 +89,7 @@ If `git log --oneline $BASE..HEAD` produces no commits, report
 
 ## Checks
 
-Run ALL six checks regardless of individual failures. Collect results,
+Run ALL seven checks regardless of individual failures. Collect results,
 then report everything at once.
 
 ### Check 1: Clean Worktree
@@ -62,8 +101,9 @@ Run: `git status --porcelain`
 
 ### Check 2: Tests Pass
 
-Detect the project test command by checking for project files in the
-working directory root:
+If `--test-cmd <cmd>` was provided, use it as the test command. Otherwise
+detect the project test command by checking for project files in the working
+directory root:
 
 | File | Command |
 |------|---------|
@@ -162,9 +202,39 @@ format.
 - **Pass:** Every subject conforms
 - **Fail:** List each non-conforming commit hash, subject, and reason
 
+### Check 7: No Tracker-ID Leaks
+
+Run the shared tracker detector. Resolve the package root as the nearest
+ancestor containing `registry.json` or `package.json`, then run:
+
+```bash
+bash "<package-root>/skills/review-commits/lib/detect-tracker-leaks.sh" "$BASE"
+```
+
+When running from a generated Claude Code plugin, the equivalent generated
+path is `<plugin-root>/skills/review-commits/lib/detect-tracker-leaks.sh`.
+
+The helper scans commit subjects and bodies in `$BASE..HEAD` for opaque
+tracking-system references. Defaults catch Jira/Linear-style IDs
+(`PROJ-123`), internal beads IDs (`beads-abc.2`, `claude-plugins-xyz`),
+and lowercase project-style IDs such as `project-abc`. Projects can add
+patterns and trailer keys in `.claude/commit-tools.local.md`:
+
+```yaml
+---
+tracker_patterns:
+  - 'BUG-[0-9]+'
+trailer_keys:
+  - Related
+---
+```
+
+- **Pass:** Detector prints no rows
+- **Fail:** List each TSV row as `<commit> <kind> <match> — <line>`
+
 ## Report Results
 
-Display all six results using checkmark/cross format:
+Display all seven results using checkmark/cross format:
 
 ```
 Post-commit validation:
@@ -177,6 +247,8 @@ Post-commit validation:
   ✓ No squash residue
   ✗ Style violation in commit a1b2c3d
     'Spec: declarative agent provisioning' — subject has type-prefix (classic forbids 'word:' prefixes)
+  ✗ Tracker-ID leak in commit d4e5f6a
+    trailer beads-abc.2 — Refs: beads-abc.2
 ```
 
 If ALL pass: "All checks passed. Ready to push."
@@ -187,6 +259,10 @@ If ANY fail: "Post-commit validation failed." followed by the results.
 
 If Check 3 fails AND all other checks pass (or the user wants to fix
 incrementally), offer to auto-fix:
+
+With `--unattended`, do not ask. Take the default safe choice: do not modify
+commits, record `{"gate":"ai-coauthor-autofix","chose":"no","why":"unattended default"}`,
+write the failed Check 3 detail to the result file, and exit non-zero.
 
 Use AskUserQuestion:
 ```
@@ -209,6 +285,7 @@ If "No": Report the failure and let the user handle it.
 
 ## No Other Auto-Fixes
 
-Checks 1, 2, 4, 5, and 6 report failures only. The user must fix them.
-Style violations (Check 6) are typically fixed by running `/review-commits`,
-which rewrites drifted subjects against the saved style.
+Checks 1, 2, 4, 5, 6, and 7 report failures only. The user must fix them.
+Style violations (Check 6) and tracker leaks (Check 7) are typically fixed by
+running `/review-commits`, which rewrites drifted messages against the saved
+style.

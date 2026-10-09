@@ -9,7 +9,7 @@ description: >
   Activates on: "review commits", "clean up commits", "prep for push",
   "squash these commits", "finalize commits", "merge branch to main",
   "clean up my commits before pushing", "review before push".
-argument-hint: "[--tag <version>] [--base <ref>]"
+argument-hint: "[--tag <version>] [--base <ref>] [--unattended] [--style <classic|conventional>] [--result <path>] [--test-cmd <cmd>]"
 ---
 
 # Review Commits
@@ -26,8 +26,65 @@ saved style.
 
 | Argument | Type | Default | Description |
 |----------|------|---------|-------------|
-| `--tag <version>` | string | none | Tag after completion |
-| `--base <ref>` | string | auto | Override base commit detection |
+| `--tag <version>` | string | none | Tag after completion; ignored with `--unattended` |
+| `--base <ref>` | string | required with `--unattended`; auto otherwise | Override base commit detection |
+| `--unattended` | boolean | false | Run without `AskUserQuestion`; choose recommended/default options and write a result file |
+| `--style <classic\|conventional>` | enum | repo setting, then `classic` | Commit message style to use without first-time setup prompts |
+| `--result <path>` | string | `.review-commits/result.json` | Machine-readable result file; must be outside tracked files |
+| `--test-cmd <cmd>` | string | auto-detected | Override test command detection |
+
+## Unattended Mode Contract
+
+When `--unattended` is set, this skill is safe for agents running with no
+human attached:
+
+1. It never calls AskUserQuestion. At every user gate it chooses the option
+   marked recommended/default and records the decision in the result file.
+2. It stays within the current branch scope: never check out another branch,
+   never merge, never delete a branch, never remove a worktree, never tag
+   (ignore `--tag`), and never push.
+3. It never blocks on setup. `--base <ref>` is required; missing base fails
+   with reason: `no-base`. First-time style setup is skipped. Style is read
+   from `--style`, then `.claude/git-commit.local.md`, then `classic`.
+4. It never invokes `/codebase:index`. Layer 3 semantic checks run only when
+   an existing fresh index is available; otherwise Layer 3 is skipped and the
+   skip is recorded in `decisions`.
+5. It fails loudly, not interactively. Rebase conflicts run
+   `git rebase --abort`, restore the original HEAD, write reason: `conflict`
+   with conflicting files, and exit non-zero. Test failures write reason:
+   `tests`. Revalidation drift without a saved message writes reason: `drift`.
+6. It enforces the tree invariant after rewriting: `git diff <original HEAD> HEAD`
+   must be empty. If not, restore the original HEAD, write reason:
+   `tree-mismatch`, and exit non-zero.
+
+Before starting, record `originalHead=$(git rev-parse HEAD)` and resolve
+`base=$(git rev-parse --verify "$BASE_REF")`. If base resolution fails in
+unattended mode, write the result with reason: `no-base` and exit non-zero.
+
+add `.review-commits/` to `.git/info/exclude` before writing the default result
+path so the result file is not accidentally tracked.
+
+### Result File
+
+Write `--result <path>` in every outcome:
+
+```json
+{
+  "outcome": "done | failed",
+  "reason": "conflict | drift | tests | no-base | tree-mismatch | validation | null",
+  "base": "<sha>",
+  "originalHead": "<sha>",
+  "newHead": "<sha>",
+  "decisions": [{"gate": "plan-review", "chose": "accept", "why": "unattended default"}],
+  "plan": [{"action": "pick|fixup|reword|drop|edit", "commit": "<sha>", "subject": "..."}],
+  "validation": {"cleanWorktree": true, "tests": true, "noAICoauthor": true,
+                  "noConflictMarkers": true, "noSquashResidue": true,
+                  "style": true, "noTrackerLeaks": true},
+  "detail": "..."
+}
+```
+
+Exit code 0 only when `outcome` is `done`.
 
 ## Precondition
 
@@ -53,10 +110,14 @@ branch=$(git branch --show-current)
 - If `$branch` is `main` or `master` → **Main Flow**
 - Otherwise → **Branch Flow**
 
+With `--unattended`, skip this distinction and always use Branch Flow
+semantics on the current branch. Do not show the Main Flow options menu.
+
 ## Test Detection (Shared)
 
-Before either flow, detect the project's test command by checking for
-project files in the working directory root:
+Before either flow, if `--test-cmd <cmd>` was provided, use it as the test
+command. Otherwise detect the project's test command by checking for project
+files in the working directory root:
 
 | File | Command |
 |------|---------|
@@ -108,6 +169,10 @@ If `$needs_reindex=true`, invoke `/codebase:index`. The codebase plugin
 honors the user's `auto_index: ask|always|never` preference, so the skill
 delegates that decision rather than re-implementing it.
 
+With `--unattended`, do not invoke `/codebase:index`. If the existing index is
+missing or stale, set `$SEMANTIC_AVAILABLE=false`, continue with Layers 1 and 2,
+and record a decision such as `{"gate":"codebase-index","chose":"skip","why":"unattended; existing fresh index unavailable"}`.
+
 If indexing fails for any reason, set `$SEMANTIC_AVAILABLE=false` and
 continue — do not block the workflow.
 
@@ -115,7 +180,10 @@ If indexing succeeds (or was unnecessary), set `$SEMANTIC_AVAILABLE=true`.
 
 ## Argument Parsing
 
-Parse `--tag <version>` and `--base <ref>` only. Both are optional. If
+Parse `--tag <version>`, `--base <ref>`, `--unattended`,
+`--style <classic|conventional>`, `--result <path>`, and `--test-cmd <cmd>`.
+`--tag` and `--base` are optional in interactive mode. With `--unattended`,
+`--base <ref>` is required and `--tag` is accepted but ignored. If
 `.claude/clean-merge.local.md` exists from a previous v1 run, ignore it —
 v2 has no settings.
 
@@ -126,7 +194,7 @@ runs in both Branch Flow and Main Flow (Rebase option) before the rebase plan
 is built. It is performed inline by the main agent using the checklist in
 `lib/synthesizer-prompt.md`.
 
-Three detection layers run in order. Each layer adds findings to a shared list.
+Four detection layers run in order. Each layer adds findings to a shared list.
 
 ### Layer 1: Subject-Based (always runs)
 
@@ -232,6 +300,53 @@ If any `codebase-memory-mcp` tool call fails during Layer 3, skip the
 remaining semantic checks for that commit and keep the Layer 2 finding
 as-is. Do not fail the workflow.
 
+### Layer 4: Tracker-ID Leak Detection
+
+Run the deterministic tracker leak detector before presenting hygiene
+findings. Resolve the package root as the nearest ancestor containing
+`registry.json` or `package.json`, then run:
+
+```bash
+bash "<package-root>/skills/review-commits/lib/detect-tracker-leaks.sh" "$base"
+```
+
+When running from a generated Claude Code plugin, the equivalent generated
+path is `<plugin-root>/skills/review-commits/lib/detect-tracker-leaks.sh`.
+
+The helper prints TSV rows:
+
+```text
+<short-hash>\t<kind>\t<match>\t<line>
+```
+
+Where `kind` is one of:
+- `subject-prefix` — commit subject starts with a tracker ID such as
+  `PROJ-123:`
+- `trailer` — body line starts with a configured trailer key such as
+  `Refs: PROJ-123` or `Closes beads-abc.2`
+- `parenthetical` — tracker ID appears inside parentheses
+- `narrative` — tracker ID appears in prose and needs human rewording
+
+Defaults detect common Jira/Linear-style IDs (`PROJ-123`), internal
+beads IDs (`beads-abc.2`, `claude-plugins-xyz`), and lowercase
+project-style IDs with a substantial suffix (`project-abc`).
+
+Projects can add patterns in `.claude/commit-tools.local.md`:
+
+```yaml
+---
+tracker_patterns:
+  - 'BUG-[0-9]+'
+trailer_keys:
+  - Related
+---
+```
+
+For `trailer` and `parenthetical` findings, suggest stripping the opaque
+reference while keeping the surrounding explanation. For `narrative`
+findings, require rewording because the tracker ID is part of prose. For
+`subject-prefix`, require rewording the subject.
+
 ### Present Hygiene Findings
 
 After all layers complete, present findings using AskUserQuestion if any
@@ -253,7 +368,15 @@ Commit hygiene analysis complete.
   Unrelated changes (suggest dropping):
     f4e5d6c — README typo fix, unrelated to auth migration branch
 
-Introduce-then-fix pairs are mandatory fixups. For other findings:
+  Tracking-system references (suggest removing before push):
+    a1b2c3d — subject-prefix PROJ-123: "PROJ-123: add login checks"
+    d4e5f6a — trailer beads-abc.2: "Refs: beads-abc.2"
+    9abcdef — parenthetical PROJ-789: "A future shim (PROJ-789)..."
+    1234567 — narrative claude-plugins-xyz: "After claude-plugins-xyz..."
+
+Introduce-then-fix pairs are mandatory fixups. Tracker subject-prefix and
+narrative findings require rewording. Trailer and parenthetical findings can
+usually be stripped while preserving the surrounding prose. For other findings:
 
 ○ Accept all suggestions
 ○ Review one by one — decide per finding
@@ -262,6 +385,10 @@ Introduce-then-fix pairs are mandatory fixups. For other findings:
 
 If "Review one by one": walk through each non-mandatory finding with
 AskUserQuestion offering accept/dismiss per finding.
+
+With `--unattended`, choose "Accept all suggestions". Mandatory
+introduce-then-fix pairs remain mandatory. Record
+`{"gate":"hygiene-findings","chose":"accept-all","why":"unattended default"}`.
 
 If no issues detected, display:
 ```
@@ -276,7 +403,7 @@ Beyond per-commit hygiene, the planner detects "feature clusters": runs of
 discipline produces these — scaffold → helper → test → another helper →
 wire it up). Once the feature lands, that granularity is noise on `main`.
 
-Detection runs after Hygiene Layers 1-3 and uses
+Detection runs after Hygiene Layers 1-4 and uses
 `lib/detect-clusters.sh "$base"`:
 
 - The helper outputs one line per cluster, space-separated short-hashes
@@ -357,7 +484,7 @@ Read each commit in `$base..HEAD` oldest-to-newest using
 so commit bodies are available to the synthesizer. Run the planning
 checklist at `plugins/commit-tools/skills/review-commits/lib/synthesizer-prompt.md`
 and write `$WORKING_DIR/plan.yaml`. Cluster detection runs as part of
-that checklist (Step 4 in the synthesizer prompt) using
+that checklist (Step 5 in the synthesizer prompt) using
 `lib/detect-clusters.sh`.
 
 There is no longer a multi-agent path — the main agent does both
@@ -475,6 +602,15 @@ commit. Re-display the updated plan for confirmation.
 
 If "Reset": fall back to the Soft-Reset Escape Hatch (see below).
 
+With `--unattended`, automatically take the cluster option marked
+recommended. If no option is marked recommended, keep all commits as `pick`.
+Then accept the final per-commit plan. Record each decision, including
+`{"gate":"cluster-proposal","chose":"recommended-or-pick","why":"unattended default"}`
+and `{"gate":"plan-review","chose":"accept","why":"unattended default"}`.
+Write the full plan to the result file before executing. The Modify and Reset
+paths are unavailable in unattended mode; if the plan cannot be executed
+mechanically, fail non-zero instead of asking.
+
 ### Step 6: Execute
 
 Build the todo file and message directory, then run the rebase:
@@ -504,6 +640,10 @@ If the rebase reports a conflict:
 3. Await user resolution + `git rebase --continue`
 4. Resume from Step 7 once the rebase completes
 
+With `--unattended`, do not wait for resolution. Capture conflicting files,
+run `git rebase --abort`, restore the recorded original HEAD if needed, write
+`outcome: failed`, reason: `conflict`, and exit non-zero.
+
 ### Step 7: Revalidate
 
 ```bash
@@ -518,7 +658,13 @@ A non-zero exit means at least one subject failed the style check AND no
 saved message was available — surface as a warning to the user but do not
 abort.
 
+With `--unattended`, drift with no saved message is a hard failure. Restore
+the original HEAD, write `outcome: failed`, reason: `drift`, and exit non-zero.
+
 ### Step 8: Merge to Main
+
+With `--unattended`, skip this step entirely. Do not merge and never check out
+another branch.
 
 Move the cleaned-up commits to main:
 
@@ -545,6 +691,8 @@ If "Abort": stop.
 
 ### Step 9: Optional Tag
 
+With `--unattended`, skip this step entirely and ignore `--tag`.
+
 Only if `--tag <version>` was provided:
 
 ```bash
@@ -555,7 +703,12 @@ Never prompt for a tag. Never auto-tag.
 
 ### Step 10: Validate and Cleanup
 
-Invoke the `validate-commits` skill to run all five checks.
+With `--unattended`, invoke `validate-commits --unattended --base <base>`
+(pass through `--result`/`--test-cmd` equivalents as needed for validation
+output). If validation fails, restore the original HEAD, write reason:
+`validation`, and exit non-zero. Never delete the branch or remove a worktree.
+
+Invoke the `validate-commits` skill to run all seven checks.
 
 After validation passes, ask before cleaning up using AskUserQuestion:
 ```
@@ -575,6 +728,9 @@ git worktree remove <path>
 ```
 
 ### Soft-Reset Escape Hatch
+
+The Soft-Reset Escape Hatch is not available with `--unattended`; if the plan
+cannot be executed, fail non-zero and write the reason to the result file.
 
 If the user chose "Reset" in Step 5, instead of interactive rebase:
 
@@ -657,14 +813,19 @@ Step 3, which already ran it).
 
 ## Failure Handling
 
+After any unattended rebase/rewrite that appears successful, verify the tree
+invariant with `git diff <original HEAD> HEAD`. If the diff is non-empty,
+restore the original HEAD, write `outcome: failed`, reason: `tree-mismatch`,
+and exit non-zero.
+
 | Failure | Response |
 |---------|----------|
 | A reader subagent fails on one commit | Synthesizer treats that commit as `pick` and adds a note. The user sees the note in plan review and can override the action. |
 | codebase-memory-mcp unavailable | Skip Layer 3 entirely. Layers 1+2 still run. Set `$SEMANTIC_AVAILABLE=false`. |
 | Synthesizer cannot author a message for an action | Surface the gap before plan review. The user chooses: accept the original message (downgrades the action to `pick`) or abort the run. |
-| Rebase conflict during execute | Stop, list conflicting files, await `git rebase --continue`. Resume at Step 7 once the rebase completes. |
+| Rebase conflict during execute | Interactive: stop, list conflicting files, await `git rebase --continue`. Unattended: run `git rebase --abort`, restore original HEAD, write reason: `conflict`, exit non-zero. |
 | Revalidator finds a drifted subject AND has a saved message | Auto-amend with the saved message. No user intervention. |
-| Revalidator finds a drifted subject AND has NO saved message | Print a warning to stderr listing the drifted hash and subject. Do not abort. |
+| Revalidator finds a drifted subject AND has NO saved message | Interactive: print a warning to stderr listing the drifted hash and subject. Unattended: restore original HEAD, write reason: `drift`, exit non-zero. |
 | Revalidator finds a planned action that did not materialize (missing hash, wrong split count) | Warn loudly to the user. Do not auto-fix; the user must decide whether to redo the run. |
 
 ## Integration
