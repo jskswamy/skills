@@ -43,14 +43,22 @@ is_non_imperative() {
 case "$style_name" in
   classic)
     [[ ${#subject} -le 50 ]] || { echo "subject >50 chars"; exit 1; }
-    [[ "$subject" =~ ^[A-Z] ]] || { echo "subject must start uppercase"; exit 1; }
-    [[ "$subject" != *. ]] || { echo "subject has trailing period"; exit 1; }
-    # No type prefix: classic forbids `feat:`, `fix:`, `Spec:`, etc.
-    # Match any leading word followed by ':' as the first non-space token.
-    if [[ "$subject" =~ ^[A-Za-z][A-Za-z0-9_-]*:[[:space:]] ]]; then
-      echo "subject has type-prefix (classic forbids 'word:' prefixes)"
+    # No prefix: classic forbids leading labels such as `feat:`, `Spec:`,
+    # `Release notes:`, `[server]`, and `(parser)`. Subjects should read as
+    # imperative sentences, not scope labels followed by descriptions.
+    label_prefix='^[A-Za-z][A-Za-z0-9_-]*([[:space:]][A-Za-z][A-Za-z0-9_-]*){0,2}:[[:space:]]'
+    bracket_prefix='^\[[^]]+\][[:space:]]'
+    paren_prefix='^\([^)]+\)[[:space:]]'
+    if [[ "$subject" =~ $label_prefix ]]; then
+      echo "subject has prefix (classic forbids leading label prefixes)"
       exit 1
     fi
+    if [[ "$subject" =~ $bracket_prefix || "$subject" =~ $paren_prefix ]]; then
+      echo "subject has prefix (classic forbids bracketed scope prefixes)"
+      exit 1
+    fi
+    [[ "$subject" =~ ^[A-Z] ]] || { echo "subject must start uppercase"; exit 1; }
+    [[ "$subject" != *. ]] || { echo "subject has trailing period"; exit 1; }
     first=${subject%% *}
     if is_non_imperative "$first"; then
       echo "subject must use imperative mood (got '$first')"

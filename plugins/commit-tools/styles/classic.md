@@ -32,10 +32,26 @@ The first letter of the subject MUST be uppercase.
 - Good: `Add user authentication`
 - Bad: `add user authentication`
 
-### No Type Prefixes
-Do NOT use type prefixes like `feat:`, `fix:`, etc. This is what distinguishes classic from conventional commits.
+### No Prefixes
+Do NOT prefix the subject with a type, scope, area, or module name. Classic style describes the change as a complete imperative sentence, not a label followed by a description.
+
+This includes:
+- Conventional-commits types: `feat:`, `fix:`, `refactor:`, `chore:`, `docs:`
+- Scope or area labels: `auth:`, `Provision:`, `Release notes:`, `aide sync:`
+- Bracketed scopes: `[server]`, `(parser)`
+
+Use the body to add scope or context if the subject alone is not enough.
+
 - Good: `Add user authentication`
 - Bad: `feat: add user authentication`
+- Good: `Add SHA-256 config hash for drift detection`
+- Bad: `Provision: add SHA-256 config hash`
+- Good: `Add release notes for provisioning CLI commands`
+- Bad: `Release notes: provisioning CLI commands`
+- Good: `Increase server request timeout`
+- Bad: `[server] increase request timeout`
+- Good: `Handle empty parser documents`
+- Bad: `(parser) handle empty documents`
 
 ### Character Limit
 Keep the subject line to 50 characters or fewer. This ensures readability in git log, GitHub, and other tools.
