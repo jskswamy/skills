@@ -2,25 +2,51 @@
 
 All notable changes to the Claude Code Plugin Marketplace will be documented in this file.
 
-## [2.1.12] - 2026-08-03
+## [2.1.14] - 2026-10-09
+
+### Fixed
+
+- Handle nix fallback for Typst publishing
+
+Accept the nix command in typst-publish preflight when typst and
+nix-shell are absent. The compile script now invokes Typst through
+`nix shell nixpkgs#typst -c typst` so Nix users do not need a global
+Typst install.
+
+Add coverage for the skill text, generated plugin copy, and compile
+script fallback path. by @jskswamy
 
 ### Other
 
-- Derive project name and auto-reindex stale indexes
+- Fail fast in typst-publish when typst is missing
 
-Step 0 now derives the project name from `git rev-parse
---show-toplevel` by stripping the leading `/` and replacing
-remaining `/` with `-`, then calls `index_status` directly
-with that name. This gives two distinct failure modes:
-MCP unreachable vs project not indexed.
+Add a mandatory preflight step that stops before any work if neither
+typst nor nix-shell is available.
 
-Step 0b is rewritten as a decision table. Stale indexes
-(>24 h) are now auto-reindexed when `auto_index` is not
-`never`, replacing the old warn-and-proceed behaviour.
+Print install steps and offer to install typst for the user. by @beingakshar
+- Forbid classic subject label prefixes
 
-Step 1 is simplified to reference the name already derived
-in Step 0 instead of calling `list_projects` again.
-## [2.1.11] - 2026-08-03
+Reject multi-word colon labels and bracketed scopes in classic commit
+subjects so scope-like prefixes cannot masquerade as imperative
+sentences.
+
+Clarify the classic style guide with examples for conventional,
+area-style, and bracketed prefixes. by @jskswamy
+- Detect tracker leaks in commit messages
+
+Add a deterministic tracker leak detector for review-commits and
+validate-commits. The detector classifies subject prefixes, trailers,
+parenthetical references, and narrative references across the commit
+range.
+
+Document project-local configuration for extra tracker patterns and
+trailer keys, and keep generated commit-tools plugin resources in sync. by @jskswamy
+- Release v2.1.14
+
+Bump commit-tools from 1.0.2 to 1.0.3.
+Bump typst-notes from 1.0.3 to 1.0.4.
+
+## [2.1.13] - 2026-09-30
 
 ### Added
 
@@ -36,21 +62,13 @@ or zero results exits 0 with no output.
 
 hooks.json wires it via ${CLAUDE_PLUGIN_ROOT} so the path resolves
 correctly regardless of where the plugin is installed. by @jskswamy
+- Add registry-driven plugin generation
 
-### Changed
+Move reusable plugin resources into canonical root directories and
+generate Claude Code marketplace wrappers from registry metadata.
 
-- Update CHANGELOG and README for v2.1.11
-
-Document all changes included in the v2.1.11 release.
-Regenerate plugins section in README from marketplace.json. by @jskswamy
-
-### Other
-
-- Release v2.1.11
-
-Bump marketplace version from 2.1.10 to 2.1.11.
-Bump plugin versions: codebase 0.1.2 → 0.1.3. by @jskswamy
-## [2.1.10] - 2026-08-03
+This keeps Claude installs git-tree compatible while exposing root
+skills and Pi package metadata for other harnesses. by @jskswamy
 
 ### Changed
 
@@ -76,6 +94,47 @@ raw_source), jot.local.md absolute path, stale Phase 5a variable ref. by @jskswa
 
 Document all changes included in the v2.1.10 release.
 Regenerate plugins section in README from marketplace.json. by @jskswamy
+- Update CHANGELOG and README for v2.1.11
+
+Document all changes included in the v2.1.11 release.
+Regenerate plugins section in README from marketplace.json. by @jskswamy
+- Update CHANGELOG and README for v2.1.12
+
+Document all changes included in the v2.1.12 release.
+Regenerate plugins section in README from marketplace.json. by @jskswamy
+- Rename marketplace for skills repo
+
+Update install commands, package metadata, release links, and generated
+marketplace output after renaming the repository to jskswamy/skills. by @jskswamy
+- Migrate command workflows into skills
+
+Extract remaining command workflows into canonical skills.
+
+Keep Claude commands as thin wrappers that forward arguments.
+
+Document the command-to-skill mapping for Pi users. by @jskswamy
+
+### Documentation
+
+- Document multi-harness authoring flow
+
+Describe canonical resource directories, generated Claude wrappers,
+Pi package installation, and release checks for committed install trees. by @jskswamy
+- Document cross-harness skill usage
+
+Update the generated README section to show Pi skills alongside Claude
+Code plugin commands.
+
+Switch the generator to registry.json so the skill lists stay in sync. by @jskswamy
+- Document unattended commit review mode by @jskswamy
+
+### Fixed
+
+- Fix migrated skill descriptions
+
+Replace empty block-scalar descriptions with valid skill descriptions.
+
+Tighten registry validation so empty YAML block descriptions fail. by @jskswamy
 
 ### Other
 
@@ -122,6 +181,56 @@ valuable session) is worse than a false positive (one extra click). by @jskswamy
 
 Bump marketplace version from 2.1.9 to 2.1.10.
 Bump plugin versions: jot 2.0.0 → 2.0.1 (sync from 1.6.8 in marketplace). by @jskswamy
+- Release v2.1.11
+
+Bump marketplace version from 2.1.10 to 2.1.11.
+Bump plugin versions: codebase 0.1.2 → 0.1.3. by @jskswamy
+- Derive project name and auto-reindex stale indexes
+
+Step 0 now derives the project name from `git rev-parse
+--show-toplevel` by stripping the leading `/` and replacing
+remaining `/` with `-`, then calls `index_status` directly
+with that name. This gives two distinct failure modes:
+MCP unreachable vs project not indexed.
+
+Step 0b is rewritten as a decision table. Stale indexes
+(>24 h) are now auto-reindexed when `auto_index` is not
+`never`, replacing the old warn-and-proceed behaviour.
+
+Step 1 is simplified to reference the name already derived
+in Step 0 instead of calling `list_projects` again. by @jskswamy
+- Release v2.1.12
+
+Bump marketplace version from 2.1.11 to 2.1.12.
+Bump plugin versions: codebase 0.1.3 → 0.1.4. by @jskswamy
+- Design multi-harness capabilities layout
+
+Capture the target repository structure and release model for sharing
+agent skills across Claude Code, Pi, and future harness adapters. by @jskswamy
+- Plan multi-harness capabilities refactor
+
+Break the approved design into implementation tasks for registry-driven
+wrapper generation, canonical resource directories, validation, and
+multi-harness documentation. by @jskswamy
+- Design command wrappers over skills
+
+Define the migration from Claude command workflows to canonical skills
+with thin command wrappers.
+
+This preserves Claude UX while exposing the same workflows through Pi
+skill invocation. by @jskswamy
+- Plan command wrappers over skills
+
+Break the wrapper-command design into Codebase migration tasks.
+
+The plan covers thin wrapper tests, canonical skill extraction, registry
+updates, and documentation. by @jskswamy
+- Extract Codebase commands into skills
+
+Move Codebase command workflows into canonical skills and keep Claude
+Code commands as thin wrappers that forward arguments to those skills.
+
+This exposes the same workflows to Pi through direct skill invocation. by @jskswamy
 
 ### Removed
 
@@ -2570,45 +2679,44 @@ as a dependency.
 ### Removed
 
 - Remove welcome message from shell hook by @jskswamy
-[2.1.12]: https://github.com/jskswamy/claude-plugins/compare/v2.1.11..v2.1.12
-[2.1.11]: https://github.com/jskswamy/claude-plugins/compare/v2.1.10..v2.1.11
-[2.1.10]: https://github.com/jskswamy/claude-plugins/compare/v2.1.9..v2.1.10
-[2.1.9]: https://github.com/jskswamy/claude-plugins/compare/v2.1.8..v2.1.9
-[2.1.8]: https://github.com/jskswamy/claude-plugins/compare/v2.1.6..v2.1.8
-[2.1.6]: https://github.com/jskswamy/claude-plugins/compare/v2.1.5..v2.1.6
-[2.1.5]: https://github.com/jskswamy/claude-plugins/compare/v2.1.4..v2.1.5
-[2.1.4]: https://github.com/jskswamy/claude-plugins/compare/v2.1.3..v2.1.4
-[2.1.3]: https://github.com/jskswamy/claude-plugins/compare/v2.1.2..v2.1.3
-[2.1.2]: https://github.com/jskswamy/claude-plugins/compare/v2.1.1..v2.1.2
-[2.1.1]: https://github.com/jskswamy/claude-plugins/compare/v2.1.0..v2.1.1
-[2.1.0]: https://github.com/jskswamy/claude-plugins/compare/v2.0.2..v2.1.0
-[2.0.2]: https://github.com/jskswamy/claude-plugins/compare/v2.0.1..v2.0.2
-[2.0.1]: https://github.com/jskswamy/claude-plugins/compare/v2.0.0..v2.0.1
-[2.0.0]: https://github.com/jskswamy/claude-plugins/compare/v1.10.0..v2.0.0
-[1.10.0]: https://github.com/jskswamy/claude-plugins/compare/v1.9.0..v1.10.0
-[1.9.0]: https://github.com/jskswamy/claude-plugins/compare/v1.8.2..v1.9.0
-[1.8.2]: https://github.com/jskswamy/claude-plugins/compare/v1.8.1..v1.8.2
-[1.8.1]: https://github.com/jskswamy/claude-plugins/compare/v1.8.0..v1.8.1
-[1.8.0]: https://github.com/jskswamy/claude-plugins/compare/v1.7.0..v1.8.0
-[1.7.0]: https://github.com/jskswamy/claude-plugins/compare/v1.6.4..v1.7.0
-[1.6.4]: https://github.com/jskswamy/claude-plugins/compare/v1.6.3..v1.6.4
-[1.6.3]: https://github.com/jskswamy/claude-plugins/compare/v1.6.2..v1.6.3
-[1.6.2]: https://github.com/jskswamy/claude-plugins/compare/v1.6.1..v1.6.2
-[1.6.1]: https://github.com/jskswamy/claude-plugins/compare/v1.6.0..v1.6.1
-[1.6.0]: https://github.com/jskswamy/claude-plugins/compare/v1.5.0..v1.6.0
-[1.5.0]: https://github.com/jskswamy/claude-plugins/compare/v1.4.0..v1.5.0
-[1.4.0]: https://github.com/jskswamy/claude-plugins/compare/v1.3.3..v1.4.0
-[1.3.3]: https://github.com/jskswamy/claude-plugins/compare/v1.3.2..v1.3.3
-[1.3.2]: https://github.com/jskswamy/claude-plugins/compare/v1.3.0..v1.3.2
-[1.3.0]: https://github.com/jskswamy/claude-plugins/compare/v1.2.0..v1.3.0
-[1.2.0]: https://github.com/jskswamy/claude-plugins/compare/v1.1.8..v1.2.0
-[1.1.8]: https://github.com/jskswamy/claude-plugins/compare/task-decomposer-v1.3.0..v1.1.8
-[task-decomposer-v1.3.0]: https://github.com/jskswamy/claude-plugins/compare/task-decomposer-v1.2.0..task-decomposer-v1.3.0
-[task-decomposer-v1.2.0]: https://github.com/jskswamy/claude-plugins/compare/task-decomposer-v1.1.0..task-decomposer-v1.2.0
-[task-decomposer-v1.1.0]: https://github.com/jskswamy/claude-plugins/compare/v1.0.2..task-decomposer-v1.1.0
-[1.0.2]: https://github.com/jskswamy/claude-plugins/compare/v1.3.1..v1.0.2
-[1.3.1]: https://github.com/jskswamy/claude-plugins/compare/v1.1.2..v1.3.1
-[1.1.2]: https://github.com/jskswamy/claude-plugins/compare/v1.1.1..v1.1.2
-[1.1.1]: https://github.com/jskswamy/claude-plugins/compare/v1.0.1..v1.1.1
-[1.0.1]: https://github.com/jskswamy/claude-plugins/compare/v1.0.0..v1.0.1
+[2.1.14]: https://github.com/jskswamy/skills/compare/v2.1.13..v2.1.14
+[2.1.13]: https://github.com/jskswamy/skills/compare/v2.1.9..v2.1.13
+[2.1.9]: https://github.com/jskswamy/skills/compare/v2.1.8..v2.1.9
+[2.1.8]: https://github.com/jskswamy/skills/compare/v2.1.6..v2.1.8
+[2.1.6]: https://github.com/jskswamy/skills/compare/v2.1.5..v2.1.6
+[2.1.5]: https://github.com/jskswamy/skills/compare/v2.1.4..v2.1.5
+[2.1.4]: https://github.com/jskswamy/skills/compare/v2.1.3..v2.1.4
+[2.1.3]: https://github.com/jskswamy/skills/compare/v2.1.2..v2.1.3
+[2.1.2]: https://github.com/jskswamy/skills/compare/v2.1.1..v2.1.2
+[2.1.1]: https://github.com/jskswamy/skills/compare/v2.1.0..v2.1.1
+[2.1.0]: https://github.com/jskswamy/skills/compare/v2.0.2..v2.1.0
+[2.0.2]: https://github.com/jskswamy/skills/compare/v2.0.1..v2.0.2
+[2.0.1]: https://github.com/jskswamy/skills/compare/v2.0.0..v2.0.1
+[2.0.0]: https://github.com/jskswamy/skills/compare/v1.10.0..v2.0.0
+[1.10.0]: https://github.com/jskswamy/skills/compare/v1.9.0..v1.10.0
+[1.9.0]: https://github.com/jskswamy/skills/compare/v1.8.2..v1.9.0
+[1.8.2]: https://github.com/jskswamy/skills/compare/v1.8.1..v1.8.2
+[1.8.1]: https://github.com/jskswamy/skills/compare/v1.8.0..v1.8.1
+[1.8.0]: https://github.com/jskswamy/skills/compare/v1.7.0..v1.8.0
+[1.7.0]: https://github.com/jskswamy/skills/compare/v1.6.4..v1.7.0
+[1.6.4]: https://github.com/jskswamy/skills/compare/v1.6.3..v1.6.4
+[1.6.3]: https://github.com/jskswamy/skills/compare/v1.6.2..v1.6.3
+[1.6.2]: https://github.com/jskswamy/skills/compare/v1.6.1..v1.6.2
+[1.6.1]: https://github.com/jskswamy/skills/compare/v1.6.0..v1.6.1
+[1.6.0]: https://github.com/jskswamy/skills/compare/v1.5.0..v1.6.0
+[1.5.0]: https://github.com/jskswamy/skills/compare/v1.4.0..v1.5.0
+[1.4.0]: https://github.com/jskswamy/skills/compare/v1.3.3..v1.4.0
+[1.3.3]: https://github.com/jskswamy/skills/compare/v1.3.2..v1.3.3
+[1.3.2]: https://github.com/jskswamy/skills/compare/v1.3.0..v1.3.2
+[1.3.0]: https://github.com/jskswamy/skills/compare/v1.2.0..v1.3.0
+[1.2.0]: https://github.com/jskswamy/skills/compare/v1.1.8..v1.2.0
+[1.1.8]: https://github.com/jskswamy/skills/compare/task-decomposer-v1.3.0..v1.1.8
+[task-decomposer-v1.3.0]: https://github.com/jskswamy/skills/compare/task-decomposer-v1.2.0..task-decomposer-v1.3.0
+[task-decomposer-v1.2.0]: https://github.com/jskswamy/skills/compare/task-decomposer-v1.1.0..task-decomposer-v1.2.0
+[task-decomposer-v1.1.0]: https://github.com/jskswamy/skills/compare/v1.0.2..task-decomposer-v1.1.0
+[1.0.2]: https://github.com/jskswamy/skills/compare/v1.3.1..v1.0.2
+[1.3.1]: https://github.com/jskswamy/skills/compare/v1.1.2..v1.3.1
+[1.1.2]: https://github.com/jskswamy/skills/compare/v1.1.1..v1.1.2
+[1.1.1]: https://github.com/jskswamy/skills/compare/v1.0.1..v1.1.1
+[1.0.1]: https://github.com/jskswamy/skills/compare/v1.0.0..v1.0.1
 
