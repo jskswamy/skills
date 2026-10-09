@@ -61,7 +61,7 @@
     {
       "name": "commit-tools",
       "description": "End-to-end commit hygiene: write atomic commits with style enforcement, review and consolidate them before push, validate the final history",
-      "version": "1.0.2",
+      "version": "1.0.3",
       "author": {
         "name": "Krishnaswamy Subramanian"
       },
@@ -310,7 +310,7 @@
     {
       "name": "typst-notes",
       "description": "Generate beautiful PDF/HTML shareable notes using Typst with 7 professional templates, infographics, and modern typography",
-      "version": "1.0.3",
+      "version": "1.0.4",
       "author": {
         "name": "Krishnaswamy Subramanian"
       },

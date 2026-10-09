@@ -1,6 +1,6 @@
 {
   "name": "typst-notes",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Generate beautiful PDF/HTML shareable notes using Typst with 7 professional templates, infographics, and modern typography",
   "author": {
     "name": "Krishnaswamy Subramanian"
