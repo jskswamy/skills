@@ -17,10 +17,11 @@ Run this FIRST, before reading settings, parsing arguments, or doing any other w
 ```bash
 if command -v typst >/dev/null 2>&1; then echo "TYPST_AVAILABLE"
 elif command -v nix-shell >/dev/null 2>&1; then echo "NIX_AVAILABLE"
+elif command -v nix >/dev/null 2>&1; then echo "NIX_AVAILABLE"
 else echo "TYPST_MISSING"; fi
 ```
 
-- `TYPST_AVAILABLE` or `NIX_AVAILABLE` (nix-shell supplies Typst via `compile.sh`): continue to Settings.
+- `TYPST_AVAILABLE` or `NIX_AVAILABLE` (Nix supplies Typst without installing Typst globally): continue to Settings.
 - `TYPST_MISSING`: **FAIL. Do not continue with the task** - no template questions, no content gathering, no source generation. Print:
 
 > **Typst is not installed, so this task cannot run.**
@@ -67,7 +68,7 @@ Extract from the user's command:
 
 ### Step 2: Confirm Typst Runner
 
-The Step 0 preflight already verified Typst is available. Prefer global `typst`; `compile.sh` falls back to `nix-shell -p typst` automatically when it is missing.
+The Step 0 preflight already verified Typst is available. Prefer global `typst`; otherwise use Nix without installing Typst globally. `compile.sh` falls back to `nix-shell -p typst` when `nix-shell` is available, or `nix shell nixpkgs#typst -c typst` when only `nix` is available.
 
 ### Step 3: Select Template
 

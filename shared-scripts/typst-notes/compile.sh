@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Typst compilation script with global → nix-shell fallback
+# Typst compilation script with global → nix-shell → nix fallback
 # Usage: compile.sh <input.typ> <output> [--format pdf|html|both] [--font-path <path>]
 
 set -euo pipefail
@@ -85,39 +85,57 @@ run_compilation() {
   esac
 }
 
-# Resolution order: global typst → nix-shell fallback → error
+compile_with_nix_shell() {
+  local fmt="$1"
+  local out_file="${OUTPUT}.${fmt}"
+
+  nix-shell -p typst --run "typst compile --root / \"$INPUT\" \"$out_file\" $FONT_ARG"
+  echo "$out_file"
+}
+
+compile_with_nix() {
+  local fmt="$1"
+  local out_file="${OUTPUT}.${fmt}"
+
+  nix shell nixpkgs#typst -c typst compile --root / "$INPUT" "$out_file" $FONT_ARG
+  echo "$out_file"
+}
+
+run_nix_compilation() {
+  local runner="$1"
+
+  case "$FORMAT" in
+    pdf|html)
+      "$runner" "$FORMAT"
+      ;;
+    both)
+      "$runner" "pdf"
+      "$runner" "html"
+      ;;
+    *)
+      echo "Error: Unknown format '$FORMAT'. Use pdf, html, or both." >&2
+      exit 1
+      ;;
+  esac
+}
+
+# Resolution order: global typst → nix-shell fallback → nix fallback → error
 if command -v typst &>/dev/null; then
   run_compilation "typst"
 elif command -v nix-shell &>/dev/null; then
   echo "typst not found globally, using nix-shell fallback..." >&2
-  TYPST_CMD="nix-shell -p typst --run"
-  case "$FORMAT" in
-    pdf)
-      out_file="${OUTPUT}.pdf"
-      nix-shell -p typst --run "typst compile --root / \"$INPUT\" \"$out_file\" $FONT_ARG"
-      echo "$out_file"
-      ;;
-    html)
-      out_file="${OUTPUT}.html"
-      nix-shell -p typst --run "typst compile --root / \"$INPUT\" \"$out_file\" $FONT_ARG"
-      echo "$out_file"
-      ;;
-    both)
-      out_file_pdf="${OUTPUT}.pdf"
-      out_file_html="${OUTPUT}.html"
-      nix-shell -p typst --run "typst compile --root / \"$INPUT\" \"$out_file_pdf\" $FONT_ARG && typst compile --root / \"$INPUT\" \"$out_file_html\" $FONT_ARG"
-      echo "$out_file_pdf"
-      echo "$out_file_html"
-      ;;
-  esac
+  run_nix_compilation compile_with_nix_shell
+elif command -v nix &>/dev/null; then
+  echo "typst not found globally, using nix fallback..." >&2
+  run_nix_compilation compile_with_nix
 else
-  echo "Error: typst is not installed and nix-shell is not available." >&2
+  echo "Error: typst is not installed and neither nix-shell nor nix is available." >&2
   echo "" >&2
   echo "Install typst using one of:" >&2
-  echo "  brew install typst          # macOS (Homebrew)" >&2
-  echo "  nix-env -iA nixpkgs.typst   # Nix" >&2
-  echo "  cargo install typst-cli     # Rust/Cargo" >&2
+  echo "  brew install typst               # macOS (Homebrew)" >&2
+  echo "  nix-env -iA nixpkgs.typst        # Nix profile" >&2
+  echo "  cargo install --locked typst-cli # Rust/Cargo" >&2
   echo "" >&2
-  echo "Or ensure nix-shell is available for automatic fallback." >&2
+  echo "Or ensure nix-shell or nix is available for automatic fallback." >&2
   exit 1
 fi
