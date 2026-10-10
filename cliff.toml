@@ -1,4 +1,4 @@
-# git-cliff configuration for Claude Code Plugin Marketplace
+# git-cliff configuration for this multi-harness agent skills/plugins repo
 # https://git-cliff.org/docs/configuration
 #
 # This configuration parses CLASSICAL/IMPERATIVE commit messages
@@ -8,7 +8,7 @@
 # Header template
 header = """
 # Changelog\n
-All notable changes to the Claude Code Plugin Marketplace will be documented in this file.\n
+All notable changes to this skills/plugins collection will be documented in this file.\n
 """
 
 # Template for each release
