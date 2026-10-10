@@ -16,7 +16,6 @@ const wrappers = [
   ["commands/craft/park.md", "park-idea"],
   ["commands/craft/parked.md", "review-parked"],
   ["commands/craft/task.md", "craft-task"],
-  ["commands/guardrails/handoff.md", "ide-handoff"],
   ["commands/jot/capture.md", "jot-capture"],
   ["commands/jot/configure.md", "jot-configure"],
   ["commands/jot/setup.md", "jot-setup"],

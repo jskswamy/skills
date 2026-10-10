@@ -32,7 +32,7 @@ canonical resources with `npm run build`.
 | **Study workflows** | `study-*` | Coach through new material and run recall sessions |
 | **Publishing and sketches** | `typst-*`, `sketch-*` | Generate PDFs, shareable notes, diagrams, and Excalidraw sketches |
 | **Development environments** | `devenv` | Initialize and maintain Nix development environments |
-| **Refactoring** | `refactor-scan`, `ide-handoff` | Find refactoring opportunities and hand semantic refactors to an IDE |
+| **Refactoring** | `refactor-scan` | Find refactoring opportunities and turn them into reviewable findings |
 
 ## Choose by task
 
@@ -215,24 +215,6 @@ Initialize and manage Nix flake development environments with auto-detection and
 /skill:devenv
 ```
 [View documentation](./plugins/devenv/README.md)
-
-
-### guardrails
-
-Efficiency guardrails for Claude - IDE refactoring handoff with automatic pattern detection, extensible to security, cost, and testing patterns
-
-**Claude Code:**
-
-```text
-/plugin install guardrails@skills
-# Commands are documented in the capability README
-```
-**Pi skills:**
-
-```text
-/skill:ide-handoff
-```
-[View documentation](./plugins/guardrails/README.md)
 
 
 ### jot

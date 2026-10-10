@@ -16,7 +16,7 @@ to the new plugins.
 | `task-executor` | v2.0.0 | `craft` |
 
 `refactor` and the other plugins (`devenv`, `jot`, `sketch-note`,
-`typst-notes`, `guardrails`, `codebase`) are unaffected.
+`typst-notes`, `codebase`) are unaffected.
 
 ## Steps
 

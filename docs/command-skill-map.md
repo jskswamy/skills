@@ -13,7 +13,6 @@ Claude Code commands are thin wrappers around canonical skills. In Pi, invoke th
 | `/park` | `park-idea` | `/skill:park-idea` |
 | `/parked` | `review-parked` | `/skill:review-parked` |
 | `/task` | `craft-task` | `/skill:craft-task` |
-| `/handoff` | `ide-handoff` | `/skill:ide-handoff` |
 | `/capture` | `jot-capture` | `/skill:jot-capture` |
 | `/configure` | `jot-configure` | `/skill:jot-configure` |
 | `/setup` in jot | `jot-setup` | `/skill:jot-setup` |

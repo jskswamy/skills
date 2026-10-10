@@ -56,7 +56,6 @@ test("registry lists all current marketplace plugins", async () => {
       "commit-tools",
       "craft",
       "devenv",
-      "guardrails",
       "jot",
       "refactor",
       "sketch-note",

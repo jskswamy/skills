@@ -146,28 +146,6 @@
       ]
     },
     {
-      "name": "guardrails",
-      "description": "Efficiency guardrails for Claude - IDE refactoring handoff with automatic pattern detection, extensible to security, cost, and testing patterns",
-      "version": "1.0.1",
-      "author": {
-        "name": "Krishnaswamy Subramanian"
-      },
-      "source": "./plugins/guardrails",
-      "category": "workflow",
-      "tags": [
-        "guardrails",
-        "refactoring",
-        "ide",
-        "efficiency",
-        "handoff",
-        "intellij",
-        "goland",
-        "vscode",
-        "semantic-refactoring",
-        "ast"
-      ]
-    },
-    {
       "name": "codebase",
       "description": "Intelligent codebase exploration powered by codebase-memory-mcp. Natural language queries, change impact analysis, symbol graph traversal, and automatic brainstorming/planning integration.",
       "version": "0.1.4",
