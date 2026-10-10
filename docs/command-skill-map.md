@@ -4,6 +4,7 @@ Claude Code commands are thin wrappers around canonical skills. In Pi, invoke th
 
 | Claude Code command | Canonical skill | Pi invocation |
 | --- | --- | --- |
+| `/bivouac` | `bivouac` | `/skill:bivouac` |
 | `/commit` | `commit-action` | `/skill:commit-action` |
 | `/backlog` | `craft-backlog` | `/skill:craft-backlog` |
 | `/decompose` | `craft-decompose` | `/skill:craft-decompose` |

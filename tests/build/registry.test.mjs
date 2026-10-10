@@ -52,6 +52,7 @@ test("registry lists all current marketplace plugins", async () => {
   assert.deepEqual(
     registry.plugins.map((plugin) => plugin.name).sort(),
     [
+      "bivouac",
       "codebase",
       "commit-tools",
       "craft",

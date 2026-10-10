@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
 const wrappers = [
+  ["commands/bivouac/bivouac.md", "bivouac"],
   ["commands/codebase/ask.md", "codebase-ask"],
   ["commands/codebase/index.md", "codebase-index"],
   ["commands/codebase/impact.md", "codebase-impact"],

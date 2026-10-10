@@ -28,6 +28,7 @@ canonical resources with `npm run build`.
 | **Codebase understanding** | `codebase-*` | Ask questions, build semantic indexes, trace symbols, inspect change impact |
 | **Commit hygiene** | `commit-*`, `review-commits`, `validate-commits` | Write atomic commits, clean branch history, prevent AI co-author and tracker-ID leaks |
 | **Craft workflow** | `craft-*`, `execute-tasks`, `park-idea` | Understand tasks, decompose work, execute subagent batches, park follow-ups |
+| **Remote agent workspaces** | `bivouac` | Start, monitor, retrieve, and merge disposable cloud coding-agent sessions |
 | **Knowledge capture** | `jot-*` | Capture notes, ideas, session summaries, and source material |
 | **Study workflows** | `study-*` | Coach through new material and run recall sessions |
 | **Publishing and sketches** | `typst-*`, `sketch-*` | Generate PDFs, shareable notes, diagrams, and Excalidraw sketches |
@@ -131,6 +132,23 @@ Install individual Claude Code plugins from the marketplace:
 ```
 
 See [Command to Skill Map](docs/command-skill-map.md) for full command equivalents.
+### bivouac
+
+Safe workflows for disposable remote coding-agent sessions with bivouac
+
+**Claude Code:**
+
+```text
+/plugin install bivouac@skills
+```
+**Pi skills:**
+
+```text
+/skill:bivouac
+```
+[View documentation](./plugins/bivouac/README.md)
+
+
 ### codebase
 
 Intelligent codebase exploration powered by codebase-memory-mcp. Natural language queries, change impact analysis, symbol graph traversal, and automatic brainstorming/planning integration.

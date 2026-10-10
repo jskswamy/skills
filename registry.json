@@ -9,6 +9,44 @@
   },
   "plugins": [
     {
+      "name": "bivouac",
+      "description": "Safe workflows for disposable remote coding-agent sessions with bivouac",
+      "version": "0.1.0",
+      "author": {
+        "name": "Krishnaswamy Subramanian"
+      },
+      "category": "workflow",
+      "tags": [
+        "bivouac",
+        "remote",
+        "agents",
+        "sessions",
+        "workflow",
+        "nix",
+        "cloud"
+      ],
+      "resources": {
+        "skills": [
+          "bivouac"
+        ],
+        "commands": [
+          "bivouac/bivouac.md"
+        ],
+        "agents": [],
+        "hooks": [],
+        "templates": [],
+        "extra": []
+      },
+      "harnesses": {
+        "claude-code": {
+          "enabled": true
+        },
+        "pi": {
+          "enabled": true
+        }
+      }
+    },
+    {
       "name": "devenv",
       "description": "Initialize and manage Nix flake development environments with auto-detection and security tooling",
       "version": "1.3.2",
