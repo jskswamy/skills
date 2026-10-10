@@ -1,73 +1,114 @@
 # Skills Marketplace
 
-A curated collection of reusable agent capabilities focused on developer workflows, code generation, and productivity.
+A multi-harness collection of agent skills for real developer workflows:
+understanding codebases, keeping commits clean, planning and executing work,
+capturing knowledge, publishing notes, and setting up development
+environments.
 
-## About
+The same canonical skills work in multiple harnesses. Claude Code users install
+generated plugins from `plugins/`; Pi users install the package and invoke the
+canonical root `skills/` directly.
 
-This repository started as a Claude Code plugin marketplace and now keeps reusable behavior in harness-neutral resource directories. Claude Code remains supported through generated multi-plugin marketplace wrappers in `plugins/`, while Pi can load the canonical root `skills/` directly through `package.json` package metadata.
+## What this is
 
-All skills and generated harness adapters are open to anyone who finds them helpful.
+This repository is a curated skills marketplace, not a single app. Each skill
+encodes a repeatable workflow an agent can follow: ask better questions about a
+codebase, write a cleaner commit, decompose a feature, capture a note, generate
+a PDF, or scan for refactoring opportunities.
 
-## Philosophy
+The repo keeps the reusable source of truth in root directories such as
+`skills/`, `commands/`, `agents/`, `hooks/`, `templates/`, and
+`shared-scripts/`. Claude Code install wrappers are generated from those
+canonical resources with `npm run build`.
 
-- **Practical focus**: Skills solve real, everyday problems in development workflows
-- **Simplicity first**: Each workflow does one thing well without unnecessary complexity
-- **Quality over quantity**: A small number of polished, reliable skills is better than many half-baked ones
+## What you can do with it
 
-## Quick Start
+| Area | Skills | What it helps with |
+| --- | --- | --- |
+| **Codebase understanding** | `codebase-*` | Ask questions, build semantic indexes, trace symbols, inspect change impact |
+| **Commit hygiene** | `commit-*`, `review-commits`, `validate-commits` | Write atomic commits, clean branch history, prevent AI co-author and tracker-ID leaks |
+| **Craft workflow** | `craft-*`, `execute-tasks`, `park-idea` | Understand tasks, decompose work, execute subagent batches, park follow-ups |
+| **Knowledge capture** | `jot-*` | Capture notes, ideas, session summaries, and source material |
+| **Study workflows** | `study-*` | Coach through new material and run recall sessions |
+| **Publishing and sketches** | `typst-*`, `sketch-*` | Generate PDFs, shareable notes, diagrams, and Excalidraw sketches |
+| **Development environments** | `devenv` | Initialize and maintain Nix development environments |
+| **Refactoring** | `refactor-scan`, `ide-handoff` | Find refactoring opportunities and hand semantic refactors to an IDE |
 
-### Prerequisites
+## Choose by task
 
-- [Claude Code](https://claude.ai/code) installed on your machine for Claude plugins
-- [Pi](https://pi.dev) installed on your machine for Pi package usage
+| If you want to... | Use... |
+| --- | --- |
+| Ask where something happens in a codebase | `codebase-ask` |
+| See the impact of recent changes | `codebase-impact` |
+| Make a clean commit | `commit-action` or `/commit` |
+| Clean up commits before pushing | `review-commits` |
+| Validate history before pushing | `validate-commits` |
+| Explore a task before decomposing it | `craft-understand` |
+| Decompose work into issues | `craft-decompose` |
+| Park a follow-up idea without derailing flow | `park-idea` |
+| Capture notes or source material | `jot-capture` |
+| Generate a PDF from content | `typst-publish` |
+| Create sketch notes | `sketch-note` |
+| Initialize a Nix dev environment | `devenv` |
+| Scan for refactoring opportunities | `refactor-scan` |
 
-### Claude Code Installation
+## Quick start
 
-1. Add this marketplace to Claude Code:
-
-   ```
-   /plugin marketplace add jskswamy/skills
-   ```
-
-2. Browse available plugins:
-
-   ```
-   /plugin search @skills
-   ```
-
-3. Install any plugin:
-
-   ```
-   /plugin install <plugin-name>@skills
-   ```
-
-4. Use the installed workflows via commands or skills (see individual documentation)
-
-### Pi Installation
-
-Install the package from git:
-
-```bash
-pi install git:github.com/jskswamy/skills@<tag>
-```
-
-See [Command to Skill Map](docs/command-skill-map.md) for Pi `/skill:<name>` equivalents to the Claude Code commands.
-
-### Repository Layout
-
-Canonical reusable resources live at the repository root:
+### Claude Code
 
 ```text
-skills/       # Agent Skills source of truth
-commands/     # command markdown grouped by plugin
-agents/       # agent prompts grouped by plugin
-hooks/        # hook definitions and scripts grouped by plugin
-templates/    # reusable templates and static assets
+/plugin marketplace add jskswamy/skills
+/plugin install <plugin-name>@skills
 ```
 
-Claude Code install wrappers are generated into `plugins/` from `registry.json` with `npm run build`. Do not edit copied resources under `plugins/<name>/` directly; edit canonical root resources and regenerate.
+Installed plugins expose slash commands such as `/commit`, `/review-commits`,
+`/capture`, `/sketch`, and `/publish`. See each plugin README for its command
+surface.
 
-## Available Capabilities
+### Pi
+
+Install a stable release tag:
+
+```bash
+pi install git:github.com/jskswamy/skills@vX.Y.Z
+```
+
+Install the latest development version:
+
+```bash
+pi install git:github.com/jskswamy/skills@main
+```
+
+Invoke canonical skills directly:
+
+```text
+/skill:<skill-name>
+```
+
+See [Command to Skill Map](docs/command-skill-map.md) for Pi skill equivalents
+to Claude Code commands.
+
+## How this repo is organized
+
+```text
+registry.json        # Source of truth for plugin metadata and resource membership
+skills/              # Canonical Agent Skills source
+commands/            # Claude command wrappers grouped by plugin
+agents/              # Agent prompts grouped by plugin
+hooks/               # Hook definitions and scripts grouped by plugin
+templates/           # Reusable templates and static assets
+shared-scripts/      # Shared runtime scripts
+plugins/             # Generated Claude Code plugin wrappers
+.claude-plugin/      # Generated Claude Code marketplace metadata
+harnesses/pi/        # Pi-specific package docs/extensions
+```
+
+Edit canonical root resources first, then run `npm run build` to refresh the
+Claude Code install tree under `plugins/`. For details, see
+[Authoring Skills and Plugins](docs/authoring-skills.md) and
+[Contributing](CONTRIBUTING.md).
+
+## Complete capability reference
 
 <!-- PLUGINS:START -->
 

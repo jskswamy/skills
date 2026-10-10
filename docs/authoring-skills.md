@@ -1,19 +1,29 @@
 # Authoring Skills and Plugins
 
-This repository keeps reusable agent behavior in canonical root resource directories and generates Claude Code plugin wrappers from `registry.json`.
+This repository keeps reusable agent behavior in canonical root resource
+directories. Generated Claude Code wrappers under `plugins/` are install
+artifacts produced from those canonical resources and `registry.json`.
+
+Pi loads the canonical `skills/` directory directly through the root
+`package.json` package metadata. Claude Code installs generated plugin trees
+from `plugins/<plugin-name>/`.
+
+Edit canonical resources first, then run `npm run build` to refresh generated
+wrappers.
 
 ## Canonical Resource Directories
 
 ```text
 skills/          # Agent Skills source of truth
-commands/        # command markdown grouped by plugin
+commands/        # Claude command wrappers grouped by plugin
 agents/          # agent prompts grouped by plugin
 hooks/           # hook definitions and scripts grouped by plugin
 templates/       # reusable templates and static assets
 shared-scripts/  # shared runtime scripts
 ```
 
-Do not edit generated resource copies under `plugins/<plugin-name>/` directly. Edit the canonical source and regenerate.
+Do not edit generated resource copies under `plugins/<plugin-name>/` directly.
+If a generated file is wrong, fix its canonical source and regenerate.
 
 ## Add a Skill
 
@@ -36,7 +46,9 @@ description: What this skill does and when to use it.
 Instructions here.
 ```
 
-Use lowercase hyphenated names. Keep harness-specific tool names out of shared skill prose where possible; adapters should map generic actions to harness tools.
+Use lowercase hyphenated names. Keep shared skill prose harness-neutral where
+possible. When a harness needs special handling, describe the generic action
+first and name harness-specific commands second.
 
 ## Add Commands, Agents, Hooks, or Templates
 
@@ -72,7 +84,7 @@ Invoke the `codebase-ask` skill with the user's question.
 Forward all arguments exactly as provided.
 ```
 
-This lets Claude users keep command UX while Pi users invoke the same
+This lets Claude Code users keep command UX while Pi users invoke the same
 workflow directly with `/skill:<name>`. Keep the mapping visible in
 [`docs/command-skill-map.md`](command-skill-map.md).
 
@@ -103,7 +115,7 @@ Update `registry.json`:
 }
 ```
 
-`extra` entries may map canonical paths to Claude wrapper destinations:
+`extra` entries map canonical paths to Claude wrapper destinations:
 
 ```json
 { "from": "shared-scripts/my-plugin", "to": "scripts" }
@@ -115,6 +127,8 @@ Update `registry.json`:
 npm run build
 npm run validate
 npm test
+git diff --exit-code -- .claude-plugin plugins
 ```
 
-Commit both canonical resources and generated Claude wrapper changes.
+If the generated diff is intentional, commit both canonical resources and the
+generated Claude wrapper changes.
