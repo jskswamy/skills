@@ -99,16 +99,24 @@ release -n -b minor         # dry run with minor bump
      ];
      const fileHit = changedFiles.some(f => prefixes.some(p => f === p || f.startsWith(p + "/")));
      const old = oldByName.get(plugin.name);
-     const metaHit = !old || JSON.stringify(old) !== JSON.stringify(plugin);
-     if (fileHit || metaHit) console.log(plugin.name);
+     const isNew = !old;
+     const metaHit = !isNew && JSON.stringify(old) !== JSON.stringify(plugin);
+     if (isNew) console.log(plugin.name, "(new — do not bump)");
+     else if (fileHit || metaHit) console.log(plugin.name, fileHit ? "(files)" : "(metadata)");
    }
    '
    ```
 
-4. **Bump registry.json for each changed plugin:**
+   A plugin that didn't exist in the old registry at all is brand new —
+   its already-committed version (e.g. `0.1.0`) **is** its first release.
+   Do not bump it; bumping would imply a prior release that never
+   happened (confirmed by precedent: `study` was introduced at `1.0.0`
+   and was untouched in the very next release commit).
 
-   For each plugin with changes, apply the same semver bump type (`--bump`)
-   to its `version` field in `registry.json` and write the file:
+4. **Bump registry.json for each changed, pre-existing plugin:**
+
+   For each non-new plugin with changes, apply the same semver bump type
+   (`--bump`) to its `version` field in `registry.json` and write the file:
 
    ```
    Plugin      Current     New (patch)
