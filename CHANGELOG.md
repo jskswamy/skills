@@ -1,8 +1,82 @@
 # Changelog
 
-All notable changes to the Claude Code Plugin Marketplace will be documented in this file.
+All notable changes to this skills/plugins collection will be documented in this file.
 
+## [2.1.15] - 2026-10-11
+
+### Added
+
+- Add bivouac workflow skill
+
+Introduce a canonical bivouac skill and thin Claude command for safe
+remote agent session workflows.
+
+Package the workflow for Pi and Claude Code, document the command mapping,
+and cover the registry and wrapper packaging with tests.
+
+### Other
+
+- Rewrite docs around skill workflows
+
+Lead the README with a capability map and task guide so users can see
+what the skills do before reading install or generated reference
+material.
+
+Align the authoring, contributing, release, and Pi docs with the
+canonical skill source model and generated Claude wrapper workflow.
+- Make release skill harness-neutral
+
+The release workflow still assumed marketplace.json carried a
+metadata.version field and lived only under .claude/commands/,
+making it Claude Code only. Both assumptions broke after the
+registry.json-driven, generated-wrapper refactor: there's no
+marketplace-wide version field anymore, and other harnesses like
+Pi can't see .claude/commands/.
+
+Move the full instructions to skills/release/SKILL.md, the shared
+canonical location Pi already loads directly. registry.json is now
+read as the source of truth for per-plugin versions, with
+marketplace.json and plugin.json treated as npm run build output
+that is never hand-edited.
+
+Also fix the changed-plugin detection: it previously flagged every
+plugin whenever registry.json changed at all, since the file is
+shared across plugins. It now diffs each plugin's own block plus
+its actual resource files.
+
+.claude/commands/release.md is now a thin pointer to the canonical
+skill so Claude Code and Pi follow the same instructions. Reword
+cliff.toml's header to drop the "Claude Code Plugin Marketplace"
+naming, since this repo is no longer Claude-specific.
+- Exclude new plugins from release version bump
+
+Running the release workflow for real surfaced a bug: a brand-new
+plugin (absent from the registry at the last tag) was flagged the
+same as a changed existing plugin, which would bump its
+already-correct introduction version.
+
+Checked precedent: the study plugin was introduced at 1.0.0 and
+was untouched by the very next release commit. New plugins keep
+their introduction version as the first release; only existing
+plugins with real changes get bumped.
+
+### Removed
+
+- Remove IDE handoff skill
+
+Drop the guardrails package and retired handoff workflow from the
+canonical skill sources, generated Claude plugin output, registry, and
+user documentation.
+
+Add a regression test to ensure the removed skill is not packaged again.
 ## [2.1.14] - 2026-10-09
+
+### Changed
+
+- Update CHANGELOG and README for v2.1.14
+
+Document all changes included in the v2.1.14 release.
+Regenerate plugins section in README from marketplace.json. by @jskswamy
 
 ### Fixed
 
@@ -44,24 +118,11 @@ trailer keys, and keep generated commit-tools plugin resources in sync. by @jsks
 - Release v2.1.14
 
 Bump commit-tools from 1.0.2 to 1.0.3.
-Bump typst-notes from 1.0.3 to 1.0.4.
-
+Bump typst-notes from 1.0.3 to 1.0.4. by @jskswamy
 ## [2.1.13] - 2026-09-30
 
 ### Added
 
-- Add PreToolUse grep hook to codebase plugin
-
-Intercepts Bash grep/rg calls and injects matching codebase-memory
-graph symbols as context before the grep runs. Claude sees the graph
-results first and typically skips acting on the grep output.
-
-The hook calls codebase-memory-mcp via its cli subcommand, derives
-the project name from the git root path, and is fail-open: any error
-or zero results exits 0 with no output.
-
-hooks.json wires it via ${CLAUDE_PLUGIN_ROOT} so the path resolves
-correctly regardless of where the plugin is installed. by @jskswamy
 - Add registry-driven plugin generation
 
 Move reusable plugin resources into canonical root directories and
@@ -72,36 +133,6 @@ skills and Pi package metadata for other harnesses. by @jskswamy
 
 ### Changed
 
-- Convert jot capture to inline command pattern
-
-Replace the spawned-subagent delegation with an inline orchestration
-pattern (study:coach style). AskUserQuestion is filtered out of
-subagent tool access in Claude Code, so the old pattern terminated
-the agentic loop after every exchange.
-
-commands/capture.md is now an orchestrator: resolves config, delegates
-URL extraction to jot:content-extractor (one-shot), then reads and
-runs agents/capture.md directly in the command's conversation context.
-
-agents/capture.md becomes a spec document: frontmatter removed, Phase
-1a updated to treat config as pre-loaded, Phase 3b residency guard
-removed. All 6 phases and all AskUserQuestion calls are unchanged —
-they now work natively in the inline context.
-
-Also fixes from final review: CONTENT schema (title/description/body/
-raw_source), jot.local.md absolute path, stale Phase 5a variable ref. by @jskswamy
-- Update CHANGELOG and README for v2.1.10
-
-Document all changes included in the v2.1.10 release.
-Regenerate plugins section in README from marketplace.json. by @jskswamy
-- Update CHANGELOG and README for v2.1.11
-
-Document all changes included in the v2.1.11 release.
-Regenerate plugins section in README from marketplace.json. by @jskswamy
-- Update CHANGELOG and README for v2.1.12
-
-Document all changes included in the v2.1.12 release.
-Regenerate plugins section in README from marketplace.json. by @jskswamy
 - Rename marketplace for skills repo
 
 Update install commands, package metadata, release links, and generated
@@ -135,6 +166,122 @@ Switch the generator to registry.json so the skill lists stay in sync. by @jsksw
 Replace empty block-scalar descriptions with valid skill descriptions.
 
 Tighten registry validation so empty YAML block descriptions fail. by @jskswamy
+
+### Other
+
+- Design multi-harness capabilities layout
+
+Capture the target repository structure and release model for sharing
+agent skills across Claude Code, Pi, and future harness adapters. by @jskswamy
+- Plan multi-harness capabilities refactor
+
+Break the approved design into implementation tasks for registry-driven
+wrapper generation, canonical resource directories, validation, and
+multi-harness documentation. by @jskswamy
+- Design command wrappers over skills
+
+Define the migration from Claude command workflows to canonical skills
+with thin command wrappers.
+
+This preserves Claude UX while exposing the same workflows through Pi
+skill invocation. by @jskswamy
+- Plan command wrappers over skills
+
+Break the wrapper-command design into Codebase migration tasks.
+
+The plan covers thin wrapper tests, canonical skill extraction, registry
+updates, and documentation. by @jskswamy
+- Extract Codebase commands into skills
+
+Move Codebase command workflows into canonical skills and keep Claude
+Code commands as thin wrappers that forward arguments to those skills.
+
+This exposes the same workflows to Pi through direct skill invocation. by @jskswamy
+## [2.1.12] - 2026-08-03
+
+### Changed
+
+- Update CHANGELOG and README for v2.1.12
+
+Document all changes included in the v2.1.12 release.
+Regenerate plugins section in README from marketplace.json. by @jskswamy
+
+### Other
+
+- Derive project name and auto-reindex stale indexes
+
+Step 0 now derives the project name from `git rev-parse
+--show-toplevel` by stripping the leading `/` and replacing
+remaining `/` with `-`, then calls `index_status` directly
+with that name. This gives two distinct failure modes:
+MCP unreachable vs project not indexed.
+
+Step 0b is rewritten as a decision table. Stale indexes
+(>24 h) are now auto-reindexed when `auto_index` is not
+`never`, replacing the old warn-and-proceed behaviour.
+
+Step 1 is simplified to reference the name already derived
+in Step 0 instead of calling `list_projects` again. by @jskswamy
+- Release v2.1.12
+
+Bump marketplace version from 2.1.11 to 2.1.12.
+Bump plugin versions: codebase 0.1.3 → 0.1.4. by @jskswamy
+## [2.1.11] - 2026-08-03
+
+### Added
+
+- Add PreToolUse grep hook to codebase plugin
+
+Intercepts Bash grep/rg calls and injects matching codebase-memory
+graph symbols as context before the grep runs. Claude sees the graph
+results first and typically skips acting on the grep output.
+
+The hook calls codebase-memory-mcp via its cli subcommand, derives
+the project name from the git root path, and is fail-open: any error
+or zero results exits 0 with no output.
+
+hooks.json wires it via ${CLAUDE_PLUGIN_ROOT} so the path resolves
+correctly regardless of where the plugin is installed. by @jskswamy
+
+### Changed
+
+- Update CHANGELOG and README for v2.1.11
+
+Document all changes included in the v2.1.11 release.
+Regenerate plugins section in README from marketplace.json. by @jskswamy
+
+### Other
+
+- Release v2.1.11
+
+Bump marketplace version from 2.1.10 to 2.1.11.
+Bump plugin versions: codebase 0.1.2 → 0.1.3. by @jskswamy
+## [2.1.10] - 2026-08-03
+
+### Changed
+
+- Convert jot capture to inline command pattern
+
+Replace the spawned-subagent delegation with an inline orchestration
+pattern (study:coach style). AskUserQuestion is filtered out of
+subagent tool access in Claude Code, so the old pattern terminated
+the agentic loop after every exchange.
+
+commands/capture.md is now an orchestrator: resolves config, delegates
+URL extraction to jot:content-extractor (one-shot), then reads and
+runs agents/capture.md directly in the command's conversation context.
+
+agents/capture.md becomes a spec document: frontmatter removed, Phase
+1a updated to treat config as pre-loaded, Phase 3b residency guard
+removed. All 6 phases and all AskUserQuestion calls are unchanged —
+they now work natively in the inline context.
+
+Also fixes from final review: CONTENT schema (title/description/body/
+raw_source), jot.local.md absolute path, stale Phase 5a variable ref. by @jskswamy
+- Update CHANGELOG and README for v2.1.10
+
+Document all changes included in the v2.1.10 release.
+Regenerate plugins section in README from marketplace.json. by @jskswamy
 
 ### Other
 
@@ -181,56 +328,6 @@ valuable session) is worse than a false positive (one extra click). by @jskswamy
 
 Bump marketplace version from 2.1.9 to 2.1.10.
 Bump plugin versions: jot 2.0.0 → 2.0.1 (sync from 1.6.8 in marketplace). by @jskswamy
-- Release v2.1.11
-
-Bump marketplace version from 2.1.10 to 2.1.11.
-Bump plugin versions: codebase 0.1.2 → 0.1.3. by @jskswamy
-- Derive project name and auto-reindex stale indexes
-
-Step 0 now derives the project name from `git rev-parse
---show-toplevel` by stripping the leading `/` and replacing
-remaining `/` with `-`, then calls `index_status` directly
-with that name. This gives two distinct failure modes:
-MCP unreachable vs project not indexed.
-
-Step 0b is rewritten as a decision table. Stale indexes
-(>24 h) are now auto-reindexed when `auto_index` is not
-`never`, replacing the old warn-and-proceed behaviour.
-
-Step 1 is simplified to reference the name already derived
-in Step 0 instead of calling `list_projects` again. by @jskswamy
-- Release v2.1.12
-
-Bump marketplace version from 2.1.11 to 2.1.12.
-Bump plugin versions: codebase 0.1.3 → 0.1.4. by @jskswamy
-- Design multi-harness capabilities layout
-
-Capture the target repository structure and release model for sharing
-agent skills across Claude Code, Pi, and future harness adapters. by @jskswamy
-- Plan multi-harness capabilities refactor
-
-Break the approved design into implementation tasks for registry-driven
-wrapper generation, canonical resource directories, validation, and
-multi-harness documentation. by @jskswamy
-- Design command wrappers over skills
-
-Define the migration from Claude command workflows to canonical skills
-with thin command wrappers.
-
-This preserves Claude UX while exposing the same workflows through Pi
-skill invocation. by @jskswamy
-- Plan command wrappers over skills
-
-Break the wrapper-command design into Codebase migration tasks.
-
-The plan covers thin wrapper tests, canonical skill extraction, registry
-updates, and documentation. by @jskswamy
-- Extract Codebase commands into skills
-
-Move Codebase command workflows into canonical skills and keep Claude
-Code commands as thin wrappers that forward arguments to those skills.
-
-This exposes the same workflows to Pi through direct skill invocation. by @jskswamy
 
 ### Removed
 
@@ -2679,8 +2776,12 @@ as a dependency.
 ### Removed
 
 - Remove welcome message from shell hook by @jskswamy
+[2.1.15]: https://github.com/jskswamy/skills/compare/v2.1.14..v2.1.15
 [2.1.14]: https://github.com/jskswamy/skills/compare/v2.1.13..v2.1.14
-[2.1.13]: https://github.com/jskswamy/skills/compare/v2.1.9..v2.1.13
+[2.1.13]: https://github.com/jskswamy/skills/compare/v2.1.12..v2.1.13
+[2.1.12]: https://github.com/jskswamy/skills/compare/v2.1.11..v2.1.12
+[2.1.11]: https://github.com/jskswamy/skills/compare/v2.1.10..v2.1.11
+[2.1.10]: https://github.com/jskswamy/skills/compare/v2.1.9..v2.1.10
 [2.1.9]: https://github.com/jskswamy/skills/compare/v2.1.8..v2.1.9
 [2.1.8]: https://github.com/jskswamy/skills/compare/v2.1.6..v2.1.8
 [2.1.6]: https://github.com/jskswamy/skills/compare/v2.1.5..v2.1.6

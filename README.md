@@ -140,6 +140,7 @@ Safe workflows for disposable remote coding-agent sessions with bivouac
 
 ```text
 /plugin install bivouac@skills
+# Commands are documented in the capability README
 ```
 **Pi skills:**
 
