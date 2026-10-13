@@ -9,7 +9,7 @@ description: Start, monitor, retrieve, and merge disposable remote coding-agent 
 
 Use this skill when the user wants to start, inspect, attach to, retrieve, merge, or shut down a disposable remote coding-agent workspace managed by `bivouac`.
 
-`bivouac` is repo-scoped. It creates a remote VM from declarative config, starts named git-backed sessions on that instance, and brings work home through `session pull` or `session merge`. The skill's job is to choose safe next steps from deterministic state checks, not to reimplement the CLI.
+`bivouac` is repo-scoped. It creates a remote VM from declarative config, starts named git-backed sessions on that instance, and brings work home through `session pull` or `session merge`. The skill's job is to choose safe next steps from deterministic state checks and the CLI's own metadata, not to reimplement the CLI.
 
 ## Preflight Checks
 
@@ -31,6 +31,17 @@ When the user asks about cost or fleet-wide state, run:
 ```bash
 bivouac list --cost
 ```
+
+When scripting, parsing, or checking recent command capabilities, prefer the CLI's machine-readable surfaces:
+
+```bash
+bivouac manifest
+bivouac status --json
+bivouac list --json
+bivouac session list --json
+```
+
+Use `bivouac manifest` to discover current commands, flags, side effects, JSON support, and examples instead of scraping prose help or relying on memory.
 
 Interpret these checks conservatively:
 
@@ -55,14 +66,18 @@ Route by combining the user's request with detected state:
 | No `bivouac.pkl` | Offer `bivouac init`; do not invent config. |
 | Config exists, no instance | Offer `bivouac up`. |
 | Instance exists, no sessions | Offer `bivouac session start <name>`. |
-| Start requested | Check local git state, choose or confirm a session name, run `bivouac up` if needed, then run `bivouac session start <name>`. |
+| Start requested | Check local git state, choose or confirm a session name, run `bivouac up` if needed, then run `bivouac session start <name>` with `--task` or `--issue` when context is available. |
 | Pull requested | Resolve the session from an explicit argument, current worktree, or the only active session. If ambiguous, ask. Run `bivouac session pull [name]`. |
 | Merge requested | Require an unambiguous session. Warn that commits are replayed, signed, and verified locally. Run `bivouac session merge [name]`. |
-| Status requested | Run `bivouac status` and usually `bivouac session list`. |
-| Cost requested | Run `bivouac list --cost`. |
-| SSH/attach requested | Run `bivouac ssh`, `bivouac tmux`, `bivouac herdr`, or `bivouac pair` after summarizing the target. |
+| Status requested | Run `bivouac status` and usually `bivouac session list`; use `--json` when the result will be parsed. |
+| Cost requested | Run `bivouac list --cost`; use `--json` when parsing fleet-wide state. |
+| SSH/attach requested | Run `bivouac ssh`, `bivouac tmux`, `bivouac herdr`, or `bivouac pair` after summarizing the target. Remember `bivouac herdr [name]` takes an instance name, not a session name. |
 | Port requested | Prefer `bivouac connect --port <port>` for temporary access. Use `serve`/`unserve` only when publishing on the tailnet is clearly requested. |
 | Sync/download requested | Confirm the path is intentionally outside git before running `sync` or `download`. |
+| Preset requested | Use `bivouac preset list/show/edit/delete`; presets are copied starting shapes for future `init`, not live links. |
+| Secrets requested | Use `bivouac secrets init/edit/keys`; `keys` lists names only, never values. |
+| Tailscale requested | Use `bivouac tailscale [name]` to join the instance to the user's personal tailnet. |
+| Shell requested | `bivouac shell [name]` exists in the CLI surface, but confirm implementation status with help/manifest before relying on it. |
 | Provision requested | Warn that provisioning can restart services such as Docker and disrupt running containers. Ask before running. |
 | Down requested | Inspect sessions first. Explain that `down` rescues session work and then destroys the VM. Ask before running. |
 
@@ -80,6 +95,13 @@ git rev-parse --show-toplevel
 test -f bivouac.pkl
 bivouac status
 bivouac session list
+```
+
+Use JSON for structured summaries:
+
+```bash
+bivouac status --json
+bivouac session list --json
 ```
 
 Summarize:
@@ -124,7 +146,7 @@ bivouac status
 bivouac session list
 ```
 
-Choose a short, human-readable name for the work. If the user provides a tracker or issue id, pass it via an explicit bivouac option such as `--issue <id>` when supported; do not encode it in the session name.
+Choose a short, human-readable name for the work. If the user provides a tracker or issue id, pass it as `--issue <id>`; if they provide free-form intent, pass it as `--task "<text>"`. These are mutually exclusive. Do not encode issue ids in the session name.
 
 If no instance exists or the user asks to ensure one exists, run:
 
@@ -136,7 +158,11 @@ Start the session:
 
 ```bash
 bivouac session start <name>
+bivouac session start <name> --task "<what this session is for>"
+bivouac session start <name> --issue <beads-id>
 ```
+
+When the repository uses beads, `--issue` gives the remote agent issue context and may claim the issue in the session's own database.
 
 After start, report the session name and suggest how to attach or inspect:
 
@@ -152,6 +178,8 @@ For a read-only summary:
 ```bash
 bivouac status
 bivouac session list
+bivouac status --json
+bivouac session list --json
 ```
 
 For an interactive shell or agent-facing view, choose the command the user requested:
@@ -162,6 +190,8 @@ bivouac tmux
 bivouac herdr
 bivouac pair
 ```
+
+`bivouac herdr [name]` takes an optional instance name. Bivouac resolves the session from the current worktree, the only live session, or an interactive picker when a terminal is available. Outside Herdr it launches Herdr against the instance SSH endpoint. Inside Herdr it registers or focuses one saved machine for the instance and creates or focuses a workspace named for the bivouac session. If no session resolves inside Herdr, start one first or run Herdr outside Herdr to attach to its default remote session.
 
 Do not attach to a destructive workflow. Observation commands should not merge, delete, down, provision, serve, or unserve.
 
@@ -199,7 +229,7 @@ Before merging:
 - remind the user that merge does not push to a shared git remote,
 - remind the user to push any issue database remote separately when their workflow requires it.
 
-If merge reports conflicts, stop and let the user resolve them with the normal git flow before resuming.
+If merge reports conflicts, stop and let the user resolve them with the normal git flow. After `git cherry-pick --continue`, rerun `bivouac session merge [name]`; merge resumes where it stopped rather than replaying commits that already landed.
 
 ### Ports and File Transfer
 
@@ -224,6 +254,37 @@ bivouac download <path>
 ```
 
 Before `sync` or `download`, confirm the path is intentionally outside git, such as datasets, weights, logs, or results.
+
+### Presets, Secrets, Tailscale, and Shell
+
+For saved project shapes created by `init`:
+
+```bash
+bivouac preset list
+bivouac preset show <name>
+bivouac preset edit <name>
+bivouac preset delete <name>
+```
+
+Presets are copied into a project's `bivouac.pkl` as a starting point. They are not live links to existing repos.
+
+For the personal sops-encrypted secrets file:
+
+```bash
+bivouac secrets init
+bivouac secrets edit
+bivouac secrets keys
+```
+
+Use `secrets keys` to inspect key names only; do not try to print secret values.
+
+For tailnet setup:
+
+```bash
+bivouac tailscale [name]
+```
+
+`bivouac shell [name]` is present in the CLI surface. Check current help or `bivouac manifest` before relying on it, because recent versions may expose it before the workflow is fully implemented.
 
 ### Provision, Delete, and Down
 
@@ -271,7 +332,32 @@ issue-42
 ulai-ai-abc
 ```
 
-If an issue id matters, keep it as metadata through a supported option such as `--issue <id>` rather than embedding it in the name.
+If an issue id matters, keep it as metadata with `--issue <id>` rather than embedding it in the name. For non-issue context, use `--task "<text>"`.
+
+## Paths and Resolution
+
+Global flags are useful when cwd-based resolution is not enough:
+
+```bash
+bivouac --repo <path> status
+bivouac --name <instance> status
+```
+
+`--repo` resolves identity from a repository path instead of the current directory. `--name` overrides the instance name.
+
+New sessions are checked out on the instance under a nested repository identity such as:
+
+```text
+~/sessions/<session>/<owner>/<repo>
+```
+
+Local session worktrees remain under:
+
+```text
+<repo>/.worktrees/<session>
+```
+
+Existing sessions may still use older flattened remote paths recorded in state. Do not reinterpret or migrate those paths manually; let bivouac use the session's recorded path identity.
 
 ## Safety Invariants
 
@@ -287,7 +373,7 @@ Preserve these invariants:
 
 ## What This Skill Does NOT Do
 
-- It does not reimplement bivouac's CLI logic.
+- It does not reimplement bivouac's CLI logic or replace `bivouac manifest` as the source of current command metadata.
 - It does not write `bivouac.pkl` unless the user explicitly asks for config authoring help.
 - It does not push git commits or issue databases to shared remotes.
 - It does not resolve merge conflicts automatically.
