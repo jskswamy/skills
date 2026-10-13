@@ -2,6 +2,24 @@
 
 All notable changes to this skills/plugins collection will be documented in this file.
 
+## [2.1.16] - 2026-10-13
+
+### Changed
+
+- Update bivouac skill for CLI changes
+
+Document the current bivouac CLI surfaces so agents can rely on the
+skill without falling behind recent command behavior. The skill now
+points agents at bivouac manifest and JSON output for structured state
+instead of requiring them to scrape help text.
+
+Add guidance for session start context flags, Herdr's instance-scoped
+machine model, resumable session merges, presets, secrets, Tailscale,
+shell, global resolution flags, and nested remote session paths.
+
+This keeps the skill aligned with cloudlab's newer agent-facing CLI
+metadata while preserving its safety guidance around destructive
+commands and ambiguous session resolution. by @jskswamy
 ## [2.1.15] - 2026-10-11
 
 ### Added
@@ -12,7 +30,14 @@ Introduce a canonical bivouac skill and thin Claude command for safe
 remote agent session workflows.
 
 Package the workflow for Pi and Claude Code, document the command mapping,
-and cover the registry and wrapper packaging with tests.
+and cover the registry and wrapper packaging with tests. by @jskswamy
+
+### Changed
+
+- Update CHANGELOG and README for v2.1.15
+
+Document all changes included in the v2.1.15 release.
+Regenerate plugins section in README from registry.json. by @jskswamy
 
 ### Other
 
@@ -23,7 +48,7 @@ what the skills do before reading install or generated reference
 material.
 
 Align the authoring, contributing, release, and Pi docs with the
-canonical skill source model and generated Claude wrapper workflow.
+canonical skill source model and generated Claude wrapper workflow. by @jskswamy
 - Make release skill harness-neutral
 
 The release workflow still assumed marketplace.json carried a
@@ -47,7 +72,7 @@ its actual resource files.
 .claude/commands/release.md is now a thin pointer to the canonical
 skill so Claude Code and Pi follow the same instructions. Reword
 cliff.toml's header to drop the "Claude Code Plugin Marketplace"
-naming, since this repo is no longer Claude-specific.
+naming, since this repo is no longer Claude-specific. by @jskswamy
 - Exclude new plugins from release version bump
 
 Running the release workflow for real surfaced a bug: a brand-new
@@ -58,7 +83,7 @@ already-correct introduction version.
 Checked precedent: the study plugin was introduced at 1.0.0 and
 was untouched by the very next release commit. New plugins keep
 their introduction version as the first release; only existing
-plugins with real changes get bumped.
+plugins with real changes get bumped. by @jskswamy
 
 ### Removed
 
@@ -68,7 +93,7 @@ Drop the guardrails package and retired handoff workflow from the
 canonical skill sources, generated Claude plugin output, registry, and
 user documentation.
 
-Add a regression test to ensure the removed skill is not packaged again.
+Add a regression test to ensure the removed skill is not packaged again. by @jskswamy
 ## [2.1.14] - 2026-10-09
 
 ### Changed
@@ -2776,6 +2801,7 @@ as a dependency.
 ### Removed
 
 - Remove welcome message from shell hook by @jskswamy
+[2.1.16]: https://github.com/jskswamy/skills/compare/v2.1.15..v2.1.16
 [2.1.15]: https://github.com/jskswamy/skills/compare/v2.1.14..v2.1.15
 [2.1.14]: https://github.com/jskswamy/skills/compare/v2.1.13..v2.1.14
 [2.1.13]: https://github.com/jskswamy/skills/compare/v2.1.12..v2.1.13
