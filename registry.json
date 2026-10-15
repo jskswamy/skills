@@ -99,7 +99,7 @@
     {
       "name": "commit-tools",
       "description": "End-to-end commit hygiene: write atomic commits with style enforcement, review and consolidate them before push, validate the final history",
-      "version": "1.0.3",
+      "version": "1.0.4",
       "author": {
         "name": "Krishnaswamy Subramanian"
       },
@@ -414,7 +414,7 @@
     {
       "name": "codebase",
       "description": "Intelligent codebase exploration powered by codebase-memory-mcp. Natural language queries, change impact analysis, symbol graph traversal, and automatic brainstorming/planning integration.",
-      "version": "0.1.4",
+      "version": "0.1.5",
       "author": {
         "name": "Krishnaswamy Subramanian"
       },
@@ -511,7 +511,7 @@
     {
       "name": "refactor",
       "description": "Semantic refactoring opportunity detection. Scans committed code for structural duplication (Fowler catalog), code smells (Fowler/Beck), GoF design pattern opportunities, SOLID/DRY principle violations, and language-idiomatic anti-patterns (Go, Python, TypeScript). Creates beads issues with TDD-first refactoring plans. Hooks into craft after each task closes.",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "author": {
         "name": "Krishnaswamy Subramanian"
       },
