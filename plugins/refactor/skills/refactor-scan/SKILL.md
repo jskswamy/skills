@@ -68,16 +68,22 @@ If `--fresh` is set, skip the prompt and archive immediately. Set `WORKING_DIR` 
 
 If no in-flight dir exists (or scope is `diff`), `WORKING_DIR` is unset (diff scope skips the working dir entirely).
 
+## Codebase Transport
+
+Prefer MCP first. If its tools are absent or the server is unreachable, automatically try the CLI without asking:
+
+```bash
+command -v codebase-memory-mcp
+codebase-memory-mcp cli --json list_projects
+```
+
+Set `codebase_transport` to `mcp` or `cli`. All tool calls below use that transport. For CLI calls, pipe the same JSON arguments to `codebase-memory-mcp cli --json <tool>` via stdin; inspect `isError` and read the result from `content[]` text. Use each tool's `--help` for supported flags and output formats. Query and indexing errors are not transport failures: report them accurately, not as missing MCP. On a later MCP connection failure, retry through CLI. Preserve project selection, index settings, and consent rules; do not install anything automatically.
+
 ### Step 0c: Ensure Codebase is Indexed
 
 Required for all scopes (the diff scope already needed this).
 
-1. Call `codebase-memory-mcp` `list_projects` to check availability. If the MCP server is not available:
-   ```
-   codebase-memory-mcp not found. Cannot run semantic scan.
-   Ensure it is configured in your MCP settings.
-   ```
-   Exit.
+1. Resolve the transport above and call `list_projects`. Only if neither MCP nor CLI works, explain that semantic scanning requires either a configured MCP server or the installed `codebase-memory-mcp` CLI, then exit. Do not substitute a grep-only scan for semantic scanning.
 
 2. Determine the project name from the repo:
    ```bash
@@ -146,6 +152,7 @@ limit: <limit>
 Dispatch one `refactor-scanner` agent per shard. For `scope=all` with many shards, dispatch in parallel batches of 5 (use the dispatching-parallel-agents skill).
 
 For each shard, the subagent prompt must include:
+- `codebase_transport`: the selected `mcp` or `cli` transport; scanners must use it for every graph and snippet call, retrying MCP connection failures via CLI.
 - The shard's `scope`, `package` (if any), `diff` (if diff scope), `task_title` (diff only), `task_description` (diff only), `base_sha`, `project`, and `output_path` (set to the shard's `output`).
 - Instruction: write your YAML output to `output_path` and return a one-line `SCAN COMPLETE` summary.
 

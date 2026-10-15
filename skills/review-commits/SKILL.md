@@ -134,14 +134,20 @@ found, skip testing and warn: "No test command detected. Skipping tests."
 Before either flow, attempt to set up codebase-memory-mcp for semantic
 commit analysis. This enables Layer 3 of the hygiene analysis.
 
-### Step 1: Check MCP Availability
+## Codebase Transport
 
-Call the `codebase-memory-mcp` `list_projects` tool.
+Prefer MCP first. If its tools are absent or the server is unreachable, automatically try the CLI without asking:
 
-- If the MCP server is **not available** (tool call fails or server not
-  connected): set `$SEMANTIC_AVAILABLE=false`. Continue without semantic
-  analysis — Layers 1 and 2 will still run.
-- If the MCP server **is available**: continue to Step 2.
+```bash
+command -v codebase-memory-mcp
+codebase-memory-mcp cli --json list_projects
+```
+
+Set `codebase_transport` to `mcp` or `cli`. All tool calls below use that transport. For CLI calls, pipe the same JSON arguments to `codebase-memory-mcp cli --json <tool>` via stdin; inspect `isError` and read the result from `content[]` text. Use each tool's `--help` for supported flags and output formats. Query and indexing errors are not transport failures: report them accurately, not as missing MCP. On a later MCP connection failure, retry through CLI. Preserve project selection, index settings, and consent rules; do not install anything automatically.
+
+### Step 1: Check Availability
+
+Resolve the transport above and call `list_projects`. If both MCP and CLI are unavailable, set `$SEMANTIC_AVAILABLE=false` and continue with Layers 1 and 2. If either works, continue to Step 2. Transport selection also applies in unattended mode; it does not grant permission to index.
 
 ### Step 2: Decide Whether to (Re)Index
 
@@ -296,9 +302,7 @@ Layer 3 can **upgrade** a Layer 2 finding (uncertain → confirmed non-atomic)
 or **dismiss** it (files are in different directories but semantically
 connected).
 
-If any `codebase-memory-mcp` tool call fails during Layer 3, skip the
-remaining semantic checks for that commit and keep the Layer 2 finding
-as-is. Do not fail the workflow.
+If a tool call fails during Layer 3, retry MCP connection failures through CLI first. If the selected transport still fails, skip the remaining semantic checks for that commit and keep the Layer 2 finding as-is. Do not fail the workflow.
 
 ### Layer 4: Tracker-ID Leak Detection
 
@@ -821,7 +825,7 @@ and exit non-zero.
 | Failure | Response |
 |---------|----------|
 | A reader subagent fails on one commit | Synthesizer treats that commit as `pick` and adds a note. The user sees the note in plan review and can override the action. |
-| codebase-memory-mcp unavailable | Skip Layer 3 entirely. Layers 1+2 still run. Set `$SEMANTIC_AVAILABLE=false`. |
+| Both MCP and CLI unavailable | Skip Layer 3 entirely. Layers 1+2 still run. Set `$SEMANTIC_AVAILABLE=false`. |
 | Synthesizer cannot author a message for an action | Surface the gap before plan review. The user chooses: accept the original message (downgrades the action to `pick`) or abort the run. |
 | Rebase conflict during execute | Interactive: stop, list conflicting files, await `git rebase --continue`. Unattended: run `git rebase --abort`, restore original HEAD, write reason: `conflict`, exit non-zero. |
 | Revalidator finds a drifted subject AND has a saved message | Auto-amend with the saved message. No user intervention. |
@@ -863,5 +867,5 @@ clean up agent commits.
 - **Add co-author** — never
 - **Push** — user pushes manually
 - **Resolve merge conflicts** — reports and stops
-- **Force semantic analysis** — if codebase-memory-mcp is not available,
+- **Force semantic analysis** — if neither MCP nor CLI is available,
   Layers 1-2 still provide value

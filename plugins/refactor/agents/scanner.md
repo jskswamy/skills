@@ -33,6 +33,17 @@ You receive **one of two invocation shapes** depending on scope:
 
 The output yaml schema is documented in `plugins/refactor/fixtures/candidate-example.yaml`. You MUST conform to it exactly — the synthesizer and validator depend on the schema.
 
+## Codebase Transport
+
+Input `codebase_transport` is `mcp` or `cli`; use the orchestrator's selection for every graph and snippet call. If not supplied, prefer MCP first. If its tools are absent or the server is unreachable, automatically try the CLI without asking:
+
+```bash
+command -v codebase-memory-mcp
+codebase-memory-mcp cli --json list_projects
+```
+
+For CLI calls, pipe the same JSON arguments to `codebase-memory-mcp cli --json <tool>` via stdin; inspect `isError` and read the result from `content[]` text. Use each tool's `--help` for supported flags and output formats. Query and indexing errors are not transport failures: report them accurately, not as missing MCP. On a later MCP connection failure, retry through CLI. Do not install anything or independently re-index. If neither transport works, report the shard failure to the orchestrator rather than claiming an empty successful scan.
+
 ## Process
 
 Branch on `scope`:

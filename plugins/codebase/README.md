@@ -4,7 +4,7 @@ Intelligent codebase exploration powered by [codebase-memory-mcp](https://github
 
 ## Prerequisites
 
-- **codebase-memory-mcp** must be installed and configured in your MCP settings (`.claude.json` or `.mcp.json`). Without it, commands will print an error and the explore skill will fall back to grep/glob/read.
+- **codebase-memory-mcp** must be available either as a configured MCP server (`.claude.json` or `.mcp.json`) or as an installed CLI on `PATH`. Skills prefer MCP and automatically use `codebase-memory-mcp cli` when MCP is missing or unreachable. No MCP configuration is needed for CLI use. If neither works, commands explain the requirement and explore falls back to grep/glob/read.
 
 ## Commands and Skills
 
@@ -65,7 +65,7 @@ The plugin includes an auto-trigger skill that activates during brainstorming an
 
 The skill also activates on direct codebase questions like "where does X happen?" or "how does Y work?"
 
-If `codebase-memory-mcp` is not available, the skill falls back silently to grep/glob/read — it never blocks a workflow.
+If MCP is unavailable, the skill automatically tries the installed CLI first. If neither transport works, it falls back silently to grep/glob/read — it never blocks a workflow.
 
 ## Settings
 

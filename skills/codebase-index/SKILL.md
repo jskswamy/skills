@@ -15,17 +15,20 @@ Index the current codebase using `codebase-memory-mcp`. This builds or refreshes
 
 ## Execution Flow
 
-### Step 1: Check codebase-memory-mcp Availability
+## Codebase Transport
 
-Attempt to call the `codebase-memory-mcp` `list_projects` tool (or any lightweight tool) to verify the MCP server is available.
+Prefer MCP first. If its tools are absent or the server is unreachable, automatically try the CLI without asking:
 
-If the tool call fails or the MCP server is not configured:
+```bash
+command -v codebase-memory-mcp
+codebase-memory-mcp cli --json list_projects
 ```
-codebase-memory-mcp not found. Install and configure it before using /codebase commands.
 
-Setup: Add codebase-memory-mcp to your MCP settings in .claude.json or .mcp.json
-```
-Exit without proceeding.
+Set `codebase_transport` to `mcp` or `cli`. All tool calls below use that transport. For CLI calls, pipe the same JSON arguments to `codebase-memory-mcp cli --json <tool>` via stdin; inspect `isError` and read the result from `content[]` text. Use each tool's `--help` for supported flags and output formats. Query and indexing errors are not transport failures: report them accurately, not as missing MCP. On a later MCP connection failure, retry through CLI. Preserve project selection, index settings, and consent rules; do not install anything automatically.
+
+### Step 1: Check Availability
+
+Resolve the transport above. Only if neither MCP nor CLI works, explain that indexing requires either a configured MCP server or the installed `codebase-memory-mcp` CLI, then exit.
 
 ### Step 2: Read User Settings
 

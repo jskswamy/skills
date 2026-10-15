@@ -23,14 +23,20 @@ Enrich codebase exploration with indexed knowledge from `codebase-memory-mcp`. T
 
 ## Activation Flow
 
-### Step 1: Check codebase-memory-mcp Availability
+## Codebase Transport
 
-Attempt to call the `codebase-memory-mcp` `list_projects` tool.
+Prefer MCP first. If its tools are absent or the server is unreachable, automatically try the CLI without asking:
 
-**If the MCP server is NOT available:**
-Fall back to standard grep/glob/read exploration silently. Do NOT print an error — this skill should not block any workflow. Proceed with normal file exploration tools.
+```bash
+command -v codebase-memory-mcp
+codebase-memory-mcp cli --json list_projects
+```
 
-**If the MCP server IS available:** Continue to Step 2.
+Set `codebase_transport` to `mcp` or `cli`. All tool calls below use that transport. For CLI calls, pipe the same JSON arguments to `codebase-memory-mcp cli --json <tool>` via stdin; inspect `isError` and read the result from `content[]` text. Use each tool's `--help` for supported flags and output formats. Query and indexing errors are not transport failures: report them accurately, not as missing MCP. On a later MCP connection failure, retry through CLI. Preserve project selection, index settings, and consent rules; do not install anything automatically.
+
+### Step 1: Check Availability
+
+Resolve the transport above. If either MCP or CLI works, continue to Step 2. Only if neither works, fall back silently to grep/glob/read; this skill never blocks a workflow.
 
 ### Step 2: Check Index Freshness and Auto-Index
 
@@ -95,7 +101,7 @@ Code, `/codebase:ask` remains a convenience command for the same workflow.
 
 ### Step 4: Fallback
 
-If any `codebase-memory-mcp` tool call fails during exploration:
+If a tool call fails during exploration, first retry MCP connection failures through CLI as described above. If the selected transport still fails:
 - Do NOT fail the overall workflow
 - Fall back to available search/read tools for the specific information needed, such as `Grep`/`Glob`/`Read` in Claude Code or `grep`/`find`/`read`/`bash` in Pi
 - Continue with whatever results are available

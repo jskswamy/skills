@@ -4,7 +4,7 @@ Semantic refactoring opportunity detection for Claude Code. After each task comp
 
 ## Prerequisites
 
-- **codebase-memory-mcp** — Semantic code index. Must be installed and configured.
+- **codebase-memory-mcp** — Semantic code index. Available through a configured MCP server or the installed CLI on `PATH`. Scans and scanner agents prefer MCP and automatically fall back to `codebase-memory-mcp cli` when MCP is missing or unreachable.
 - **codebase plugin** — Index management. The refactor plugin calls `/codebase:index` to ensure the index is fresh.
 - **beads plugin** — Issue tracker. The validator creates beads issues for confirmed opportunities.
 - **task-executor plugin** (optional) — Enables automatic post-task scanning.

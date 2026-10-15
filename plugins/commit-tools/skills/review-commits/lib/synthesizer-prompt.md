@@ -9,8 +9,9 @@ flow runs these steps inline.
 - `$base` — base SHA for the rebase
 - `$WORKING_DIR` — directory to write `plan.yaml` to
 - `$STYLE_FILE` — absolute path to `plugins/commit-tools/styles/<style>.md`
-- `$SEMANTIC_AVAILABLE` — `true` if codebase-memory-mcp is reachable AND
+- `$SEMANTIC_AVAILABLE` — `true` if codebase-memory-mcp is reachable via MCP or CLI AND
   the index is fresh; `false` otherwise
+- `codebase_transport` — selected `mcp` or `cli` transport from SKILL.md; use it for all semantic tools, with automatic CLI retry on MCP connection failure
 
 ## Tools
 
@@ -18,7 +19,7 @@ flow runs these steps inline.
 - Read: `$STYLE_FILE`, anything under `$WORKING_DIR`
 - `bash plugins/commit-tools/skills/review-commits/lib/detect-clusters.sh "$base"`
 - If `$SEMANTIC_AVAILABLE=true`: codebase-memory-mcp `search_graph`,
-  `trace_path`, `get_architecture`
+  `trace_path`, `get_architecture` via the selected transport (for CLI, pipe JSON arguments to `codebase-memory-mcp cli --json <tool>` and check `isError` and `content[]`)
 
 ## Steps
 
