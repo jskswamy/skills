@@ -2,6 +2,12 @@
 
 All notable changes to this skills/plugins collection will be documented in this file.
 
+## [2.1.17] - 2026-10-15
+
+### Added
+
+- Add CLI fallback for codebase memory workflows by @jskswamy
+
 ## [2.1.16] - 2026-10-13
 
 ### Changed
@@ -2801,6 +2807,7 @@ as a dependency.
 ### Removed
 
 - Remove welcome message from shell hook by @jskswamy
+[2.1.17]: https://github.com/jskswamy/skills/compare/v2.1.16..v2.1.17
 [2.1.16]: https://github.com/jskswamy/skills/compare/v2.1.15..v2.1.16
 [2.1.15]: https://github.com/jskswamy/skills/compare/v2.1.14..v2.1.15
 [2.1.14]: https://github.com/jskswamy/skills/compare/v2.1.13..v2.1.14
