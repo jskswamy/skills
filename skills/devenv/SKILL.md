@@ -223,8 +223,7 @@ Save the selection to `.claude/devenv.local.md` as:
     flake-utils,
     # DIRENV_INSTANT_PARAM_HERE (if selected)
   }:
-    flake-utils.lib.eachDefaultSystem (
-      system: let
+    flake-utils.lib.eachDefaultSystem (system: let
         pkgs = nixpkgs.legacyPackages.${system};
       in {
         devShells.default = pkgs.mkShell {
@@ -270,8 +269,7 @@ Save the selection to `.claude/devenv.local.md` as:
     git-hooks,
     # DIRENV_INSTANT_PARAM_HERE (if selected)
   }:
-    flake-utils.lib.eachDefaultSystem (
-      system: let
+    flake-utils.lib.eachDefaultSystem (system: let
         pkgs = nixpkgs.legacyPackages.${system};
 
         # Pre-commit hooks configuration
