@@ -1,13 +1,13 @@
 # Refactor Plugin
 
-Semantic refactoring opportunity detection for Claude Code. After each task completes (or on demand), scans committed code against the codebase-memory index to find cross-package duplication, code smells, and design pattern opportunities. Creates actionable beads issues with TDD-first refactoring plans.
+Semantic refactoring opportunity detection for Claude Code. On demand (for example after a task completes), scans committed code against the codebase-memory index to find cross-package duplication, code smells, and design pattern opportunities. Creates actionable beads issues with TDD-first refactoring plans.
 
 ## Prerequisites
 
 - **codebase-memory-mcp** — Semantic code index. Available through a configured MCP server or the installed CLI on `PATH`. Scans and scanner agents prefer MCP and automatically fall back to `codebase-memory-mcp cli` when MCP is missing or unreachable.
 - **codebase plugin** — Index management. The refactor plugin calls `/codebase:index` to ensure the index is fresh.
 - **beads plugin** — Issue tracker. The validator creates beads issues for confirmed opportunities.
-- **task-executor plugin** (optional) — Enables automatic post-task scanning.
+- **craft plugin** (optional) — Run `/refactor:scan` after tasks close; there is no automatic hook yet.
 
 ## Usage
 
@@ -18,9 +18,9 @@ Semantic refactoring opportunity detection for Claude Code. After each task comp
 /refactor:scan --base abc1234    # scan changes since specific SHA
 ```
 
-### Automatic (with task-executor)
+### After craft tasks
 
-When installed alongside `task-executor`, the plugin automatically scans after each task closes. Suppress with `--no-refactor` on the execute command.
+No automatic hook exists. Run `/refactor:scan` after a craft task closes.
 
 ## What It Detects
 

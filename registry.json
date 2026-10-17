@@ -139,10 +139,6 @@
           {
             "from": "templates/commit-tools/styles",
             "to": "styles"
-          },
-          {
-            "from": "templates/commit-tools/docs",
-            "to": "docs"
           }
         ]
       },
@@ -513,7 +509,7 @@
     },
     {
       "name": "refactor",
-      "description": "Semantic refactoring opportunity detection. Scans committed code for structural duplication (Fowler catalog), code smells (Fowler/Beck), GoF design pattern opportunities, SOLID/DRY principle violations, and language-idiomatic anti-patterns (Go, Python, TypeScript). Creates beads issues with TDD-first refactoring plans. Hooks into craft after each task closes.",
+      "description": "Semantic refactoring opportunity detection. Scans committed code for structural duplication (Fowler catalog), code smells (Fowler/Beck), GoF design pattern opportunities, SOLID/DRY principle violations, and language-idiomatic anti-patterns (Go, Python, TypeScript). Creates beads issues with TDD-first refactoring plans. Run on demand with /refactor:scan.",
       "version": "0.1.1",
       "author": {
         "name": "Krishnaswamy Subramanian"
