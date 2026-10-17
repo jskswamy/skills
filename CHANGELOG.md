@@ -2,12 +2,50 @@
 
 All notable changes to this skills/plugins collection will be documented in this file.
 
+## [2.1.18] - 2026-10-17
+
+### Other
+
+- Keep Nix lambda off a line start in devenv
+
+Skillshare's audit flags a line beginning with "system:" as a prompt
+override and blocks the skill as CRITICAL. The flake examples put the
+lambda argument "system: let" on its own line, which tripped it twice.
+
+Join it to the preceding "eachDefaultSystem (" line. The Nix is
+unchanged, and the audit now passes for both skill copies. by @jskswamy
+- Ship codebase-memory reminder hooks in codebase
+
+Aide used to carry the session, subagent and search-augment hooks as
+loose scripts that upstream's installer wrote to ~/.claude/hooks and
+that hardcoded ~/.local/bin/codebase-memory-mcp. They now live in the
+codebase plugin so every machine that installs it gets them.
+
+The scripts look the binary up on PATH and exit silently when it is
+missing, so hosts without codebase-memory-mcp see no noise. They only
+add context and never block a tool call.
+
+Bump codebase to 0.1.6.
 ## [2.1.17] - 2026-10-15
 
 ### Added
 
 - Add CLI fallback for codebase memory workflows by @jskswamy
 
+### Changed
+
+- Update CHANGELOG for v2.1.17
+
+Document automatic CLI fallback for codebase memory workflows. by @jskswamy
+
+### Other
+
+- Release v2.1.17
+
+Bump commit-tools to 1.0.4, codebase to 0.1.5, and refactor to 0.1.1.
+
+Publish automatic CLI fallback when the codebase memory MCP server is
+missing or unreachable. by @jskswamy
 ## [2.1.16] - 2026-10-13
 
 ### Changed
@@ -26,6 +64,17 @@ shell, global resolution flags, and nested remote session paths.
 This keeps the skill aligned with cloudlab's newer agent-facing CLI
 metadata while preserving its safety guidance around destructive
 commands and ambiguous session resolution. by @jskswamy
+- Update CHANGELOG and README for v2.1.16
+
+Document all changes included in the v2.1.16 release.
+Regenerate plugins section in README from registry.json. by @jskswamy
+
+### Other
+
+- Release v2.1.16
+
+Bump plugin versions: bivouac 0.1.0 → 0.1.1.
+Regenerate Claude Code wrappers via npm run build. by @jskswamy
 ## [2.1.15] - 2026-10-11
 
 ### Added
@@ -2807,6 +2856,7 @@ as a dependency.
 ### Removed
 
 - Remove welcome message from shell hook by @jskswamy
+[2.1.18]: https://github.com/jskswamy/skills/compare/v2.1.17..v2.1.18
 [2.1.17]: https://github.com/jskswamy/skills/compare/v2.1.16..v2.1.17
 [2.1.16]: https://github.com/jskswamy/skills/compare/v2.1.15..v2.1.16
 [2.1.15]: https://github.com/jskswamy/skills/compare/v2.1.14..v2.1.15
