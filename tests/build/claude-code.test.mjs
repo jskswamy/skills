@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { mkdtemp, readFile, writeFile, mkdir } from "node:fs/promises";
+import { mkdtemp, readFile, writeFile, mkdir, access } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { generateClaudeCode } from "../../scripts/lib/claude-code.mjs";
@@ -16,6 +16,7 @@ test("generateClaudeCode writes marketplace and copies plugin resources", async 
     join(repoRoot, "skills/codebase-explore/SKILL.md"),
     "---\nname: codebase-explore\ndescription: Explore codebases.\n---\n\n# Codebase Explore\n",
   );
+  await write(join(repoRoot, "skills/codebase-explore/tests/check.sh"), "echo dev-only\n");
   await write(join(repoRoot, "commands/codebase/ask.md"), "# Ask\n");
   await write(join(repoRoot, "hooks/codebase/hooks.json"), "{\"hooks\":[]}\n");
 
@@ -59,6 +60,7 @@ test("generateClaudeCode writes marketplace and copies plugin resources", async 
     await readFile(join(repoRoot, "plugins/codebase/skills/codebase-explore/SKILL.md"), "utf8"),
     await readFile(join(repoRoot, "skills/codebase-explore/SKILL.md"), "utf8"),
   );
+  await assert.rejects(access(join(repoRoot, "plugins/codebase/skills/codebase-explore/tests")), "dev-only tests/ must not ship");
   assert.equal(await readFile(join(repoRoot, "plugins/codebase/commands/ask.md"), "utf8"), "# Ask\n");
   assert.equal(await readFile(join(repoRoot, "plugins/codebase/hooks/hooks.json"), "utf8"), "{\"hooks\":[]}\n");
 });

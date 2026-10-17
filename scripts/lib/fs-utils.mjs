@@ -9,9 +9,9 @@ export async function ensureDir(path) {
   await mkdir(path, { recursive: true });
 }
 
-export async function copyResourceTree({ from, to }) {
+export async function copyResourceTree({ from, to, filter }) {
   await ensureDir(dirname(to));
-  await cp(from, to, { recursive: true, force: true, preserveTimestamps: true });
+  await cp(from, to, { recursive: true, force: true, preserveTimestamps: true, filter });
 }
 
 export async function readJson(path) {

@@ -45,9 +45,12 @@ async function generatePluginWrapper({ repoRoot, plugin }) {
   const resources = normalizeResources(plugin.resources);
 
   for (const skill of resources.skills) {
+    const skillDir = join(repoRoot, "skills", skill);
     await copyResourceTree({
-      from: join(repoRoot, "skills", skill),
+      from: skillDir,
       to: join(pluginRoot, "skills", skill),
+      // a skill's tests/ are dev-only; installs should not carry them
+      filter: (src) => src !== join(skillDir, "tests"),
     });
   }
 
