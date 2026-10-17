@@ -1,6 +1,6 @@
 ---
 name: study-setup
-description: Configure the study plugin - set notes folder and content vault paths
+description: "Use when configuring the study plugin or it reports missing config: 'set up study', 'configure study notes folder', 'change study notes path', 'add a content vault'. Writes study.md with notes_path and content_vaults. Run before first study-coach or study-recall use."
 ---
 
 # Study Setup Skill

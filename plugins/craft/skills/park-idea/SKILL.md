@@ -1,6 +1,6 @@
 ---
 name: park-idea
-description: Quickly park ideas with optional metadata without breaking the current work flow.
+description: "Use when the user wants to set an idea aside mid-task without losing focus: 'park this idea', 'park: X', 'remember to do X later', 'note for later', 'come back to this'. Creates a deferred parked-idea beads issue with context and returns to work. For listing or triaging parked ideas use review-parked."
 ---
 
 # Park Idea Skill

@@ -1,6 +1,6 @@
 ---
 name: study-coach
-description: Start a coaching session on any topic, URL, or local file
+description: "Use when the user wants to learn or deeply understand something via a guided coaching session: 'coach me on X', 'teach me X', 'help me study this article/URL/file', 'I want to learn X'. Accepts a topic, URL, or local path, saves a coaching note, then flows into recall unless --no-recall. For re-testing a topic already coached use study-recall; for config use study-setup."
 ---
 
 # Study Coach Skill

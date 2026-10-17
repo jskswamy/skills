@@ -1,6 +1,6 @@
 ---
 name: jot-capture
-description: Capture anything — from your current conversation or by starting a guided session. Classifies, extracts, studies, drafts, reviews, and saves.
+description: "Use when the user wants to save or capture something: 'jot this down', 'capture this', 'save this article/video/book/meeting/idea', 'note this URL', or to capture the current conversation. Classifies the content, extracts, drafts, reviews, and saves to workbench or Capacities. For backend configuration use jot-setup."
 ---
 
 # Jot Capture Skill

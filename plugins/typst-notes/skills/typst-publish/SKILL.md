@@ -1,6 +1,6 @@
 ---
 name: typst-publish
-description: Generate beautiful PDF/HTML shareable notes using Typst with professional templates
+description: "Use when the user wants a polished, shareable PDF or HTML document from notes or content: 'publish this as a PDF', 'make a shareable document', 'generate a Typst document', 'turn these notes into a PDF/HTML', 'export notes with a nice template'. Requires Typst (or Nix) installed and applies professional templates."
 ---
 
 # Typst Publish Skill

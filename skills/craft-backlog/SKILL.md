@@ -1,6 +1,6 @@
 ---
 name: craft-backlog
-description: Dashboard views of all work with filtering and statistics
+description: "Use when the user wants a dashboard or overview of all beads work: 'show the backlog', 'what's ready to work on', 'what's blocked', 'group tasks by priority', 'epic overview', 'project status/statistics'. Read-only views (overview, ready, blocked, priorities, epics) with status/priority/epic filters. Not for changing a single task (craft-task) or dependencies (craft-deps)."
 ---
 
 # Craft Backlog Skill

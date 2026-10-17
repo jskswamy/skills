@@ -1,6 +1,6 @@
 ---
 name: craft-task
-description: Single task operations - create, start, complete, and view individual tasks
+description: "Use when operating on one beads task: 'create task X', 'start task X', 'mark X done', 'close task X', 'show task X', 'what task is next', '/task next'. Handles create, start (in-progress + context), done (optional commit), show, and next-recommendation for a single task. Not for epics (craft-epic), dependencies (craft-deps), or whole-project dashboards (craft-backlog)."
 ---
 
 # Craft Task Skill

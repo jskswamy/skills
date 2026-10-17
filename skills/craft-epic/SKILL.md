@@ -1,6 +1,6 @@
 ---
 name: craft-epic
-description: Create and manage epics, add/remove tasks, track progress
+description: "Use when managing a beads epic, a group of related tasks: 'create epic X', 'add task Y to epic X', 'remove task from epic', 'epic progress', 'how far along is epic X', 'close epic X'. Not for single-task actions (craft-task), blocking relationships (craft-deps), or cross-project dashboards (craft-backlog)."
 ---
 
 # Craft Epic Skill

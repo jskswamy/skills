@@ -1,6 +1,6 @@
 ---
 name: craft-deps
-description: Manage and visualize task dependencies
+description: "Use when managing blocking relationships between beads tasks: 'task A depends on B', 'B blocks A', 'add/remove dependency', 'what blocks task X', 'show dependency graph', 'visualize dependencies', 'check for circular dependencies'. Not for creating/closing tasks (craft-task) or grouping into epics (craft-epic)."
 ---
 
 # Craft Deps Skill

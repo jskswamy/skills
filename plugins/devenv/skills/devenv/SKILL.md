@@ -1,6 +1,6 @@
 ---
 name: devenv
-description: Initialize and manage Nix flake development environments with auto-detection and security tooling
+description: "Use when setting up or changing a Nix flake development environment: 'set up devenv', 'init a nix flake', 'create a dev shell', 'add package X to the flake', 'upgrade flake inputs', 'remove package from devenv', 'add pre-commit/security hooks'. Auto-detects project stack and manages flake.nix."
 argument-hint: "[add|upgrade|remove|security]"
 ---
 

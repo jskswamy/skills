@@ -1,6 +1,6 @@
 ---
 name: sketch-note
-description: Generate visual sketch notes in Excalidraw format from conversations, code architecture, or custom content
+description: "Use when the user wants a visual diagram or sketch note: 'sketch this', 'draw the architecture', 'visualize this conversation', 'make an Excalidraw diagram', 'sketch note of the code', 'export a diagram as PNG'. Generates Excalidraw files (optionally PNG) from conversation, code, or custom content."
 ---
 
 # Sketch Note Skill

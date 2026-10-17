@@ -1,6 +1,6 @@
 ---
 name: study-recall
-description: Run a Feynman recall session on a previously coached topic
+description: "Use when the user wants to test or reinforce what they learned on a topic already coached or studied: 'quiz me on X', 'recall session for X', 'Feynman test on X', 'explain X back to you', 'review what I learned about X'. Targets gaps in the existing coaching note and logs the result. For first-time learning use study-coach."
 ---
 
 # Study Recall Skill

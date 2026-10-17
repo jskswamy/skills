@@ -1,6 +1,6 @@
 ---
 name: review-parked
-description: List, filter, promote, discard, and review parked ideas captured during development.
+description: "Use when the user wants to see or triage parked ideas: 'show parked ideas', 'list parked', 'what did I park', 'promote parked idea X', 'discard parked idea X', 'review parked ideas', 'ideas parked from task X'. For parking a new idea use park-idea."
 ---
 
 # Review Parked Skill

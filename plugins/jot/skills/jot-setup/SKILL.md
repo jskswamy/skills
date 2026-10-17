@@ -1,6 +1,6 @@
 ---
 name: jot-setup
-description: Configure jot's capture backend. Run once to choose workbench or Capacities. Types are configured automatically on first capture — no upfront type mapping needed.
+description: "Use when configuring where jot saves captures: 'set up jot', 'configure jot backend', 'switch jot to Capacities', 'use workbench for jot'. Run once to choose workbench or Capacities; types are configured automatically on first capture. For capturing content use jot-capture."
 ---
 
 # Jot Setup Skill
