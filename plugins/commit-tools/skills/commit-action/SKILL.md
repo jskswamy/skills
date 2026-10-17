@@ -72,41 +72,7 @@ First, verify we're in a git repository and check the current state:
 
 Check if the project's CLAUDE.md includes instructions to use `/commit`. This helps ensure agents use the commit plugin instead of raw `git commit`.
 
-1. **Check for CLAUDE.md:**
-   - Look for `CLAUDE.md` in the project root (current working directory)
-   - If it doesn't exist, skip this step (don't create CLAUDE.md just for this)
-
-2. **If CLAUDE.md exists, check for commit instruction:**
-   - Search for patterns like `/commit`, `use /commit`, or "git-commit plugin"
-   - If found, continue to next step
-
-3. **If CLAUDE.md exists but lacks commit instruction:**
-   - Use AskUserQuestion:
-     ```
-     Your CLAUDE.md doesn't include instructions to use the /commit plugin.
-
-     Adding this instruction helps ensure AI agents (including Claude) use
-     the commit plugin instead of raw `git commit`, providing:
-     - Atomic commit validation
-     - Intelligent message generation
-     - Style enforcement
-
-     Would you like to add this instruction to CLAUDE.md?
-     ○ Yes (Recommended) - Add the instruction
-     ○ No - Skip for now
-     ```
-
-4. **If user selects "Yes":**
-   - Append the following section to CLAUDE.md:
-     ```markdown
-
-     ## Git Commits
-
-     Always use the `/commit` command instead of `git commit` directly. The
-     `/commit` plugin provides atomic commit validation, intelligent message
-     generation from conversation context, and style enforcement.
-     ```
-   - Show confirmation: "Added commit instructions to CLAUDE.md"
+Read `references/claude-md-instructions.md` and follow it: skip if there is no CLAUDE.md (never create one for this); if CLAUDE.md exists but lacks a `/commit` instruction, ask via AskUserQuestion whether to append the `## Git Commits` section, and confirm after adding.
 
 5. Continue to Step 2
 
@@ -166,50 +132,7 @@ pairs:
 **Skip this step entirely if `--amend` flag was set** — explicit amend is handled by Step 3.
 Set `AMEND_MODE=false` and proceed to Step 4.
 
-**Prerequisites — skip entirely and set `AMEND_MODE=false` if any fail:**
-1. Repo has at least one commit: `git log -1` exits 0
-2. Last commit was authored by the current user:
-   - Current user email: `git config user.email`
-   - Last commit email: `git log -1 --format='%ae'`
-   - Must match exactly
-3. Last commit is unpushed. Check with:
-   `git log @{u}.. 2>/dev/null | head -1` — if this outputs something (or
-   if the command fails because there is no upstream), the commit is
-   unpushed. A branch with no upstream tracking is always unpushed.
-   Treat `git log @{u}..` failing AND `git status` not showing
-   "behind" or "up to date" as unpushed. Only reject if `git status`
-   explicitly shows "Your branch is up to date" or "behind".
-
-**If all prerequisites pass, run the file-overlap heuristic:**
-
-```bash
-staged_files=$(git diff --staged --name-only)
-last_files=$(git diff-tree --no-commit-id --name-only -r HEAD)
-```
-
-Compute Jaccard overlap:
-```
-overlap = |staged_files ∩ last_files| / |staged_files ∪ last_files|
-```
-
-Decision table:
-```
-overlap > 0.5                                                → AMEND_MODE=true
-overlap == 0  AND  every staged file's top-level dir
-             differs from every last_files' top-level dir   → AMEND_MODE=false
-otherwise                                                    → LLM path
-```
-
-"Top-level dir" = the first path component before `/`. For root-level files, it is the filename itself.
-
-**LLM path (ambiguous cases only):**
-
-When the heuristic yields no clear decision, gather:
-- `LAST_MSG=$(git log -1 --format='%B')` — last commit subject + body
-- `LAST_DIFF=$(git show HEAD)` — last commit's full diff
-- Current staged diff (already gathered in Step 3)
-
-Ask yourself: "Do these staged changes belong with the previous commit (same logical concern), or are they a new, separate concern?" Answer `amend` or `new` and set `AMEND_MODE` accordingly.
+Read `references/last-commit-comparison.md` for the prerequisites (a commit exists, authored by the current user, unpushed), the Jaccard file-overlap heuristic with its decision table, and the LLM path for ambiguous cases. If any prerequisite fails, set `AMEND_MODE=false`.
 
 **Outputs:**
 - `AMEND_MODE=true`: also capture `LAST_DIFF=$(git show HEAD)` — proceed to Step 4 with amend intent
@@ -223,167 +146,11 @@ Analyze the staged changes to determine if they represent a single, atomic unit 
 
 #### Atomicity Analysis
 
-**4a. File Grouping Analysis:**
-
-Group changed files by directory/module:
-```
-src/auth/login.ts       -> auth module
-src/auth/session.ts     -> auth module
-src/ui/dashboard.tsx    -> ui module
-tests/auth.test.ts      -> auth tests
-```
-
-**Red flag:** Files from unrelated modules changed together (e.g., auth + unrelated ui changes)
-
-**4b. Change Type Detection:**
-
-Analyze the diff content to identify the nature of changes:
-
-| Pattern | Change Type |
-|---------|-------------|
-| New functions/classes added | Feature |
-| Bug fix patterns (null checks, error handling) | Fix |
-| Variable/function renames, restructuring | Refactor |
-| Only whitespace/formatting | Style |
-| Test file changes only | Test |
-| README, docs/, comments only | Docs |
-| package.json, config files | Build/Chore |
-
-**Red flag:** Multiple change types in the same commit (e.g., new feature + bug fix)
-
-**4c. Scope Coherence Check:**
-
-Ask: "Can these changes be described in ONE sentence without conjunctions joining unrelated ideas?"
-
-**Red flags:**
-- Would need "and also" to describe changes
-- Changes serve multiple distinct purposes
-- Mix of unrelated concerns
-
-**4d. Size Heuristics:**
-
-- Very large diffs (>500 lines) across many unrelated files = suspicious
-- Note: Large refactors can still be atomic if coherent
-
-**4e. Related Unstaged Changes Detection:**
-
-Check if there are unstaged changes that logically belong with the staged changes:
-
-1. Get unstaged files: `git diff --name-only` and `git status --porcelain` (for untracked)
-
-2. Detect relationships using these heuristics:
-
-| Pattern | Check For |
-|---------|-----------|
-| **Test files** | Staged `src/foo.ts` → Check `foo.test.ts`, `foo.spec.ts` |
-| **Same directory** | Staged `src/auth/login.ts` → Check other `src/auth/*` changes |
-| **Manifest files** | Staged `src/lib/*` → Check `package.json`, `tsconfig.json` |
-| **Config companions** | Staged `src/feature.ts` → Check `src/feature.config.ts` |
-| **Documentation** | Staged `src/module/*` → Check `docs/module.md`, module README |
-
-3. If related unstaged files found, show warning:
-
-```
-Related unstaged changes detected:
-
-These unstaged files appear related to your staged changes:
-
-- src/auth/session.test.ts (test file for staged module)
-- package.json (manifest with potential dependency changes)
-
-Including these would make your commit more complete.
-
-What would you like to do?
-○ Stage related files (Recommended) - Include them in this commit
-○ Review changes - See the unstaged diff
-○ Proceed without - Commit only staged files
-```
-
-4. If "Stage related files" selected:
-   - Run `git add <related-files>`
-   - Continue with the updated staged changes
-
-5. If "Review changes" selected:
-   - Show the diff for the related unstaged files
-   - Re-prompt with the same options
-
-6. If "Proceed without" selected:
-   - Continue to Step 5 with only the originally staged files
+Read `references/atomicity-analysis.md` and run checks 4a (file grouping), 4b (change type detection), 4c (scope coherence), 4d (size heuristics), and 4e (related unstaged changes detection, with its stage/review/proceed prompt). If "Proceed without" is chosen in 4e, continue to Step 5 with only the originally staged files.
 
 #### Non-Atomic Warning Flow
 
-If atomicity violations detected:
-
-```
-⚠️  ATOMICITY WARNING
-
-Your staged changes appear to contain multiple concerns:
-
-1. Bug fix in src/auth/login.ts (lines 45-67)
-   - Fixed null pointer exception in session validation
-
-2. New feature in src/ui/dashboard.tsx (lines 12-89)
-   - Added user metrics widget
-
-3. Style changes in src/styles/theme.css
-   - Updated color variables
-
-Atomic commits should contain a single, coherent unit of work.
-Benefits: easier code review, clean git history, safe git bisect
-
-What would you like to do?
-○ Split commits (Recommended) - I'll help you stage changes separately
-○ Proceed anyway - Commit all changes together (not recommended)
-○ Review changes - Show the full diff again
-○ Cancel - Exit without committing
-```
-
-**If "Split commits" selected:**
-
-1. Show grouped changes by concern:
-   ```
-   I've identified these separate concerns:
-
-   Concern 1: Bug fix in auth module
-   Files: src/auth/login.ts
-
-   Concern 2: New dashboard feature
-   Files: src/ui/dashboard.tsx
-
-   Concern 3: Style updates
-   Files: src/styles/theme.css
-
-   Which concern would you like to commit first?
-   ○ Bug fix in auth module
-   ○ New dashboard feature
-   ○ Style updates
-   ```
-
-2. Unstage other files:
-   ```bash
-   git reset HEAD <files-not-in-selected-concern>
-   ```
-
-3. Continue to Step 5 with only the selected files staged
-
-4. After commit completes, prompt:
-   ```
-   Commit created successfully!
-
-   Remaining unstaged changes:
-   - src/ui/dashboard.tsx (new feature)
-   - src/styles/theme.css (style updates)
-
-   Would you like to commit the next concern?
-   ○ Yes - Continue with next concern
-   ○ No - I'll handle the rest manually
-   ```
-
-5. If "Yes", stage the next concern's files and repeat from Step 4
-
-**If "Proceed anyway" selected:**
-- Log a note that user chose to bypass atomicity check
-- Continue to Step 5
+If atomicity violations are detected, read `references/atomicity-warning-flow.md` and follow it: show the ATOMICITY WARNING and ask Split commits (Recommended) / Proceed anyway / Review changes / Cancel. Split unstages files outside the chosen concern, continues to Step 5, then prompts for the next concern after the commit. Proceed anyway logs the bypass and continues to Step 5.
 
 ### Step 5: Load Commit Style Rules
 
@@ -412,98 +179,13 @@ The style files contain comprehensive rules including:
 
 **If `--pair` flag is set:**
 
-1. Read saved pairs from `.claude/git-commit.local.md`
-
-2. If pairs exist, show selection:
-   ```
-   Select co-author for this commit:
-   ○ John Doe <john@example.com>
-   ○ Jane Smith <jane@example.com>
-   ○ Add new pair - Enter new co-author details
-   ```
-
-3. If "Add new pair" selected OR no pairs saved:
-   ```
-   Enter co-author name:
-   > [user input]
-
-   Enter co-author email:
-   > [user input]
-
-   Save this pair for future use?
-   ○ Yes
-   ○ No
-   ```
-
-4. If saving, update `.claude/git-commit.local.md`:
-   ```yaml
-   ---
-   commit_style: classic
-   pairs:
-     - name: "John Doe"
-       email: "john@example.com"
-     - name: "New Person"
-       email: "new@example.com"
-   ---
-   ```
-
-5. Store selected co-author for commit message generation
+Read `references/pair-programming.md` and follow it: read saved pairs from `.claude/git-commit.local.md`, let the user select or add a co-author (optionally saving the pair), and store the selected co-author for message generation.
 
 ### Step 6b: Gather Session Context
 
 **CRITICAL:** Before generating the commit message, review the current conversation history to extract context about WHY these changes were made.
 
-**What to look for in the conversation:**
-
-| Context Type | What to Extract |
-|--------------|-----------------|
-| **User Intent** | What did the user originally ask for? What problem were they solving? |
-| **Decisions Made** | What approaches were discussed? Why was this implementation chosen? |
-| **Trade-offs** | What alternatives were considered and rejected? |
-| **Requirements** | Any specific constraints or requirements mentioned? |
-| **References** | Issue numbers, ticket IDs, PR references, or external links discussed? |
-
-**Extraction process:**
-
-1. **Identify the original request**
-   - Find the user's initial message that led to these changes
-   - Note the problem being solved or feature being added
-   - Capture any specific requirements stated
-
-2. **Trace key decisions**
-   - What implementation approaches were discussed?
-   - Why was the current approach chosen over alternatives?
-   - Were there any trade-offs mentioned?
-
-3. **Gather important context**
-   - Issue/ticket numbers mentioned (e.g., "fixes #123", "JIRA-456")
-   - Breaking changes or migration notes discussed
-   - Performance or security considerations
-   - Dependencies or prerequisites mentioned
-
-4. **Note user clarifications**
-   - Any follow-up questions and answers
-   - Scope adjustments or refinements
-   - Explicit preferences stated by the user
-
-**Example extraction:**
-
-If the conversation included:
-> User: "The login page crashes when users enter invalid emails. Can you add validation?"
-> Claude: "I'll add email validation with regex. Should I also add rate limiting?"
-> User: "Yes, add rate limiting too - we've been getting bot attacks"
-
-Extract:
-- **Intent:** Fix login crash on invalid emails
-- **Decision:** Added email validation with regex
-- **Additional context:** Rate limiting added due to bot attacks
-- **Problem:** Users experiencing crashes, security concern with bots
-
-**Use this context to:**
-- Write a commit body that explains the "why" not just the "what"
-- Include relevant background that future developers need
-- Reference issues or decisions from the conversation
-- Capture the reasoning that would otherwise be lost
+Read `references/session-context.md` and follow it: extract user intent, decisions, trade-offs, requirements, and references (issue/ticket numbers) from the conversation, and use them to write a body that explains the why.
 
 ### Step 7: Generate Commit Message
 
@@ -568,32 +250,7 @@ a single fresh message covering both diffs.
    Co-Authored-By: Name <email>
    ```
 
-**Example with session context:**
-
-If the conversation was about "fixing login crashes due to invalid emails and adding rate limiting for bot attacks", the commit message should be:
-
-```
-Add email validation and rate limiting to login
-
-Users reported crashes when entering malformed email addresses. The
-previous implementation passed raw input to the auth service without
-validation.
-
-Changes:
-- Add regex-based email validation before auth call
-- Implement rate limiting (5 attempts per minute per IP)
-- Add user-friendly error messages for validation failures
-
-Rate limiting addresses the bot attack concern raised during
-implementation discussion.
-```
-
-NOT just:
-```
-Add validation to login
-
-Add email validation and rate limiting.
-```
+See `references/message-example.md` for a worked example of a message that uses session context versus one that does not.
 
 ### Step 7b: Validate Commit Message (LLM as Judge)
 
@@ -617,41 +274,7 @@ type prefix, imperative mood. The conventional style enforces its own
 
 #### 7b.2: Content Leak Check (LLM judgment)
 
-**Review the generated message and REJECT it if it contains ANY of:**
-
-1. **Internal Task Tracker References:**
-   - Beads IDs (`beads-*`, `claude-plugins-*`), or any internal tracker prefix not intended for git history
-   - Task status language: "moved to in_progress", "marked as closed", "status: open"
-   - Dependency graph language: "depends on beads-abc", "blocked by task-123", "unblocks beads-xyz"
-   - Parked idea markers: "PARKED:", "deferred from beads-xyz"
-   - `bd` CLI commands or output: "bd close", "bd update", "bd create", "bd ready"
-   - **Allowed:** GitHub `#123`, Jira `PROJ-123`, public-facing issue trackers
-
-2. **Workflow Phase Labels & Agent Artifacts:**
-   - "Phase 1", "Phase 2", "Step 2 of 4", "Part 3/5" etc. used as structural labels
-   - Agent dispatch metadata: "dispatched to subagent", "batch 2 of 3"
-   - Tool invocation traces: "ran bd create", "used /decompose", "invoked /commit"
-   - Decomposition plan references: "from decomposition plan", "per task specification"
-   - **Allowed:** Technical terms like "two-phase commit", "multi-phase migration"
-
-3. **AI Attribution:**
-   - Any `Co-Authored-By:` mentioning Claude, Anthropic, GPT, OpenAI, Copilot, or any AI
-   - Emails like `noreply@anthropic.com`
-   - Model references like "Claude Sonnet 4.5", "Claude Opus 4.6"
-   - Agent identity language: "as an AI assistant", "generated by Claude"
-   - **Allowed:** Nothing — AI attribution must NEVER appear
-
-4. **Progress Tracking Artifacts:**
-   - Completion metrics as workflow markers: "Total: 24 tests, 990 lines", "Coverage: >90%"
-   - Task completion checklists copied from trackers: "- [x] criterion 1", "Acceptance: met"
-   - Verification command output: "$ npm test → 24 passed", "Verify: all green"
-   - **Allowed:** Meaningful context: "Improve coverage from 60% to 90%"
-
-5. **Acceptance Criteria & Specification Leaks:**
-   - Verbatim acceptance criteria from task trackers
-   - "Closes: beads-xyz", "Implements: task-abc"
-   - Design field content copied without translation into human-readable context
-   - **Allowed:** "Fixes #123" (public issue tracker references)
+Read `references/content-leak-check.md` for the five rejection categories (internal task tracker references, workflow phase labels and agent artifacts, AI attribution, progress tracking artifacts, acceptance criteria and specification leaks) with their allowed exceptions, and check the message against all of them.
 
 **If any violations found:**
 - Silently regenerate the message with violations removed
@@ -665,21 +288,7 @@ type prefix, imperative mood. The conventional style enforces its own
 
 **When `AMEND_MODE=true` (detected in Step 3b), show the amend dialog instead:**
 
-```
-These changes look related to your last commit — amending it.
-
-────────────────────────────────────────────────────────────────────────
-<regenerated subject>
-
-<regenerated body>
-────────────────────────────────────────────────────────────────────────
-
-What would you like to do?
-○ Amend          — update the last commit with this message
-○ Edit message   — modify the message before amending
-○ New commit instead — create a separate commit (discard amend intent)
-○ Cancel
-```
+Show the amend dialog from `references/message-dialogs.md` (section "Amend dialog"): the regenerated message with options Amend / Edit message / New commit instead / Cancel.
 
 - **"Amend"** → proceed to Step 9 with `AMEND_MODE=true`
 - **"Edit message"** → same edit flow as the standard dialog below; re-show this amend dialog after edit (not the standard dialog)
@@ -690,26 +299,7 @@ What would you like to do?
 
 Show the generated commit message:
 
-```
-Generated commit message:
-
-────────────────────────────────────────────────────────────────────────
-Add user session timeout handling
-
-Implement automatic session expiration after 30 minutes of inactivity.
-The timeout duration is configurable via SESSION_TIMEOUT environment
-variable.
-
-This prevents unauthorized access when users forget to log out on
-shared machines. Sessions are validated on each authenticated request.
-────────────────────────────────────────────────────────────────────────
-
-What would you like to do?
-○ Commit - Create the commit with this message
-○ Edit message - Modify the message before committing
-○ Regenerate - Generate a new message (optionally provide more context)
-○ Cancel - Exit without committing
-```
+Show the standard dialog from `references/message-dialogs.md` (section "Standard dialog"): the generated message with options Commit / Edit message / Regenerate / Cancel.
 
 **If "Edit message" selected:**
 - Use AskUserQuestion with text input:
@@ -795,68 +385,14 @@ EOF
 
 ## Settings File: .claude/git-commit.local.md
 
-```yaml
----
-commit_style: classic
-pairs:
-  - name: "John Doe"
-    email: "john@example.com"
-  - name: "Jane Smith"
-    email: "jane@example.com"
----
-
-# Git Commit Plugin Settings
-
-This file stores your preferences for the git-commit plugin.
-
-## Available Settings
-
-| Setting | Values | Description |
-|---------|--------|-------------|
-| commit_style | classic, conventional | Default commit message style |
-| pairs | list | Saved co-authors for pair programming |
-```
+See `references/settings-file.md` for the file format (`commit_style`, `pairs`) and the settings table.
 
 ---
 
 ## Error Handling
 
 ### Not a Git Repository
-```
-Error: Not a git repository.
-Run this command from within a git repository.
-```
-
-### No Staged Changes (after user declines to stage)
-```
-No changes to commit. Stage some changes first:
-  git add <files>
-  git add -A  # stage all
-```
-
-### Amend Safety Violations
-
-**Commit already pushed:**
-```
-Warning: This commit has already been pushed to the remote.
-Amending will require a force push, which can cause issues for collaborators.
-
-Are you sure you want to amend?
-○ Yes, I understand the implications
-○ No, create a new commit instead
-○ Cancel
-```
-
-**Not user's commit:**
-```
-Error: Cannot amend this commit.
-The commit was authored by someone else (John Doe <john@example.com>).
-Only amend your own commits.
-```
-
-### MCP Tools Unavailable
-If MCP git tools are unavailable, silently fall back to Bash commands.
-Do not show errors to the user - just use the fallback.
+Read `references/error-messages.md` for the exact messages and prompts for: not a git repository, no staged changes (after the user declines to stage), amend safety violations (already pushed; not the user's commit), and MCP tools unavailable (silently fall back to Bash, show no error).
 
 ---
 

@@ -29,23 +29,7 @@ First, determine if this is a new setup or managing an existing environment:
 
 Scan for language indicator files and suggest packages:
 
-| File | Stack | Suggested Packages |
-|------|-------|-------------------|
-| `package.json` | Node.js | `nodejs`, check lockfile for `pnpm`/`yarn`/`npm` |
-| `pnpm-lock.yaml` | Node.js + pnpm | `nodejs`, `pnpm` |
-| `yarn.lock` | Node.js + yarn | `nodejs`, `yarn` |
-| `package-lock.json` | Node.js + npm | `nodejs` |
-| `Cargo.toml` | Rust | `rustc`, `cargo`, `rust-analyzer` |
-| `go.mod` | Go | `go`, `gopls` |
-| `pyproject.toml` | Python | `python3`, `uv` |
-| `requirements.txt` | Python | `python3`, `pip` |
-| `Gemfile` | Ruby | `ruby`, `bundler` |
-| `pom.xml` | Java | `jdk`, `maven` |
-| `build.gradle` | Java/Kotlin | `jdk`, `gradle` |
-| `*.csproj` | .NET | `dotnet-sdk` |
-| `Makefile` | C/C++ | `gnumake`, `gcc` |
-| `CMakeLists.txt` | C/C++ | `cmake`, `gcc` |
-| `Dockerfile` | Docker | `docker` |
+Use the indicator-file table in `references/stack-detection.md` (package.json, lockfiles, Cargo.toml, go.mod, pyproject.toml, requirements.txt, Gemfile, pom.xml, build.gradle, *.csproj, Makefile, CMakeLists.txt, Dockerfile) to map files to stacks and suggested packages.
 
 Also read `CLAUDE.md` if it exists to understand the project context and tech stack.
 
@@ -66,46 +50,7 @@ Let user confirm, deselect, or add more via "Other" option.
 Ask: "Any additional packages you need? (e.g., redis, postgresql, jq)"
 
 For each package mentioned:
-1. Check `.claude/devenv.local.md` for `use_mcp_search` setting (default: `true`)
-2. If MCP search is enabled, try MCP tools in priority order:
-   a. **1mcp** (preferred — already running, no extra process):
-      ```
-      mcp__1mcp__nixos_1mcp_nixos_search(
-        query="<package>",
-        search_type="packages",
-        channel="unstable",
-        limit=10
-      )
-      ```
-   b. **Global/project level MCP** (if user has mcp-nixos configured):
-      ```
-      mcp__nixos__nix(
-        action="search",
-        query="<package>",
-        source="nixos",
-        type="packages",
-        channel="unstable",
-        limit=10
-      )
-      ```
-   c. **Plugin's bundled MCP**:
-      ```
-      mcp__plugin_devenv_nixos__nix(
-        action="search",
-        query="<package>",
-        source="nixos",
-        type="packages",
-        channel="unstable",
-        limit=10
-      )
-      ```
-3. **Fallback:** If no MCP tool available or `use_mcp_search: false`, use bash:
-   `nix-shell -p nix --run "nix search nixpkgs <package> --json"`
-4. If version specified (e.g., `nodejs@20`), handle version resolution:
-   a. Try `mcp__1mcp__nixos_1mcp_nixhub_find_version(package_name="nodejs", version="20")`
-   b. If 1mcp unavailable, try `mcp__plugin_devenv_nixos__nix_versions(package="nodejs", version="20")`
-   c. Also search for nixpkgs variants like `nodejs_20`
-   d. Prefer the nixpkgs variant if it exists; offer pinned commit hash as alternative
+For each package mentioned, search per `references/mcp-package-search.md` (section 2c): check `.claude/devenv.local.md` for `use_mcp_search` (default `true`); if enabled, try 1mcp first, then global/project mcp-nixos, then the plugin's bundled MCP; otherwise (or if none is available) fall back to `nix-shell -p nix --run "nix search nixpkgs <package> --json"`. For a versioned request such as `nodejs@20`, resolve the version as described there (prefer the nixpkgs variant, e.g. `nodejs_20`; offer a pinned commit hash as the alternative).
 5. Present search results and confirm selection
 
 **2d. Offer security tools:**
@@ -116,18 +61,7 @@ Security tools (recommended):
 [ ] pre-commit - Git hooks with SAST tools for your stack (using git-hooks.nix)
 ```
 
-If pre-commit selected, determine which git-hooks.nix hooks to enable based on detected stack:
-
-| Stack | Hooks to Enable |
-|-------|-----------------|
-| JavaScript/TypeScript | `eslint.enable = true; prettier.enable = true;` |
-| Python | `ruff.enable = true; ruff-format.enable = true;` |
-| Go | `golangci-lint.enable = true;` |
-| Rust | `clippy.enable = true; rustfmt.enable = true;` |
-| Nix (always) | `nixfmt-rfc-style.enable = true; statix.enable = true; deadnix.enable = true;` |
-| Shell scripts | `shellcheck.enable = true;` |
-| Docker | `hadolint.enable = true;` |
-| General (always) | `check-yaml.enable = true; trim-trailing-whitespace.enable = true;` |
+If pre-commit selected, determine which git-hooks.nix hooks to enable based on the detected stack using the table in `references/git-hooks.md` (JavaScript/TypeScript, Python, Go, Rust, Nix always, Shell, Docker, General always).
 
 **Then ask about secret scanning:**
 
@@ -205,145 +139,11 @@ Save the selection to `.claude/devenv.local.md` as:
 
 1. Generate `flake.nix` using the appropriate template:
 
-**Basic Template (without pre-commit):**
+Use the basic template from `references/flake-templates.md` (section "Basic Template") when pre-commit is not selected. It also lists how to add direnv-instant (replace the three `DIRENV_INSTANT_*` placeholders) or standard direnv (add `direnv` to packages).
 
-```nix
-{
-  description = "Development environment";
+Use the git-hooks.nix template from `references/flake-templates.md` (section "Template with git-hooks.nix") when pre-commit is selected; fill `LANGUAGE_HOOKS_HERE` and `SECRET_SCANNER_HERE` from the choices in 2d. direnv-instant integration is the same as for the basic template.
 
-  inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    flake-utils.url = "github:numtide/flake-utils";
-    # DIRENV_INSTANT_INPUT_HERE (if selected)
-  };
-
-  outputs = {
-    self,
-    nixpkgs,
-    flake-utils,
-    # DIRENV_INSTANT_PARAM_HERE (if selected)
-  }:
-    flake-utils.lib.eachDefaultSystem (system: let
-        pkgs = nixpkgs.legacyPackages.${system};
-      in {
-        devShells.default = pkgs.mkShell {
-          packages = with pkgs; [
-            # PACKAGES_HERE
-          ]
-          # DIRENV_INSTANT_PACKAGE_HERE (if selected)
-          ;
-
-          shellHook = ''
-            # SHELL_WELCOME_HERE
-          '';
-        };
-      }
-    );
-}
-```
-
-**To add direnv-instant to the template:**
-- Replace `# DIRENV_INSTANT_INPUT_HERE` with: `direnv-instant.url = "github:Mic92/direnv-instant";`
-- Replace `# DIRENV_INSTANT_PARAM_HERE` with: `direnv-instant,`
-- Replace `# DIRENV_INSTANT_PACKAGE_HERE` with: `++ [ direnv-instant.packages.${system}.default ]`
-
-**To add standard direnv:** Simply add `direnv` to the packages list (it's a nixpkgs package).
-
-**Template with git-hooks.nix (pre-commit enabled):**
-
-```nix
-{
-  description = "Development environment";
-
-  inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    flake-utils.url = "github:numtide/flake-utils";
-    git-hooks.url = "github:cachix/git-hooks.nix";
-    # DIRENV_INSTANT_INPUT_HERE (if selected)
-  };
-
-  outputs = {
-    self,
-    nixpkgs,
-    flake-utils,
-    git-hooks,
-    # DIRENV_INSTANT_PARAM_HERE (if selected)
-  }:
-    flake-utils.lib.eachDefaultSystem (system: let
-        pkgs = nixpkgs.legacyPackages.${system};
-
-        # Pre-commit hooks configuration
-        pre-commit-check = git-hooks.lib.${system}.run {
-          src = ./.;
-          hooks = {
-            # Nix
-            nixfmt-rfc-style.enable = true;
-            statix.enable = true;
-            deadnix = {
-              enable = true;
-              settings.edit = true;
-              settings.noLambdaPatternNames = true; # Preserve 'self' in flake outputs
-            };
-
-            # General
-            check-yaml.enable = true;
-            trim-trailing-whitespace.enable = true;
-
-            # LANGUAGE_HOOKS_HERE
-
-            # SECRET_SCANNER_HERE
-            # For trufflehog (built-in): trufflehog.enable = true;
-            # For gitleaks (custom hook):
-            # gitleaks = {
-            #   enable = true;
-            #   name = "gitleaks";
-            #   entry = "${pkgs.gitleaks}/bin/gitleaks git --pre-commit --redact --staged --verbose";
-            #   language = "system";
-            #   pass_filenames = false;
-            # };
-          };
-        };
-      in {
-        # Run hooks in CI with: nix flake check
-        checks.pre-commit-check = pre-commit-check;
-
-        devShells.default = pkgs.mkShell {
-          packages = with pkgs; [
-            # PACKAGES_HERE
-          ]
-          ++ pre-commit-check.enabledPackages
-          # DIRENV_INSTANT_PACKAGE_HERE (if selected)
-          ;
-
-          shellHook = ''
-            ${pre-commit-check.shellHook}
-            # SHELL_WELCOME_HERE
-          '';
-        };
-      }
-    );
-}
-```
-
-**direnv-instant integration:** Same as basic template - add input, parameter, and package reference.
-
-**Shell welcome replacement:** Replace `# SHELL_WELCOME_HERE` based on user's `shell_welcome` preference:
-
-| Style | Replacement Content |
-|-------|---------------------|
-| `box` | `echo "╔══════════════════════════════════════╗"`<br>`echo "║            🔧 devenv                 ║"`<br>`echo "║     Development environment loaded   ║"`<br>`echo "╚══════════════════════════════════════╝"` |
-| `minimal` | `echo ""`<br>`echo "  ▸ devenv ready"`<br>`echo ""` |
-| `project` | `echo ""`<br>`echo "  ╭───────────────────────────────────╮"`<br>`echo "  │  📁 $(basename $PWD)"`<br>`echo "  │  Development environment loaded"`<br>`echo "  ╰───────────────────────────────────╯"`<br>`echo ""` |
-| `tech` | `echo ""`<br>`echo "  [devenv] :: environment initialized"`<br>`echo "  └── packages loaded, hooks active"`<br>`echo ""` |
-| `custom` | Parse `shell_welcome_custom` from settings, split by `\n`, wrap each line in `echo "..."` |
-| `none` | `# No welcome message` (empty comment, no output) |
-
-**For custom messages:**
-1. Read `shell_welcome_custom` from `.claude/devenv.local.md`
-2. Split by `\n` for multi-line support
-3. Wrap each line in `echo "..."` statements
-4. Escape special characters: `$` becomes `\$`, `"` becomes `\"`, `\` becomes `\\`
-5. If empty, fall back to `box` style
+Replace `# SHELL_WELCOME_HERE` according to the user's `shell_welcome` preference using `references/shell-welcome.md` (styles box, minimal, project, tech, custom, none; custom messages are split on `\n`, wrapped in `echo "..."`, escaped, and fall back to `box` if empty).
 
 2. Handle `.envrc` (if direnv mode is not "none"):
 
@@ -398,65 +198,7 @@ nix flake check --no-build 2>&1
 
 **2i. Output instructions:**
 
-**If direnv-instant was selected:**
-```
-Development environment created!
-
-To enter the environment:
-  nix develop
-
-Or with direnv-instant (async, instant prompt):
-  direnv allow
-
-direnv-instant shell setup (one-time):
-  # bash (~/.bashrc) or zsh (~/.zshrc):
-  eval "$(direnv-instant hook bash)"  # or zsh
-
-  # fish (~/.config/fish/config.fish):
-  direnv-instant hook fish | source
-
-Note: Remove any existing `eval "$(direnv hook ...)"` first.
-
-Your environment includes:
-- [list packages]
-```
-
-**If standard direnv was selected:**
-```
-Development environment created!
-
-To enter the environment:
-  nix develop
-
-Or with direnv:
-  direnv allow
-
-Your environment includes:
-- [list packages]
-```
-
-**If direnv mode is "none":**
-```
-Development environment created!
-
-To enter the environment:
-  nix develop
-
-Your environment includes:
-- [list packages]
-```
-
-**[If pre-commit was selected, append:]**
-```
-Pre-commit hooks are configured via git-hooks.nix.
-They will auto-install when you run `nix develop`.
-
-Available hooks:
-- [list enabled hooks]
-
-To run hooks manually: pre-commit run --all-files
-To validate in CI: nix flake check
-```
+Print the completion message from `references/output-instructions.md` matching the chosen direnv mode (direnv-instant with its one-time shell setup, standard direnv, or none), and append the pre-commit block if pre-commit was selected.
 
 ---
 
@@ -488,17 +230,7 @@ Show "Switch direnv mode" and "Change welcome style" options always (user may wa
 **Add packages:**
 1. Ask: "What packages would you like to add?"
 2. Search nixpkgs for each package:
-   - Check `.claude/devenv.local.md` for `use_mcp_search` setting (default: `true`)
-   - If MCP search is enabled, try MCP tools in priority order:
-     a. **1mcp** (preferred): `mcp__1mcp__nixos_1mcp_nixos_search(query="<pkg>", search_type="packages", channel="unstable", limit=10)`
-     b. Global/project MCP: `mcp__nixos__nix(action="search", query="<pkg>", ...)`
-     c. Plugin's bundled MCP: `mcp__plugin_devenv_nixos__nix(action="search", query="<pkg>", ...)`
-   - **Fallback:** If no MCP tool available or `use_mcp_search: false`, use bash:
-     `nix-shell -p nix --run "nix search nixpkgs <package> --json"`
-   - For versioned packages (e.g., `nodejs@20`):
-     a. Try `mcp__1mcp__nixos_1mcp_nixhub_find_version(package_name="nodejs", version="20")`
-     b. If 1mcp unavailable, try `mcp__plugin_devenv_nixos__nix_versions(package="nodejs", version="20")`
-     c. Also search for nixpkgs variants like `nodejs_20`
+   - Search nixpkgs for each package using the same procedure as 2c in `references/mcp-package-search.md` (check `use_mcp_search`; MCP priority 1mcp, global/project, plugin bundled; bash fallback; version resolution for `pkg@version`).
 3. Confirm package names
 4. Edit `flake.nix` to add packages to the list
 5. Run `nix flake lock --update-input nixpkgs` to update lock
@@ -594,104 +326,7 @@ If validation fails, fix the issue before completing the task.
 
 ## MCP Tools: NixOS Package Search
 
-This plugin uses NixOS MCP tools for package search, providing access to 130K+ NixOS packages with accurate, up-to-date information.
-
-### Tool Priority Order
-
-The command tries MCP tools in this order:
-1. **1mcp** (preferred): `mcp__1mcp__nixos_1mcp_nixos_search` — already running via 1mcp proxy, no extra process
-2. **Global/Project level**: `mcp__nixos__nix` — if user has mcp-nixos configured globally or in project
-3. **Plugin's bundled**: `mcp__plugin_devenv_nixos__nix` — plugin's own MCP server (fallback for non-1mcp environments)
-4. **Bash fallback**: `nix search` command
-
-This ensures the fastest available tool is used first, with graceful degradation.
-
-### Package Search
-
-**1mcp** (separate tools per action):
-```
-mcp__1mcp__nixos_1mcp_nixos_search(
-  query="<search_term>",
-  search_type="packages",
-  channel="unstable",
-  limit=10
-)
-```
-
-**Global/Plugin MCP** (combined action parameter):
-```
-mcp__nixos__nix(  # or mcp__plugin_devenv_nixos__nix
-  action="search",
-  query="<search_term>",
-  source="nixos",
-  type="packages",
-  channel="unstable",
-  limit=10
-)
-```
-
-### Version Search
-
-For versioned package requests (e.g., `nodejs@20`):
-
-**1mcp** — find specific version:
-```
-mcp__1mcp__nixos_1mcp_nixhub_find_version(
-  package_name="nodejs",
-  version="20"
-)
-```
-
-**1mcp** — list all available versions:
-```
-mcp__1mcp__nixos_1mcp_nixhub_package_versions(
-  package_name="nodejs",
-  limit=20
-)
-```
-
-**Plugin bundled MCP** — version lookup:
-```
-mcp__plugin_devenv_nixos__nix_versions(
-  package="nodejs",
-  version="20"
-)
-```
-
-**Version resolution workflow:**
-1. Try `nixhub_find_version` (or `nix_versions`) to find the exact version
-2. Also search nixpkgs for variants like `nodejs_20`
-3. Prefer the nixpkgs variant if it exists (simpler, no pinning needed)
-4. Offer pinned commit hash from nixhub as alternative if no nixpkgs variant found
-
-### Parameter Reference
-
-| Tool | Parameter | Value | Description |
-|------|-----------|-------|-------------|
-| `1mcp_nixos_search` | query | string | Package name or search term |
-| `1mcp_nixos_search` | search_type | "packages" | Search packages (not options) |
-| `1mcp_nixos_search` | channel | "unstable" | Nixpkgs channel |
-| `1mcp_nixos_search` | limit | number | Max results to return |
-| `1mcp_nixhub_find_version` | package_name | string | Package to find version for |
-| `1mcp_nixhub_find_version` | version | string | Desired version (e.g., "20") |
-| `1mcp_nixhub_package_versions` | package_name | string | Package to list versions for |
-| `1mcp_nixhub_package_versions` | limit | number | Max versions to return |
-| `nixos__nix` / `plugin_devenv_nixos__nix` | action | "search" | Search for packages |
-| `nixos__nix` / `plugin_devenv_nixos__nix` | query | string | Package name or search term |
-| `nixos__nix` / `plugin_devenv_nixos__nix` | source | "nixos" | Use NixOS packages source |
-| `nixos__nix` / `plugin_devenv_nixos__nix` | type | "packages" | Search packages (not options) |
-| `nixos__nix` / `plugin_devenv_nixos__nix` | channel | "unstable" | Use nixos-unstable channel |
-| `nixos__nix` / `plugin_devenv_nixos__nix` | limit | number | Max results to return |
-| `plugin_devenv_nixos__nix_versions` | package | string | Package to find version for |
-| `plugin_devenv_nixos__nix_versions` | version | string | Desired version (optional) |
-| `plugin_devenv_nixos__nix_versions` | limit | number | Max versions to return (optional) |
-
-### Fallback Behavior
-
-If no MCP tool is available, the command falls back to:
-```bash
-nix-shell -p nix --run "nix search nixpkgs <package> --json"
-```
+See `references/mcp-package-search.md` (section "MCP Tools: NixOS Package Search") for the tool priority order (1mcp, global/project mcp-nixos, plugin bundled MCP, bash fallback), exact call signatures for package and version search, the version resolution workflow, and the parameter reference.
 
 ## Settings File
 
@@ -719,46 +354,4 @@ shell_welcome_custom: ""
 
 ## git-hooks.nix Hook Reference
 
-### Available Hooks by Language
-
-| Language | Hook Names |
-|----------|------------|
-| JavaScript/TypeScript | `eslint`, `prettier` |
-| Python | `ruff`, `ruff-format`, `black`, `mypy` |
-| Go | `golangci-lint`, `gofmt` |
-| Rust | `clippy`, `rustfmt`, `cargo-check` |
-| Nix | `nixfmt-rfc-style`, `statix`, `deadnix` |
-| Shell | `shellcheck`, `shfmt` |
-| Docker | `hadolint` |
-| YAML | `check-yaml`, `yamllint` |
-| Secrets | `trufflehog`, `ripsecrets` (built-in); `gitleaks` requires custom config |
-| General | `trim-trailing-whitespace`, `check-added-large-files`, `check-merge-conflicts` |
-
-### Example Hook Configuration
-
-```nix
-hooks = {
-  # Enable a built-in hook
-  eslint.enable = true;
-
-  # Built-in secret scanner
-  trufflehog.enable = true;
-
-  # Enable with custom settings
-  ruff = {
-    enable = true;
-    settings.args = ["--fix"];
-  };
-
-  # Custom hook example: gitleaks (not built-in)
-  gitleaks = {
-    enable = true;
-    name = "gitleaks";
-    entry = "${pkgs.gitleaks}/bin/gitleaks git --pre-commit --redact --staged --verbose";
-    language = "system";
-    pass_filenames = false;
-  };
-};
-```
-
-For full list of available hooks, see: https://github.com/cachix/git-hooks.nix
+See `references/git-hooks.md` (section "git-hooks.nix Hook Reference") for available hooks by language and an example hook configuration.

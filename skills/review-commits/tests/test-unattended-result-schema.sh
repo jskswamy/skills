@@ -1,7 +1,10 @@
 #!/bin/bash
 set -euo pipefail
 cd "$(dirname "$0")/.."
-skill="SKILL.md"
+# the schema lives in references/ since the skill was split
+skill=$(mktemp)
+trap 'rm -f "$skill"' EXIT
+cat SKILL.md references/*.md > "$skill"
 
 for field in outcome reason base originalHead newHead decisions plan validation detail; do
   if ! grep -Eq '"'"$field"'"' "$skill"; then

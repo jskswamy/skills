@@ -68,21 +68,7 @@ path so the result file is not accidentally tracked.
 
 Write `--result <path>` in every outcome:
 
-```json
-{
-  "outcome": "done | failed",
-  "reason": "conflict | drift | tests | no-base | tree-mismatch | validation | null",
-  "base": "<sha>",
-  "originalHead": "<sha>",
-  "newHead": "<sha>",
-  "decisions": [{"gate": "plan-review", "chose": "accept", "why": "unattended default"}],
-  "plan": [{"action": "pick|fixup|reword|drop|edit", "commit": "<sha>", "subject": "..."}],
-  "validation": {"cleanWorktree": true, "tests": true, "noAICoauthor": true,
-                  "noConflictMarkers": true, "noSquashResidue": true,
-                  "style": true, "noTrackerLeaks": true},
-  "detail": "..."
-}
-```
+The result file is JSON with keys `outcome` (`done | failed`), `reason`, `base`, `originalHead`, `newHead`, `decisions`, `plan`, `validation`, `detail`; the full schema is in `references/result-file.md` (read it before writing the file).
 
 Exit code 0 only when `outcome` is `done`.
 
@@ -149,40 +135,7 @@ Set `codebase_transport` to `mcp` or `cli`. All tool calls below use that transp
 
 Resolve the transport above and call `list_projects`. If both MCP and CLI are unavailable, set `$SEMANTIC_AVAILABLE=false` and continue with Layers 1 and 2. If either works, continue to Step 2. Transport selection also applies in unattended mode; it does not grant permission to index.
 
-### Step 2: Decide Whether to (Re)Index
-
-Compute three signals:
-
-```bash
-last_indexed=$(awk '/^last_indexed:/{print $2}' .claude/codebase.local.md 2>/dev/null)
-latest_commit_ts=$(git log -1 --format=%cI "$base..HEAD" 2>/dev/null)
-needs_reindex=false
-
-if [[ -z "$last_indexed" ]]; then
-  needs_reindex=true                          # first run on this project
-elif [[ -n "$latest_commit_ts" && "$latest_commit_ts" > "$last_indexed" ]]; then
-  needs_reindex=true                          # commits being reviewed are newer than the graph
-else
-  # 24-hour calendar fallback for the rest of the repo
-  now_s=$(date +%s)
-  idx_s=$(date -j -f "%Y-%m-%dT%H:%M:%SZ" "$last_indexed" +%s 2>/dev/null || echo 0)
-  age_h=$(( (now_s - idx_s) / 3600 ))
-  [[ $age_h -gt 24 ]] && needs_reindex=true
-fi
-```
-
-If `$needs_reindex=true`, invoke `/codebase:index`. The codebase plugin
-honors the user's `auto_index: ask|always|never` preference, so the skill
-delegates that decision rather than re-implementing it.
-
-With `--unattended`, do not invoke `/codebase:index`. If the existing index is
-missing or stale, set `$SEMANTIC_AVAILABLE=false`, continue with Layers 1 and 2,
-and record a decision such as `{"gate":"codebase-index","chose":"skip","why":"unattended; existing fresh index unavailable"}`.
-
-If indexing fails for any reason, set `$SEMANTIC_AVAILABLE=false` and
-continue — do not block the workflow.
-
-If indexing succeeds (or was unnecessary), set `$SEMANTIC_AVAILABLE=true`.
+Read `references/codebase-index-resolution.md` and follow it: Step 2 (the reindex decision signals, the `/codebase:index` delegation, the `--unattended` no-index rule). The outcome is `$SEMANTIC_AVAILABLE` set to true or false; indexing failure never blocks the workflow.
 
 ## Argument Parsing
 
@@ -202,190 +155,14 @@ is built. It is performed inline by the main agent using the checklist in
 
 Four detection layers run in order. Each layer adds findings to a shared list.
 
-### Layer 1: Subject-Based (always runs)
-
-Parse `git log --oneline $base..HEAD` and detect introduce-then-fix pairs:
-
-A pair is flagged when:
-- Commit B's subject starts with `Fix`, `Fixup`, `Fix up`, `Correct`,
-  or `Update` (case-insensitive)
-- The remainder of B's subject shares a significant word (3+ characters,
-  excluding stop words: the, for, and, a, an, in, of, to, is, it, on,
-  at, by, or, be, as, do, if, so, no, up, we, my, he) with commit A's
-  subject
-- B is within 3 commits of A in the log (not necessarily adjacent)
-
-Each detected pair is recorded as:
-```
-finding: pair
-commits: [<hash-A>, <hash-B>]
-reason: "introduce-then-fix: <shared word>"
-action: fixup (mandatory)
-```
-
-### Layer 2: File-Structural (always runs)
-
-For each commit in range, run:
-```bash
-git diff-tree --no-commit-id --name-only -r <hash>
-```
-
-Group changed files by top-level directory. Flag a commit as non-atomic
-if it touches files in 2+ top-level directories that serve different
-concerns. Use these heuristics:
-- `plugins/<name-A>/` and `plugins/<name-B>/` are different concerns
-  (unless both are in the same plugin)
-- `docs/` changes alongside `plugins/` are acceptable (docs for the plugin)
-- `tests/` alongside `src/` for the same module is acceptable
-- Root config files (`.eslintrc`, `package.json`) alongside source changes
-  are acceptable if the config change supports the source change
-
-Each flagged commit is recorded as:
-```
-finding: non-atomic
-commit: <hash>
-concerns: ["<dir-A>: <description>", "<dir-B>: <description>"]
-action: edit (suggested)
-```
-
-**Test-with-impl detection.** If commit B touches only test files
-(`*.test.*`, `tests/`, `*_test.*`, `*_spec.*`) for symbols introduced
-in an earlier commit A, mark B as a fixup of A:
-
-```
-finding: pair
-commits: [<hash-A>, <hash-B>]
-reason: "test-with-impl: tests for A's symbols arrived in B"
-action: fixup (mandatory)
-```
-
-The synthesizer is the right phase to run this check — it has the
-full file list per commit and can match test files to product files by
-base name.
-
-Also check if any commit's changes are unrelated to the branch's overall
-purpose. Compare each commit's changed files against the full branch diff
-(`git diff --name-only $base..HEAD`). If a commit only touches files that
-no other commit in the range touches AND those files are in a different area
-from the branch's main work, flag it:
-
-```
-finding: unrelated
-commit: <hash>
-reason: "<description of why it seems unrelated>"
-action: drop (suggested)
-```
-
-### Layer 3: Semantic (runs when $SEMANTIC_AVAILABLE=true)
-
-For each commit flagged as potentially non-atomic by Layer 2, and for any
-commit where Layer 2 was uncertain, use codebase-memory-mcp to verify:
-
-1. **Get changed symbols**: For each changed file in the commit, call
-   `search_graph` with the file path to find the symbols it defines.
-
-2. **Check cluster membership**: Call `search_graph` with a semantic query
-   describing each changed symbol. If changed symbols belong to different
-   clusters (e.g., "AuthService" vs "Observability"), the commit is
-   non-atomic.
-
-3. **Trace connections**: Call `trace_path` between changed files. If a
-   path exists (they're connected through call chains), the changes may be
-   related despite being in different directories. Remove the non-atomic
-   flag.
-
-4. **Check module boundaries**: Call `get_architecture` and verify whether
-   the commit crosses module boundaries. Cross-boundary changes with no
-   call-chain connection are non-atomic.
-
-Layer 3 can **upgrade** a Layer 2 finding (uncertain → confirmed non-atomic)
-or **dismiss** it (files are in different directories but semantically
-connected).
-
-If a tool call fails during Layer 3, retry MCP connection failures through CLI first. If the selected transport still fails, skip the remaining semantic checks for that commit and keep the Layer 2 finding as-is. Do not fail the workflow.
-
-### Layer 4: Tracker-ID Leak Detection
-
-Run the deterministic tracker leak detector before presenting hygiene
-findings. Resolve the package root as the nearest ancestor containing
-`registry.json` or `package.json`, then run:
-
-```bash
-bash "<package-root>/skills/review-commits/lib/detect-tracker-leaks.sh" "$base"
-```
-
-When running from a generated Claude Code plugin, the equivalent generated
-path is `<plugin-root>/skills/review-commits/lib/detect-tracker-leaks.sh`.
-
-The helper prints TSV rows:
-
-```text
-<short-hash>\t<kind>\t<match>\t<line>
-```
-
-Where `kind` is one of:
-- `subject-prefix` — commit subject starts with a tracker ID such as
-  `PROJ-123:`
-- `trailer` — body line starts with a configured trailer key such as
-  `Refs: PROJ-123` or `Closes beads-abc.2`
-- `parenthetical` — tracker ID appears inside parentheses
-- `narrative` — tracker ID appears in prose and needs human rewording
-
-Defaults detect common Jira/Linear-style IDs (`PROJ-123`), internal
-beads IDs (`beads-abc.2`, `claude-plugins-xyz`), and lowercase
-project-style IDs with a substantial suffix (`project-abc`).
-
-Projects can add patterns in `.claude/commit-tools.local.md`:
-
-```yaml
----
-tracker_patterns:
-  - 'BUG-[0-9]+'
-trailer_keys:
-  - Related
----
-```
-
-For `trailer` and `parenthetical` findings, suggest stripping the opaque
-reference while keeping the surrounding explanation. For `narrative`
-findings, require rewording because the tracker ID is part of prose. For
-`subject-prefix`, require rewording the subject.
+Read `references/hygiene-layers.md` and run the four layers in order: Layer 1 (subject-based introduce-then-fix pairs, mandatory fixup), Layer 2 (file-structural non-atomic, test-with-impl, and unrelated-commit findings), Layer 3 (semantic verification via codebase-memory, only when `$SEMANTIC_AVAILABLE=true`), and Layer 4 (tracker-ID leak detection via `lib/detect-tracker-leaks.sh`). Each layer adds findings to a shared list.
 
 ### Present Hygiene Findings
 
 After all layers complete, present findings using AskUserQuestion if any
 issues were found:
 
-```
-Commit hygiene analysis complete.
-
-⚠ Issues detected:
-
-  Introduce-then-fix pairs (will be auto-squashed):
-    c844c6a + 7de838b — "sync-beads": add then fix shell escaping
-    c8fa279 + e526d22 — "hook": expand then fix false-positive
-
-  Non-atomic commits (suggest splitting):
-    a1b2c3d — touches auth handler (AuthService) + logging (Observability)
-      These are unrelated concerns in different subsystems.
-
-  Unrelated changes (suggest dropping):
-    f4e5d6c — README typo fix, unrelated to auth migration branch
-
-  Tracking-system references (suggest removing before push):
-    a1b2c3d — subject-prefix PROJ-123: "PROJ-123: add login checks"
-    d4e5f6a — trailer beads-abc.2: "Refs: beads-abc.2"
-    9abcdef — parenthetical PROJ-789: "A future shim (PROJ-789)..."
-    1234567 — narrative claude-plugins-xyz: "After claude-plugins-xyz..."
-
-Introduce-then-fix pairs are mandatory fixups. Tracker subject-prefix and
-narrative findings require rewording. Trailer and parenthetical findings can
-usually be stripped while preserving the surrounding prose. For other findings:
-
-○ Accept all suggestions
-○ Review one by one — decide per finding
-○ Dismiss all — keep commits as-is (only hygiene pairs will be fixed)
-```
+Use the dialog template in `references/hygiene-findings-dialog.md`: list pairs, non-atomic commits, unrelated changes, and tracking-system references, then offer Accept all suggestions / Review one by one / Dismiss all. Introduce-then-fix pairs are mandatory fixups. Tracker subject-prefix and narrative findings require rewording; trailer and parenthetical findings can usually be stripped while preserving the surrounding prose.
 
 If "Review one by one": walk through each non-mandatory finding with
 AskUserQuestion offering accept/dismiss per finding.
@@ -402,33 +179,7 @@ And proceed directly to the rebase plan.
 
 ## Logical Clustering (Shared)
 
-Beyond per-commit hygiene, the planner detects "feature clusters": runs of
-4+ contiguous commits that together form a single logical change (TDD
-discipline produces these — scaffold → helper → test → another helper →
-wire it up). Once the feature lands, that granularity is noise on `main`.
-
-Detection runs after Hygiene Layers 1-4 and uses
-`lib/detect-clusters.sh "$base"`:
-
-- The helper outputs one line per cluster, space-separated short-hashes
-  oldest-first
-- A cluster is 4+ contiguous commits whose touched files all share a
-  3-level path prefix (e.g. `plugins/foo/skills/bar/`)
-- Commits that are already a fixup target from Layer 1 are excluded from
-  cluster candidates (they collapse separately)
-
-If `$SEMANTIC_AVAILABLE=true`, the planner confirms each candidate via
-codebase-memory: query `search_graph` for the symbols across all commits
-in the cluster, and reject the candidate if symbols span 2+ unrelated
-architectural clusters. Confirmation upgrades the proposal to
-high-confidence; absence of MCP demotes it to medium-confidence (still
-proposed, the plan review just flags the confidence level).
-
-A confirmed cluster maps to existing plan primitives:
-- first commit: `action: pick` with `new_message` (authored in saved style)
-- every later commit in the cluster: `action: fixup`
-
-`build-todo.sh` already emits the right exec sequence for this combination.
+Read `references/logical-clustering.md`: runs of 4+ contiguous commits sharing a 3-level path prefix (detected by `lib/detect-clusters.sh "$base"`, run after Hygiene Layers 1-4) are proposed for collapse into one commit (first `pick` with `new_message`, rest `fixup`), confirmed via codebase-memory when `$SEMANTIC_AVAILABLE=true`.
 
 ## Branch Flow
 
@@ -501,99 +252,7 @@ Show the plan via AskUserQuestion. Display the original
 `git log --oneline $base..HEAD`, then the proposed action sequence with
 the first line of each new message inline (truncated to 72 chars).
 
-First, present any cluster proposals. The form depends on which
-detectors fired:
-
-**Both detectors fire (overlap-free disjoint case):**
-
-```
-Cluster proposals for branch <name>:
-
-  Option A (recommended, branch heuristic, medium confidence):
-    Collapse all 4 commits into one
-      pick   f3696d7  Extract netbox process-compose commands to scripts
-      fixup  bc7a342  ↳ folded
-      fixup  fd11711  ↳ folded
-      fixup  c0cc5e8  ↳ folded
-
-  Option B (path heuristic, high confidence):
-    Collapse 4 commits in plugins/foo/skills/bar/ into one
-      pick   9e14e75  Add NetBoxClient interface, mock, and validation
-      fixup  3312c0b  ↳ folded
-      fixup  …
-      fixup  …
-
-○ Accept Option A — collapse the whole branch
-○ Accept Option B — collapse only the sub-clusters
-○ Keep all as pick — don't collapse
-○ Modify per-commit
-```
-
-**Branch detector only (no path sub-clusters):**
-
-```
-Cluster proposal for branch <name>:
-
-  Branch heuristic, medium confidence:
-    Collapse all N commits into one
-      pick   <h1>  <subject>
-      fixup  <h2>  ↳ folded
-      ...
-
-  No path-prefix sub-clusters found.
-
-○ Accept — collapse the whole branch
-○ Keep all as pick — don't collapse
-○ Modify per-commit
-```
-
-**Path detector only (running on main/master, or branch candidate did not fire):**
-
-```
-Cluster proposals (path heuristic, high confidence):
-  Collapse N commits in <dir> into one
-    pick   <h1>  <subject>
-    fixup  <h2>  ↳ folded
-    ...
-
-○ Accept — collapse the sub-cluster(s)
-○ Keep all as pick — don't collapse
-○ Modify per-commit
-```
-
-**Neither detector fires:**
-
-```
-No cluster proposals.
-  Branch heuristic: skipped (on main/master)
-  Path heuristic: no contiguous run of 4+ commits shares a parent directory.
-
-  If these commits form one logical feature, use Modify to choose
-  which to collapse manually.
-```
-
-After the cluster decision is made, present the final per-commit plan:
-
-```
-Rebase plan for N commits on <branch-name>:
-
-  Current log:
-    c844c6a  Add sync-beads skill
-    7de838b  Fix sync-beads skill
-    ...
-
-  Proposed sequence:
-    pick   9e14e75  Add NetBoxClient interface, mock, and validation
-                      Adds NetBoxClient as the testable boundary for all
-                      NetBox HTTP calls. The mock is generated via…
-    fixup  3312c0b  ↳ folded into above
-    edit   a1b2c3d  Update auth handler  ← will split into 2
-    drop   f4e5d6c  Fix unrelated typo
-
-○ Accept — execute this plan
-○ Modify — adjust action for specific commits
-○ Reset — soft-reset and regroup manually (escape hatch)
-```
+First present any cluster proposals, then the final per-commit plan, using the templates in `references/plan-review-dialogs.md`. The cluster form depends on which detectors fired: both, branch only, path only, or neither. The final plan offers Accept / Modify / Reset.
 
 For any `pick` or `reword` whose authored `new_message` carries a body,
 show the first 2 wrapped lines of the body indented under the subject
@@ -677,21 +336,7 @@ git checkout main
 git merge <branch> --ff-only
 ```
 
-If `--ff-only` fails, use AskUserQuestion:
-```
-Fast-forward merge failed — main has diverged from <branch>.
-
-○ Rebase — rebase <branch> onto main first (recommended)
-○ Merge commit — create a merge commit instead
-○ Abort — stop and let me handle it
-```
-
-If "Rebase": run `git checkout <branch> && git rebase main`, then retry
-the ff merge. If rebase has conflicts, report and stop.
-
-If "Merge commit": run `git merge <branch>` (allow merge commit).
-
-If "Abort": stop.
+If `--ff-only` fails, use AskUserQuestion per `references/merge-and-cleanup-prompts.md` (Step 8): Rebase (recommended) / Merge commit / Abort.
 
 ### Step 9: Optional Tag
 
@@ -714,22 +359,7 @@ output). If validation fails, restore the original HEAD, write reason:
 
 Invoke the `validate-commits` skill to run all seven checks.
 
-After validation passes, ask before cleaning up using AskUserQuestion:
-```
-Branch <branch> has been merged to main. Delete it?
-○ Yes — delete the branch
-○ No — keep it
-```
-
-If "Yes":
-```bash
-git branch -d <branch>
-```
-
-If a worktree was used (check via `git worktree list`):
-```bash
-git worktree remove <path>
-```
+After validation passes, ask before cleaning up using AskUserQuestion per `references/merge-and-cleanup-prompts.md` (Step 10): delete the merged branch (`git branch -d`) and remove the worktree if one was used.
 
 ### Soft-Reset Escape Hatch
 
@@ -834,27 +464,7 @@ and exit non-zero.
 
 ## Integration
 
-### With /commit
-
-This skill READS `plugins/commit-tools/styles/<style>.md` directly during the
-synthesis phase to author messages in the saved style. It does NOT invoke
-`/commit` at execute time — the executor is purely mechanical replay. `/commit`
-is a peer of this skill, not a caller.
-
-### With /codebase:index
-
-This skill invokes `/codebase:index` to build or refresh the
-codebase-memory-mcp index when needed. The index enables Layer 3 semantic
-analysis for commit hygiene checks.
-
-### With Superpowers
-
-- `finishing-a-development-branch` detects this skill when "Merge locally"
-  is selected
-- `subagent-driven-development` naturally leads here after tasks complete
-
-### Standalone
-
+See `references/integration.md` for how this skill relates to /commit (reads the style files; never invokes /commit at execute time), /codebase:index, Superpowers, and standalone use.
 Run `/review-commits` anytime — before pushing, after a messy session, to
 clean up agent commits.
 
