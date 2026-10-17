@@ -1,7 +1,8 @@
 ---
 name: excalidraw-format
-description: This skill should be used when generating Excalidraw JSON files, creating visual diagrams in Excalidraw format, or needing to understand Excalidraw element structure. Provides comprehensive knowledge of Excalidraw JSON schema, element types, styling properties, and valid configurations.
-version: 1.0.0
+description: Use when generating Excalidraw JSON files, creating visual diagrams in Excalidraw format, or needing to understand Excalidraw element structure. Provides comprehensive knowledge of Excalidraw JSON schema, element types, styling properties, and valid configurations.
+metadata:
+  version: "1.0.0"
 ---
 
 # Excalidraw Format Reference

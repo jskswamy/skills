@@ -4,7 +4,7 @@ description: "Use when setting up or changing a Nix flake development environmen
 argument-hint: "[add|upgrade|remove|security]"
 ---
 
-# Devenv Command
+# Devenv
 
 Initialize and manage Nix flake development environments. Provides a devbox-like experience with auto-detection of project dependencies and security tooling using native Nix solutions.
 

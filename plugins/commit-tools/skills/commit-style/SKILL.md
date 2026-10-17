@@ -7,16 +7,6 @@ description: Provides educational guidance on writing good git commit messages. 
 
 This skill provides **educational context** about writing effective git commit messages.
 
-## When to Activate
-
-Activate this skill when the user **asks questions** about:
-- How to write commit messages
-- Commit message formats or styles
-- Conventional commits vs classic commits
-- What makes a good commit message
-- Atomic commits
-- Git best practices for commits
-
 ## When NOT to Activate
 
 Do NOT use this skill when the user wants to **perform a commit**. The following are handled by the `commit` skill:

@@ -1,22 +1,13 @@
 ---
 name: capture-for-sketch
-description: This skill should be used when the user wants to sketch content from a URL, YouTube video, or external source. Enables fetching and extracting content before creating a visual sketch.
-version: 1.0.0
+description: Use when the user wants to sketch content from a URL, YouTube video, or external source ("sketch this YouTube video", "visualize https://...", "draw a diagram of this URL", "sketch the architecture from this GitHub repo"). Enables fetching and extracting content before creating a visual sketch.
+metadata:
+  version: "1.0.0"
 ---
 
 # Capture Content for Sketching
 
 When the user wants to sketch external content (URLs, videos, articles), first fetch and extract the content, then generate the visualization.
-
-## Activation Triggers
-
-Use this skill when the user mentions:
-- "sketch this YouTube video"
-- "create a diagram from this article"
-- "visualize https://..."
-- "sketch the architecture from this GitHub repo"
-- "draw a diagram of this URL"
-- "make a visual summary of this video"
 
 ## Workflow
 

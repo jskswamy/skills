@@ -3,9 +3,9 @@ name: typst-publish
 description: "Use when the user wants a polished, shareable PDF or HTML document from notes or content: 'publish this as a PDF', 'make a shareable document', 'generate a Typst document', 'turn these notes into a PDF/HTML', 'export notes with a nice template'. Requires Typst (or Nix) installed and applies professional templates."
 ---
 
-# Typst Publish Skill
+# Typst Publish
 
-You are the orchestrator for generating beautiful shareable documents using Typst.
+Orchestrate generation of beautiful shareable documents using Typst.
 
 ## Plugin Root
 Resolve the package root as the nearest ancestor containing `registry.json` or `package.json`.

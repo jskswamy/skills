@@ -1,6 +1,6 @@
 ---
 name: typst-format
-description: This skill should be used when generating Typst source code, formatting documents with Typst syntax, or needing to understand Typst markup, functions, packages (CeTZ, Fletcher, Pintorita), and document structure. Provides comprehensive Typst language reference and package API knowledge.
+description: Use when generating Typst source code, formatting documents with Typst syntax, or needing to understand Typst markup, functions, packages (CeTZ, Fletcher, Pintorita), and document structure. Provides comprehensive Typst language reference and package API knowledge.
 ---
 
 # Typst Language Reference

@@ -1,22 +1,13 @@
 ---
 name: sketch-from-capture
-description: This skill should be used when the user wants to create a visual sketch, diagram, or mind map from captured content like articles, videos, or blips. Enables creating Excalidraw visualizations from jot captures.
-version: 1.0.0
+description: Use when the user wants to create a visual sketch, diagram, or mind map from captured content like articles, videos, or blips ("visualize this article", "mind map this capture", "draw what I just captured", "make a visual summary", "sketch the architecture from this repo"). Enables creating Excalidraw visualizations from jot captures.
+metadata:
+  version: "1.0.0"
 ---
 
 # Sketch from Capture
 
 When a user captures content and wants to visualize it, use the `/sketch` command from the sketch-note plugin.
-
-## Activation Triggers
-
-Use this skill when the user mentions:
-- "visualize this article"
-- "create a diagram from this video"
-- "sketch the architecture from this repo"
-- "mind map this capture"
-- "draw what I just captured"
-- "make a visual summary"
 
 ## Workflow
 

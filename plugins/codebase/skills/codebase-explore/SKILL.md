@@ -1,27 +1,11 @@
 ---
 name: codebase-explore
-description: |
-  Explore codebase using indexed knowledge from codebase-memory-mcp. Use when:
-  exploring project context during brainstorming or planning,
-  user asks about codebase architecture or structure,
-  user asks how something works or where something happens,
-  user asks what would be affected by a change,
-  user wants to understand code before modifying it
+description: "Use when gathering background codebase context as part of a larger workflow, such as the brainstorming or planning explore step, or before modifying unfamiliar code to understand architecture and structure. Not for a direct one-off question (use codebase-ask), a named symbol's callers/callees (use codebase-graph), or the effect of a diff (use codebase-impact)."
 ---
 
 # Codebase Explore Skill
 
 Enrich codebase exploration with indexed knowledge from `codebase-memory-mcp`. This skill provides grounded, accurate codebase context by querying a semantic and structural graph rather than doing expensive grep/glob/read exploration.
-
-## When This Skill Activates
-
-- During brainstorming "Explore project context" step
-- During planning codebase analysis step
-- When the user asks about codebase architecture, structure, or how things work
-- When the user asks "where does X happen?" or "how does Y work?"
-- When the user wants to understand the impact of a change
-
-## Activation Flow
 
 ## Codebase Transport
 

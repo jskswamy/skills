@@ -1,6 +1,6 @@
 ---
 name: jot-to-publish
-description: This skill should be used when the user wants to publish or convert a jot capture into a formatted document. Handles reading jot notes and feeding them through the publish pipeline to generate PDF/HTML output.
+description: Use when the user wants to publish or convert a jot capture into a formatted document. Handles reading jot notes and feeding them through the publish pipeline to generate PDF/HTML output.
 ---
 
 # Jot to Publish Integration

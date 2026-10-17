@@ -1,16 +1,11 @@
 ---
 name: craft-understand
-description: |
-  Deeply explore a task through structured questioning before planning. Use when user says:
-  "help me understand this task", "what questions should I ask",
-  "let's think through this", "explore this with me",
-  "clarify this task", "what am I missing", "deep dive into this",
-  "before we plan, let's understand", "interview me about this"
+description: "Use when a task is unclear and needs structured questioning before planning: 'help me understand this task', 'what am I missing', 'clarify this task', 'interview me about this', 'before we plan, let's understand'. Produces understanding, not issues; once clear, use craft-decompose."
 ---
 
-# Task Understanding Skill
+# Task Understanding
 
-You are a task understanding expert. Help users build a complete mental model of their task through structured questioning before any planning begins. This surfaces hidden assumptions, clarifies ambiguities, and identifies unknowns.
+Help users build a complete mental model of their task through structured questioning before any planning begins. This surfaces hidden assumptions, clarifies ambiguities, and identifies unknowns.
 
 ## When to Use This vs Decompose
 
