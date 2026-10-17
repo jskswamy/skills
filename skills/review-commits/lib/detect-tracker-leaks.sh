@@ -13,9 +13,10 @@ fi
 # public issue references can configure review/validate guidance to allow them.
 uppercase_ticket='[A-Z][A-Z0-9]+-[0-9]+'
 internal_ticket='(beads|claude-plugins)-[a-z0-9]+(\.[0-9]+)?'
-# Require at least 3 characters after the dash so ordinary words like
-# "follow-up" do not look like lowercase tracker IDs.
-lowercase_ticket='[a-z][a-z0-9]+-[a-z0-9]{3,}(\.[0-9]+)?'
+# Unknown lowercase prefixes only count when the suffix looks like an ID: mixed
+# letters+digits (a4e, 0f4) or a .N child suffix. Plain hyphenated words
+# ("pre-push", "codebase-explore") and "sha-256" style tokens are not flagged.
+lowercase_ticket='[a-z][a-z0-9]+-([a-z]+[0-9]|[0-9]+[a-z])[a-z0-9]*(\.[0-9]+)?|[a-z][a-z0-9]+-[a-z0-9]{3,}\.[0-9]+'
 tracker_pattern="(${uppercase_ticket}|${internal_ticket}|${lowercase_ticket})"
 trailer_keys="Refs|Closes|Fixes|Resolves"
 

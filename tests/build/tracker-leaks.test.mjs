@@ -86,3 +86,31 @@ test("detect-tracker-leaks supports custom config", async () => {
 
   assert.match(stdout, /trailer\tBUG-42/);
 });
+
+test("detect-tracker-leaks flags ID-shaped lowercase refs but not hyphenated words", async () => {
+  const { cwd, base } = await makeRepo();
+  await commit(cwd, "Tidy hooks", "See claude-plugins-a4e and other-0f4.2 and beads-xyz here.");
+  await commit(
+    cwd,
+    "Tidy docs",
+    "The codebase-explore pre-push non-spec by-question result-file sketch-note\nmid-phrase on-demand over-long under-triggered sha-256 words.",
+  );
+
+  const { stdout } = await execFileAsync("bash", [detector, base], { cwd });
+
+  assert.equal(stdout.trim().split("\n").length, 1);
+  assert.match(stdout, /narrative\tclaude-plugins-a4e/);
+});
+
+test("detect-tracker-leaks flags lowercase child-suffix and mixed IDs", async () => {
+  const { cwd, base } = await makeRepo();
+  await commit(cwd, "Tidy", "Fixed in other-0f4.2 today.");
+  await commit(cwd, "Tidy more", "Fixed in foo-a4e today.");
+  await commit(cwd, "Tidy again", "Closes beads-xyz now.");
+
+  const { stdout } = await execFileAsync("bash", [detector, base], { cwd });
+
+  assert.match(stdout, /narrative\tother-0f4\.2/);
+  assert.match(stdout, /narrative\tfoo-a4e/);
+  assert.match(stdout, /trailer\tbeads-xyz/);
+});
