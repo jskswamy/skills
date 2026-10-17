@@ -1,6 +1,6 @@
 ---
 name: commit-action
-description: Triggers when user wants to PERFORM a git commit action. Activates on phrases like "commit these changes", "commit this", "let's commit", "make a commit", "create a commit", "commit my work", "commit the changes", "time to commit", "ready to commit", "commit what I've done", "save my changes" (git context), "commit for me", "do the commit", "commit now", "go ahead and commit", "please commit", "can you commit", "would you commit
+description: 'Use when the user wants to PERFORM a git commit: "commit this", "commit these changes", "ready to commit", "commit for me", "let''s commit", "make a commit", "go ahead and commit", "please commit", "time to commit". Not for questions about commit style; see commit-style.'
 ---
 
 # Commit Action Skill
