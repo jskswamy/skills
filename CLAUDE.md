@@ -59,6 +59,10 @@ Pi package:
 pi -e .
 ```
 
+## Evals
+
+Trigger evals live in `evals/<plugin>/<case>/` (`prompt.md` + `graders/*.md`). `claude plugin eval` needs them inside the plugin folder, so `npm run eval -- [plugin ...]` stages them into the gitignored `plugins/<plugin>/evals/`, runs, and removes the copy; they never ship in installs. Runs real agent sessions (about $3 for all plugins), so run before a release, not in hooks.
+
 ## Git Commits
 
 Always use the `/commit` command instead of `git commit` directly when working in Claude Code. The `/commit` plugin provides atomic commit validation, intelligent message generation from conversation context, and style enforcement.
