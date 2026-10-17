@@ -3,17 +3,23 @@ import { readFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { loadRegistry, validateRegistryResources, validateRegistryShape } from "./lib/registry.mjs";
+import { validateSkills } from "./lib/skills.mjs";
 import { validatePiPackage } from "./lib/pi-package.mjs";
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
 const registry = await loadRegistry(join(repoRoot, "registry.json"));
 const packageJson = JSON.parse(await readFile(join(repoRoot, "package.json"), "utf8"));
 
+const skills = await validateSkills({ repoRoot });
+
 const errors = [
   ...validateRegistryShape(registry),
   ...(await validateRegistryResources({ repoRoot, registry })),
   ...(await validatePiPackage({ repoRoot, packageJson })),
+  ...skills.errors,
 ];
+
+for (const w of skills.warnings) console.warn(`warning: ${w}`);
 
 if (errors.length > 0) {
   for (const error of errors) console.error(error);

@@ -64,6 +64,16 @@
               pass_filenames = false;
               stages = [ "pre-push" ];
             };
+
+            # Skill security audit (-p = project mode so .skillshare/audit-rules.yaml loads)
+            skillshare-audit = {
+              enable = true;
+              name = "skillshare-audit";
+              entry = "skillshare audit -p ./skills -T high --no-tui -y";
+              language = "system";
+              pass_filenames = false;
+              stages = [ "pre-push" ];
+            };
           };
         };
       in
