@@ -1,10 +1,6 @@
 ---
 name: task-commit
-description: |
-  Create rich commit messages by combining beads task context with code changes. Use when user says:
-  "commit this task", "commit for task", "task commit",
-  "commit with context", "beads commit", "commit with beads",
-  or after closing a task: "now commit"
+description: "Use when committing work for a beads task with its context in the message: 'commit this task', 'task commit', 'commit with beads context', or 'now commit' right after closing a task. Not for plain commits without a beads task (use commit-action)."
 ---
 
 # Task Commit Skill

@@ -1,6 +1,6 @@
 ---
 name: jot-configure
-description: Reconfigure or edit an existing jot type agent — change questions, output template, triggers, or reset setup entirely.
+description: "Use when editing an already-configured jot type agent: 'change the questions for my article type', 'edit the output template', 'update triggers', 'reset setup for a type'. Not for first-run backend choice (use jot-setup) or saving content (use jot-capture)."
 ---
 
 # Jot Configure Skill

@@ -1,6 +1,6 @@
 ---
 name: jot-capture
-description: "Use when the user wants to save or capture something: 'jot this down', 'capture this', 'save this article/video/book/meeting/idea', 'note this URL', or to capture the current conversation. Classifies the content, extracts, drafts, reviews, and saves to workbench or Capacities. For backend configuration use jot-setup."
+description: "Use when the user wants to save or capture something: 'jot this down', 'capture this', 'save this article/video/book/meeting/idea', 'note this URL', or to capture the current conversation. Classifies, extracts, drafts, reviews, and saves to workbench or Capacities. Not for backend choice (use jot-setup) or editing a type agent (use jot-configure)."
 ---
 
 # Jot Capture Skill

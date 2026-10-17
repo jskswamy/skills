@@ -1,6 +1,6 @@
 ---
 name: codebase-graph
-description: Explore callers, callees, and graph relationships for a code symbol. Use when the user asks for a symbol graph, call graph, dependencies, callers, or callees.
+description: "Use when the user names a specific symbol and wants its relationships: 'who calls X', 'what does X call', 'call graph for X', 'dependencies of X'. Supports depth and direction. Not for general how/where questions (use codebase-ask) or diff-based impact (use codebase-impact)."
 ---
 
 # Codebase Graph Skill

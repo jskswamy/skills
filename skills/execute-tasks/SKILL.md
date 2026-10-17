@@ -1,6 +1,6 @@
 ---
 name: execute-tasks
-description: Execute decomposed beads tasks with isolated subagents, review checkpoints, and atomic commits.
+description: "Use when running already-decomposed beads tasks: 'execute the tasks', 'run the ready tasks', 'implement the epic'. Dispatches isolated subagents with review checkpoints and atomic commits. Not for creating tasks (craft-decompose) or hand-operating a single task (craft-task)."
 ---
 
 # Execute Tasks Skill

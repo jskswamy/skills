@@ -1,6 +1,6 @@
 ---
 name: craft-decompose
-description: Transform complex tasks into well-structured beads issues. Use when decomposing work, creating epics, or planning implementation tasks.
+description: "Use when breaking a complex task or plan into a set of structured beads issues with dependencies: 'decompose this', 'break this down into tasks', 'plan implementation tasks'. Not for creating one task (craft-task), managing an existing epic (craft-epic), or clarifying a vague task first (craft-understand)."
 ---
 
 # Craft Decompose Skill

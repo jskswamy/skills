@@ -1,6 +1,6 @@
 ---
 name: codebase-impact
-description: Analyze the impact and blast radius of code changes using codebase-memory-mcp when available. Use when the user asks what changed, what is affected, or what might break.
+description: "Use when the user asks what recent code changes affect: 'what did my changes break', 'blast radius of this diff', 'what might break', 'which tests are affected'. Works from a git diff or base SHA. Not for questions about code that has not changed (use codebase-ask) or one symbol's callers (use codebase-graph)."
 ---
 
 # Codebase Impact Skill

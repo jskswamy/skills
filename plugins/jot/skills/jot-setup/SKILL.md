@@ -1,6 +1,6 @@
 ---
 name: jot-setup
-description: "Use when configuring where jot saves captures: 'set up jot', 'configure jot backend', 'switch jot to Capacities', 'use workbench for jot'. Run once to choose workbench or Capacities; types are configured automatically on first capture. For capturing content use jot-capture."
+description: "Use when configuring where jot saves captures for the first time or changing it: 'set up jot', 'configure jot backend', 'switch jot to Capacities', 'use workbench for jot'. Run once to choose workbench or Capacities. Not for editing an existing type agent's questions or template (use jot-configure) or saving content (use jot-capture)."
 ---
 
 # Jot Setup Skill

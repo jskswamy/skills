@@ -1,6 +1,6 @@
 ---
 name: codebase-index
-description: Build or refresh a codebase-memory-mcp index for the current repository. Use before semantic codebase questions when no index exists or the index is stale.
+description: "Use when the codebase index must be built or refreshed: 'index this repo', 'reindex', 'index is stale', or when other codebase skills report no index. This only builds the index; to answer questions use codebase-ask, codebase-graph, or codebase-impact."
 ---
 
 # Codebase Index Skill
