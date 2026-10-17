@@ -2,6 +2,61 @@
 
 All notable changes to this skills/plugins collection will be documented in this file.
 
+## [2.1.20] - 2026-10-17
+
+### Added
+
+- Add trigger evals and a local eval runner
+
+Add six skill-trigger cases for commit-tools, craft and codebase
+under evals/, graded by whether a skill was loaded. The eval tool
+only reads cases from inside a plugin folder, so npm run eval stages
+them into the gitignored plugins/<name>/evals, runs, and removes the
+copy. They stay out of installs, and results stay local.
+
+### Other
+
+- Track skillshare managed gitignore
+
+The audit rules under .skillshare are tracked, but the managed
+ignore for its logs directory was not, so every audit run left an
+untracked logs directory behind. Commit the generated file. by @jskswamy
+- Ignore the beads gate lock file
+
+bd creates an empty .beads.gate.lock in the repo root, outside
+.beads/ where its own ignore rules apply, so it showed up as
+untracked after every session. by @jskswamy
+- Skip skill audit hook when skillshare is absent
+
+The pre-push audit hook called skillshare from PATH, but the dev
+shell does not provide it, so the push failed on machines without
+it. Skip with a message when the command is missing, and run the
+audit in project mode as before when it is present.
+- Stop flagging hyphenated words as tracker IDs
+
+The lowercase project-style pattern matched any word-word pair, so
+prose like codebase-explore and pre-push failed the tracker check on
+every review. Match unknown lowercase prefixes only when the suffix
+mixes letters and digits or carries a .N child suffix. Keep the
+known beads and claude-plugins prefixes and configured patterns.
+- Quote agent descriptions that failed YAML parse
+
+Five agents had multi-line plain-scalar descriptions containing
+example blocks, which strict YAML parsers reject. Convert them to
+block scalars without changing the wording, and move the example
+blocks of the study coach agent out of the tools list.
+- Keep skill tests out of plugin wrappers
+
+Copying whole skill directories shipped dev-only tests, such as
+those of review-commits, to every install. Skip a skill's tests
+directory when generating wrappers and cover it with a build test.
+- Require skill triggers and valid reference links
+
+Give bivouac and refactor-scan trigger phrases, then make a missing
+trigger a validation error instead of a warning. Also fail when a
+SKILL.md links a references file that does not exist, or a
+references file is linked from nowhere in its skill, so split skills
+cannot silently break.
 ## [2.1.19] - 2026-10-17
 
 ### Added
@@ -11,12 +66,12 @@ All notable changes to this skills/plugins collection will be documented in this
 These 14 descriptions said what a skill does but not when to use
 it, so they under-triggered. Rewrite each as an imperative "Use when"
 with concrete trigger phrases and point to the nearest sibling skill
-where they overlap. Regenerate the plugin wrappers.
+where they overlap. Regenerate the plugin wrappers. by @jskswamy
 - Add model, color and examples to agent frontmatter
 
 Eight agents lacked model, color or example blocks in their
 description, which weakens delegation. Add the missing fields
-and two examples each. Regenerate the plugin wrappers.
+and two examples each. Regenerate the plugin wrappers. by @jskswamy
 - Add boundaries between overlapping skill triggers
 
 The codebase, jot and craft skills shared trigger phrases such as
@@ -24,7 +79,14 @@ The codebase, jot and craft skills shared trigger phrases such as
 codebase skills by input kind (ambient context, direct question,
 named symbol, diff, index build), separate jot setup from configure
 and capture, and add a "Not for ... (use X)" clause to each.
-Regenerate the plugin wrappers.
+Regenerate the plugin wrappers. by @jskswamy
+
+### Changed
+
+- Update CHANGELOG and README for v2.1.19
+
+Document all changes included in the v2.1.19 release.
+Regenerate plugins section in README from registry.json. by @jskswamy
 
 ### Fixed
 
@@ -33,7 +95,7 @@ Regenerate the plugin wrappers.
 The description cut off mid-phrase at "would you commit" with an
 unclosed quote, so the trigger list was incomplete. Rewrite it as a
 closed, shorter trigger list for performing a commit, and point
-style questions to commit-style. Regenerate the plugin wrapper.
+style questions to commit-style. Regenerate the plugin wrapper. by @jskswamy
 - Fix plugin packaging and doc inaccuracies
 
 The craft hook ran its script directly, so a lost exec bit would
@@ -41,7 +103,7 @@ break it; run it through bash like the other plugins. The study
 plugin had no README. The commit-tools wrapper shipped internal
 plans and specs to end users, so stop copying them. The refactor
 plugin claimed a craft hook that does not exist; describe the
-on-demand /refactor:scan flow instead.
+on-demand /refactor:scan flow instead. by @jskswamy
 
 ### Other
 
@@ -58,7 +120,7 @@ than by disabling the rule: pinned npx packages, the "host contains
 youtube.com" text in jot's capture agent that reads as a DNS lookup,
 and the intentional git subprocess calls in review-commits.
 
-Scan with "skillshare audit -p" so the project rules apply.
+Scan with "skillshare audit -p" so the project rules apply. by @jskswamy
 - Split oversized skills into reference files
 
 sketch-note, commit-action, review-commits and devenv were 760 to
@@ -67,7 +129,7 @@ loaded rarely used templates, dialogs and examples. Move that
 material verbatim into references/ files and link each from the
 exact step that needs it. Update the review-commits schema test
 to search SKILL.md and the reference files together, since the
-result-file schema moved. Regenerate the plugin wrappers.
+result-file schema moved. Regenerate the plugin wrappers. by @jskswamy
 - Validate skill frontmatter and audit on push
 
 Nothing checked SKILL.md files, which is how a truncated
@@ -75,7 +137,7 @@ description reached the repo. Fail validate when a skill has no
 frontmatter, a name that differs from its directory, or a missing
 or over-long description, and warn when no trigger phrase is
 present. Add a pre-push hook that runs skillshare audit in project
-mode so the repo audit rules apply.
+mode so the repo audit rules apply. by @jskswamy
 - Align codebase skills with live tool schemas
 
 The codebase skills named a trace_call_path tool that the server
@@ -91,13 +153,19 @@ agents to index without asking.
 
 Replace the claim that grep is expensive in codebase-explore with a
 short route-by-question rule, and request only the architecture
-aspects a question needs.
+aspects a question needs. by @jskswamy
 - Fire codebase reminders for MCP-only setups
 
 The session and subagent reminders exited silently unless the
 codebase-memory-mcp binary was on PATH, so a server launched by
 absolute path got no reminder. Also fire when ~/.claude.json or
-.mcp.json mentions the server. Machines with neither stay silent.
+.mcp.json mentions the server. Machines with neither stay silent. by @jskswamy
+- Release v2.1.19
+
+Bump plugin versions: devenv 1.3.4, commit-tools 1.0.5, jot 2.0.2,
+craft 1.0.2, sketch-note 1.2.3, typst-notes 1.0.5, codebase 0.1.7,
+study 1.0.4, refactor 0.1.2. Regenerate Claude Code wrappers via
+npm run build. by @jskswamy
 
 ### Removed
 
@@ -107,7 +175,7 @@ Move the non-spec top-level version field under metadata, drop
 "You are ..." openers and body sections that duplicate the
 description triggers, and use the imperative "Use when" voice
 instead of "This skill should be used when". Regenerate the
-plugin wrappers.
+plugin wrappers. by @jskswamy
 ## [2.1.18] - 2026-10-17
 
 ### Changed
@@ -2973,6 +3041,7 @@ as a dependency.
 ### Removed
 
 - Remove welcome message from shell hook by @jskswamy
+[2.1.20]: https://github.com/jskswamy/skills/compare/v2.1.19..v2.1.20
 [2.1.19]: https://github.com/jskswamy/skills/compare/v2.1.18..v2.1.19
 [2.1.18]: https://github.com/jskswamy/skills/compare/v2.1.17..v2.1.18
 [2.1.17]: https://github.com/jskswamy/skills/compare/v2.1.16..v2.1.17
