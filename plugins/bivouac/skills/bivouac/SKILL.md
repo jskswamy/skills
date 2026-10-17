@@ -1,6 +1,6 @@
 ---
 name: bivouac
-description: Start, monitor, retrieve, and merge disposable remote coding-agent sessions with bivouac.
+description: Use when the user asks to start, monitor, attach to, pull, merge, or tear down a disposable remote coding-agent session or VM with the bivouac CLI, e.g. "start a bivouac session", "run this on a remote box", "bivouac status", "pull the session work", "merge the bivouac session", "bivouac up" or "bivouac down".
 ---
 
 # Bivouac Skill

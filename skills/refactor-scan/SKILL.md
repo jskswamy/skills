@@ -1,6 +1,6 @@
 ---
 name: refactor-scan
-description: Scan committed code, packages, or the full codebase for refactoring opportunities and create reviewable findings.
+description: Use when the user asks to scan for refactoring opportunities, e.g. "refactor scan", "find duplication or code smells in my recent commits", "scan this package for refactors", "audit the whole codebase for refactoring", or "resume the refactor scan"; scans a diff, package, or full codebase and files reviewable findings as beads issues.
 ---
 
 # Refactor Scan Skill

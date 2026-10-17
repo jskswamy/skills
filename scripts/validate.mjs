@@ -19,8 +19,6 @@ const errors = [
   ...skills.errors,
 ];
 
-for (const w of skills.warnings) console.warn(`warning: ${w}`);
-
 if (errors.length > 0) {
   for (const error of errors) console.error(error);
   process.exit(1);

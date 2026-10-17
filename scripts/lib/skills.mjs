@@ -1,4 +1,4 @@
-import { readdir, readFile } from "node:fs/promises";
+import { access, readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 
 // shortcut: minimal YAML subset (top-level scalar keys; plain, quoted, | and > block scalars;
@@ -36,7 +36,6 @@ const TRIGGER = /\b(use when|use this|use for|triggers?|activates (when|on))\b/i
 
 export async function validateSkills({ repoRoot }) {
   const errors = [];
-  const warnings = [];
   const dir = join(repoRoot, "skills");
   const entries = (await readdir(dir, { withFileTypes: true })).filter((e) => e.isDirectory());
   for (const { name: dirName } of entries) {
@@ -45,7 +44,7 @@ export async function validateSkills({ repoRoot }) {
     try {
       fm = parseFrontmatter(await readFile(join(dir, dirName, "SKILL.md"), "utf8"));
     } catch (e) {
-      errors.push(`${label}: ${e.code === "ENOENT" ? "missing" : `unparseable frontmatter (${e.message})`}`);
+      errors.push(`${label}: ${e.code === "ENOENT" ? "missing" : `unparsable frontmatter (${e.message})`}`);
       continue;
     }
     if (!fm) {
@@ -61,8 +60,46 @@ export async function validateSkills({ repoRoot }) {
       errors.push(`${label}: description is required`);
     } else {
       if (description.length > 1024) errors.push(`${label}: description is ${description.length} chars (max 1024)`);
-      if (!TRIGGER.test(description)) warnings.push(`${label}: description has no trigger phrase ("Use when ...")`);
+      if (!TRIGGER.test(description)) errors.push(`${label}: description has no trigger phrase ("Use when ...")`);
+    }
+    errors.push(...(await validateReferences(join(dir, dirName), label)));
+  }
+  return { errors };
+}
+
+const REF = /references\/([\w.\-\/]+\.md)/g;
+
+// Every references/*.md named in a skill must exist, and every file there must be named
+// somewhere in the skill (SKILL.md or another file in it).
+async function validateReferences(skillDir, label) {
+  const errors = [];
+  const files = [];
+  const walk = async (d) => {
+    for (const e of await readdir(d, { withFileTypes: true })) {
+      if (e.name === "tests") continue;
+      const p = join(d, e.name);
+      if (e.isDirectory()) await walk(p);
+      else if (e.name.endsWith(".md")) files.push(p);
+    }
+  };
+  await walk(skillDir);
+  const texts = new Map(await Promise.all(files.map(async (f) => [f, await readFile(f, "utf8")])));
+  const all = [...texts.values()].join("\n");
+  const skillText = texts.get(join(skillDir, "SKILL.md")) ?? "";
+  for (const m of skillText.matchAll(REF)) {
+    try {
+      await access(join(skillDir, "references", m[1]));
+    } catch {
+      errors.push(`${label}: links references/${m[1]} which does not exist`);
     }
   }
-  return { errors, warnings };
+  for (const f of files) {
+    const rel = f.slice(skillDir.length + 1);
+    if (!rel.startsWith("references/")) continue;
+    const others = [...texts].filter(([k]) => k !== f).map(([, t]) => t).join("\n");
+    if (!others.includes(rel) && !others.includes(rel.slice("references/".length))) {
+      errors.push(`${label}: ${rel} is not linked from SKILL.md or any other file in the skill`);
+    }
+  }
+  return errors;
 }
