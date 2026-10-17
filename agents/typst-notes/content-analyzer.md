@@ -1,6 +1,28 @@
 ---
 name: content-analyzer
-description: Analyzes input content, selects appropriate structure for the chosen template, and organizes content with infographic suggestions
+description: |
+  Analyzes input content, selects appropriate structure for the chosen template,
+  and organizes content with infographic suggestions.
+
+  <example>
+  Context: User wants to publish notes as a PDF with a chosen template
+  user: "Turn my meeting notes into a shareable PDF"
+  assistant: "I'll use the content-analyzer agent to structure the notes for the template and suggest infographics."
+  <commentary>
+  Raw content must be organized for the template before Typst generation.
+  </commentary>
+  </example>
+
+  <example>
+  Context: The publish flow has selected a template and has unstructured content
+  user: "Publish this article summary using the report template"
+  assistant: "I'll launch the content-analyzer agent to map the content onto the template's sections."
+  <commentary>
+  Analysis precedes generation in the publish pipeline.
+  </commentary>
+  </example>
+model: inherit
+color: cyan
 tools:
   - Read
   - Grep

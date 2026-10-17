@@ -3,6 +3,26 @@ name: quality-reviewer
 description: |
   Reviews code quality after spec compliance passes. Checks for style,
   security, error handling, and maintainability issues.
+
+  <example>
+  Context: A task implementation has passed spec review
+  user: "Spec review passed, what about code quality?"
+  assistant: "I'll use the quality-reviewer agent to check style, security, error handling, and maintainability."
+  <commentary>
+  Quality review is the second stage after spec compliance passes.
+  </commentary>
+  </example>
+
+  <example>
+  Context: A subagent finished a task and spec-reviewer approved it
+  user: "Run the second review stage on task 42"
+  assistant: "I'll launch the quality-reviewer agent on the task's changes."
+  <commentary>
+  Dual-stage review: quality follows spec.
+  </commentary>
+  </example>
+model: inherit
+color: yellow
 isolation: worktree
 tools:
   - Bash

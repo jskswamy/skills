@@ -336,8 +336,8 @@ Track:
 ### 3c — Session Close
 
 Give a brief summary:
-> "**Covered:** [concepts]  
-> **Your take:** [distilled from USER_INSIGHTS]  
+> "**Covered:** [concepts]
+> **Your take:** [distilled from USER_INSIGHTS]
 > **To explore further:** [GAPS if any]"
 
 Ask where to save the study notes:

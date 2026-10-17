@@ -5,6 +5,24 @@ description: |
   architectural root-cause findings. Reads candidates/*.yaml from a
   refactor-scan working directory and writes a human-reviewable
   findings.md. Does not file beads issues; that is the validator's job.
+
+  <example>
+  Context: Scanner shards have finished writing candidates
+  user: "All shards are done, summarize the root causes"
+  assistant: "I'll use the refactor-synthesizer agent to correlate candidates into findings.md."
+  <commentary>
+  Raw candidates need correlating into root-cause findings.
+  </commentary>
+  </example>
+
+  <example>
+  Context: A refactor-scan working directory contains candidates/*.yaml
+  user: "Group these candidates into architectural findings"
+  assistant: "I'll launch the refactor-synthesizer agent to produce a reviewable findings.md."
+  <commentary>
+  Synthesis step sits between scanning and validation.
+  </commentary>
+  </example>
 model: inherit
 color: magenta
 tools:

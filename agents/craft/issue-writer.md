@@ -4,6 +4,26 @@ description: |
   Executes beads CLI commands to create issues from a decomposition plan.
   Use this agent when you have an approved decomposition and need to create
   the actual beads issues with proper ordering and dependencies.
+
+  <example>
+  Context: The user approved a decomposition plan for a feature
+  user: "Looks good, create the issues"
+  assistant: "I'll use the issue-writer agent to create the beads issues with their dependencies."
+  <commentary>
+  Approved decomposition needs beads issues created in order.
+  </commentary>
+  </example>
+
+  <example>
+  Context: A plan with an epic and five dependent tasks is ready
+  user: "Go ahead and file all of these in beads"
+  assistant: "I'll launch the issue-writer agent to create the epic and tasks and wire up dependencies."
+  <commentary>
+  Multiple issues with dependencies require careful ordering of bd commands.
+  </commentary>
+  </example>
+model: inherit
+color: blue
 memory: project
 tools:
   - Bash

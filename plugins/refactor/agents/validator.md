@@ -4,6 +4,24 @@ description: |
   Validates refactoring candidates from the scanner agent. Reads actual source
   files to confirm similarity, checks test coverage, deduplicates against
   existing beads issues, and creates new issues with TDD-first refactoring plans.
+
+  <example>
+  Context: The user approved findings from a refactor scan
+  user: "File issues for the confirmed findings"
+  assistant: "I'll use the refactor-validator agent to verify them against source and create beads issues."
+  <commentary>
+  Validation and issue creation belong to the validator.
+  </commentary>
+  </example>
+
+  <example>
+  Context: Scanner returned a candidate list
+  user: "Check which of these candidates are real duplicates"
+  assistant: "I'll launch the refactor-validator agent to read the source and confirm similarity and test coverage."
+  <commentary>
+  Candidates must be confirmed against actual code before filing.
+  </commentary>
+  </example>
 model: inherit
 color: yellow
 tools:

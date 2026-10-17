@@ -3,6 +3,26 @@ name: spec-reviewer
 description: |
   Reviews task implementations for spec compliance. Use after a subagent
   completes a task to verify all requirements were met.
+
+  <example>
+  Context: A subagent just finished implementing a beads task
+  user: "The task is implemented, verify it matches the spec"
+  assistant: "I'll use the spec-reviewer agent to check every requirement was met."
+  <commentary>
+  Completed implementation needs spec compliance verification.
+  </commentary>
+  </example>
+
+  <example>
+  Context: Batch execution finished a task and is moving to review
+  user: "Check that task 17 did everything the acceptance criteria asked"
+  assistant: "I'll launch the spec-reviewer agent against the task's acceptance criteria."
+  <commentary>
+  Acceptance criteria check is the first review stage.
+  </commentary>
+  </example>
+model: inherit
+color: red
 isolation: worktree
 tools:
   - Bash

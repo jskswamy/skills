@@ -1,6 +1,28 @@
 ---
 name: typst-generator
-description: Generates complete Typst source files from structured content using templates and themes
+description: |
+  Generates complete Typst source files from structured content using
+  templates and themes.
+
+  <example>
+  Context: Content has been analyzed and structured for a template
+  user: "Now generate the Typst document"
+  assistant: "I'll use the typst-generator agent to produce the complete Typst source."
+  <commentary>
+  Structured content ready for Typst source generation.
+  </commentary>
+  </example>
+
+  <example>
+  Context: User picked a theme and wants the final output
+  user: "Create the PDF with the dark theme"
+  assistant: "I'll launch the typst-generator agent to write the .typ file with the chosen theme and compile it."
+  <commentary>
+  Final stage of the publish pipeline turns structured content into Typst.
+  </commentary>
+  </example>
+model: inherit
+color: green
 tools:
   - Read
   - Write
