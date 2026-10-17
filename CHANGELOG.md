@@ -2,7 +2,120 @@
 
 All notable changes to this skills/plugins collection will be documented in this file.
 
+## [2.1.19] - 2026-10-17
+
+### Added
+
+- Add Use when triggers to skill descriptions
+
+These 14 descriptions said what a skill does but not when to use
+it, so they under-triggered. Rewrite each as an imperative "Use when"
+with concrete trigger phrases and point to the nearest sibling skill
+where they overlap. Regenerate the plugin wrappers.
+- Add model, color and examples to agent frontmatter
+
+Eight agents lacked model, color or example blocks in their
+description, which weakens delegation. Add the missing fields
+and two examples each. Regenerate the plugin wrappers.
+- Add boundaries between overlapping skill triggers
+
+The codebase, jot and craft skills shared trigger phrases such as
+"how does X work", so the wrong skill could fire. Split the
+codebase skills by input kind (ambient context, direct question,
+named symbol, diff, index build), separate jot setup from configure
+and capture, and add a "Not for ... (use X)" clause to each.
+Regenerate the plugin wrappers.
+
+### Fixed
+
+- Fix truncated commit-action description
+
+The description cut off mid-phrase at "would you commit" with an
+unclosed quote, so the trigger list was incomplete. Rewrite it as a
+closed, shorter trigger list for performing a commit, and point
+style questions to commit-style. Regenerate the plugin wrapper.
+- Fix plugin packaging and doc inaccuracies
+
+The craft hook ran its script directly, so a lost exec bit would
+break it; run it through bash like the other plugins. The study
+plugin had no README. The commit-tools wrapper shipped internal
+plans and specs to end users, so stop copying them. The refactor
+plugin claimed a craft hook that does not exist; describe the
+on-demand /refactor:scan flow instead.
+
+### Other
+
+- Pin sketch-note npx packages and add audit rules
+
+skillshare audit flagged every "npx -y" call as an unconfirmed install
+of an untrusted package. Pin the three packages sketch-note runs
+(excalidraw-brute-export-cli 0.4.0, excalidraw-cli 0.5.0, mermaid-cli
+12.0.0) so installs are reproducible.
+
+Add project audit rules in .skillshare/audit-rules.yaml. Rules match
+per line, so each false positive is suppressed with an exclude rather
+than by disabling the rule: pinned npx packages, the "host contains
+youtube.com" text in jot's capture agent that reads as a DNS lookup,
+and the intentional git subprocess calls in review-commits.
+
+Scan with "skillshare audit -p" so the project rules apply.
+- Split oversized skills into reference files
+
+sketch-note, commit-action, review-commits and devenv were 760 to
+935 lines, far past the 500-line guideline, so every invocation
+loaded rarely used templates, dialogs and examples. Move that
+material verbatim into references/ files and link each from the
+exact step that needs it. Update the review-commits schema test
+to search SKILL.md and the reference files together, since the
+result-file schema moved. Regenerate the plugin wrappers.
+- Validate skill frontmatter and audit on push
+
+Nothing checked SKILL.md files, which is how a truncated
+description reached the repo. Fail validate when a skill has no
+frontmatter, a name that differs from its directory, or a missing
+or over-long description, and warn when no trigger phrase is
+present. Add a pre-push hook that runs skillshare audit in project
+mode so the repo audit rules apply.
+- Align codebase skills with live tool schemas
+
+The codebase skills named a trace_call_path tool that the server
+does not have, described semantic_query as a string, and bounded
+semantic results with limit instead of semantic_limit. Use
+trace_path, pass semantic_query as an array and set semantic_limit.
+
+Make the index policy consistent: codebase-ask now asks before
+indexing or refreshing unless auto_index is always, matching
+codebase-explore, and both resolve the project by root path rather
+than directory basename. The session reminder no longer tells
+agents to index without asking.
+
+Replace the claim that grep is expensive in codebase-explore with a
+short route-by-question rule, and request only the architecture
+aspects a question needs.
+- Fire codebase reminders for MCP-only setups
+
+The session and subagent reminders exited silently unless the
+codebase-memory-mcp binary was on PATH, so a server launched by
+absolute path got no reminder. Also fire when ~/.claude.json or
+.mcp.json mentions the server. Machines with neither stay silent.
+
+### Removed
+
+- Clean up skill metadata and description voice
+
+Move the non-spec top-level version field under metadata, drop
+"You are ..." openers and body sections that duplicate the
+description triggers, and use the imperative "Use when" voice
+instead of "This skill should be used when". Regenerate the
+plugin wrappers.
 ## [2.1.18] - 2026-10-17
+
+### Changed
+
+- Update CHANGELOG and README for v2.1.18
+
+Document all changes included in the v2.1.18 release. Regenerate
+plugins section in README from registry.json. by @jskswamy
 
 ### Other
 
@@ -25,7 +138,11 @@ The scripts look the binary up on PATH and exit silently when it is
 missing, so hosts without codebase-memory-mcp see no noise. They only
 add context and never block a tool call.
 
-Bump codebase to 0.1.6.
+Bump codebase to 0.1.6. by @jskswamy
+- Release v2.1.18
+
+Bump plugin versions: devenv 1.3.2 → 1.3.3. Regenerate Claude Code
+wrappers via npm run build. by @jskswamy
 ## [2.1.17] - 2026-10-15
 
 ### Added
@@ -2856,6 +2973,7 @@ as a dependency.
 ### Removed
 
 - Remove welcome message from shell hook by @jskswamy
+[2.1.19]: https://github.com/jskswamy/skills/compare/v2.1.18..v2.1.19
 [2.1.18]: https://github.com/jskswamy/skills/compare/v2.1.17..v2.1.18
 [2.1.17]: https://github.com/jskswamy/skills/compare/v2.1.16..v2.1.17
 [2.1.16]: https://github.com/jskswamy/skills/compare/v2.1.15..v2.1.16
