@@ -5,7 +5,7 @@ description: "Use when the user names a specific symbol and wants its relationsh
 
 # Codebase Graph Skill
 
-Explore a symbol's relationships in the codebase graph — who calls it, what it calls, what types it uses. Combines `search_graph` for symbol resolution with `trace_call_path` for relationship traversal.
+Explore a symbol's relationships in the codebase graph — who calls it, what it calls, what types it uses. Combines `search_graph` for symbol resolution with `trace_path` for relationship traversal.
 
 ## Argument Parsing
 
@@ -58,7 +58,7 @@ Call `search_graph` with:
 - `project`: the matched project name
 - `limit`: `10`
 
-If no results, also try `semantic_query` with the symbol name as a natural language description.
+If no results, also try `semantic_query` (array of strings, e.g. `["<symbol name>"]`) with the symbol name as a natural language description.
 
 **If zero matches:**
 ```
@@ -86,7 +86,7 @@ Ask the user to choose using the harness's question mechanism. In Claude Code th
 
 ### Step 3: Trace Relationships
 
-Call `trace_call_path` with:
+Call `trace_path` with:
 - `function_name`: the resolved qualified name
 - `project`: the matched project name
 - `direction`: the `--direction` argument (default: `"both"`)

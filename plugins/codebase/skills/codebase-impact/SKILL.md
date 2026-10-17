@@ -71,7 +71,7 @@ This returns a list of changed symbols with risk labels (CRITICAL, HIGH, MEDIUM,
 
 For each symbol classified as CRITICAL or HIGH:
 
-1. Call `trace_call_path` with:
+1. Call `trace_path` with:
    - `function_name`: the symbol's qualified name
    - `direction`: `"inbound"`
    - `depth`: `2`

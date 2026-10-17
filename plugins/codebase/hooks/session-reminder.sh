@@ -13,5 +13,5 @@ Code Discovery Protocol:
    - search_code(pattern) for text search (graph-augmented grep)
 2. Use Grep/Glob/Read freely for text, configs, non-code files, and
    always Read a file before editing it.
-3. If a project is not indexed yet, run index_repository FIRST.
+3. If a project is not indexed yet, follow the codebase-index/codebase-explore flow: ask before indexing unless auto_index is always, and never index when it is never.
 REMINDER

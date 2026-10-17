@@ -54,11 +54,11 @@ Read `.claude/codebase.local.md`. Determine two things: `auto_index` setting and
 
 | Condition | Action |
 |-----------|--------|
-| `last_indexed` missing (never indexed) | Ask the user whether to index now using the harness's question mechanism. In Claude Code this may be AskUserQuestion; in Pi, ask directly in chat and wait for the answer. Offer: Yes always / Yes once / No (manual). Save preference if chosen. If Yes, call `index_repository`. |
-| Stale AND `auto_index` is not `never` | Auto-reindex: print `⟳ Index is stale — reindexing…`, call `index_repository` with saved `index_mode` (default: `moderate`), update `last_indexed`. |
-| Stale AND `auto_index` is `never` | Print `⚠ Index may be stale (last indexed: [time ago]). Run /skill:codebase-index (or /codebase:index in Claude Code) to refresh.` then proceed. |
-| `auto_index` is `always` (any freshness) | Call `index_repository` before proceeding. |
+| Not indexed, or `last_indexed` missing | `auto_index: always` → call `index_repository` with the saved `index_mode` (default `moderate`). `auto_index: never` → print the `codebase-index` hint and fall back to grep/glob/read. Otherwise (`ask` or file missing) ask the user using the harness's question mechanism (AskUserQuestion in Claude Code; in Pi, ask in chat and wait): Yes always / Yes once / No (manual). Save the preference if chosen. |
+| Stale (`last_indexed` >24 hours ago) | `auto_index: always` → reindex, print `⟳ Index is stale — reindexing…`, update `last_indexed`. `auto_index: ask` → ask: Yes always / Yes once / No, use stale index; on No print `⚠ Using stale index (last indexed: [time ago]). Results may be incomplete.` and proceed. `auto_index: never` → print `⚠ Index may be stale (last indexed: [time ago]). Run /skill:codebase-index (or /codebase:index in Claude Code) to refresh.` and proceed. |
 | Fresh | Proceed. |
+
+Never index or refresh without the permission above. The server's `index_status` is the source of truth for whether a project is indexed; `last_indexed` in the preference file only drives the staleness check.
 
 ### Step 1: Determine the Project Name
 
@@ -80,21 +80,21 @@ If the intent is ambiguous, make your best judgment. Do not ask the user to clar
 
 ### Step 3a: Location Query
 
-1. Call `search_graph` with `semantic_query` set to a rephrased version of the user's question (extract the core concept, e.g. "webhook validation" from "where does webhook validation happen?"). Set `limit` to 5.
+1. Call `search_graph` with `semantic_query` (an array of strings, e.g. `["webhook validation"]`) set to a rephrased version of the user's question (extract the core concept from "where does webhook validation happen?"). Set `semantic_limit` to 5.
 2. For the top 1-3 results, call `get_code_snippet` with the `qualified_name` to read the actual source.
 3. Synthesize the answer: state which file:line the code lives in, what the function does, who calls it (from `search_graph` connected nodes if available), and any relevant context about why it exists.
 
 ### Step 3b: Understanding Query
 
 1. Call `get_architecture` with `project` set to the current project. Request aspects: `["packages", "services", "entry_points"]`.
-2. Call `search_graph` with `semantic_query` to find the entry point or main function related to the user's question. Set `limit` to 5.
-3. For the most relevant result, call `trace_call_path` with `direction: "outbound"`, `depth: 3` to trace the flow from that entry point.
+2. Call `search_graph` with `semantic_query` (array of strings) to find the entry point or main function related to the user's question. Set `semantic_limit` to 5.
+3. For the most relevant result, call `trace_path` with `direction: "outbound"`, `depth: 3` to trace the flow from that entry point.
 4. For key nodes in the trace (up to 3), call `get_code_snippet` to read the source.
 5. Synthesize a narrative explanation: start with the entry point, walk through the call chain, explain what each step does and why, and how data flows through the system. Reference file:line for each function mentioned.
 
 ### Step 3c: Similarity Query
 
-1. Call `search_graph` with `semantic_query` describing the function or concept the user is asking about. Set `limit` to 10.
+1. Call `search_graph` with `semantic_query` (array of strings) describing the function or concept the user is asking about. Set `semantic_limit` to 10.
 2. Filter results: skip results from the same file. Group by package.
 3. For the top 3-5 matches, call `get_code_snippet` to read the actual source and confirm similarity.
 4. Synthesize: describe each match, explain how it's similar and how it differs, and note which ones could potentially be unified.
@@ -102,8 +102,8 @@ If the intent is ambiguous, make your best judgment. Do not ask the user to clar
 ### Step 3d: Onboarding Query
 
 1. Call `get_architecture` with `project` set to the current project. Request aspects: `["packages", "services", "dependencies", "entry_points"]`.
-2. Call `search_graph` with `semantic_query` to find existing implementations similar to what the user wants to add. Set `limit` to 5.
-3. For the top 1-2 matches, call `trace_call_path` with `direction: "both"`, `depth: 2` to understand the interfaces and patterns.
+2. Call `search_graph` with `semantic_query` (array of strings) to find existing implementations similar to what the user wants to add. Set `semantic_limit` to 5.
+3. For the top 1-2 matches, call `trace_path` with `direction: "both"`, `depth: 2` to understand the interfaces and patterns.
 4. Call `get_code_snippet` for key files the user will need to understand.
 5. Synthesize: "To add [X], you'll want to look at how [similar thing] is implemented. Here's the pattern..." Include: files to model after, interfaces to implement, configuration to update, test patterns to follow.
 

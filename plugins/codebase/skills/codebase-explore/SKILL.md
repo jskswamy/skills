@@ -5,7 +5,11 @@ description: "Use when gathering background codebase context as part of a larger
 
 # Codebase Explore Skill
 
-Enrich codebase exploration with indexed knowledge from `codebase-memory-mcp`. This skill provides grounded, accurate codebase context by querying a semantic and structural graph rather than doing expensive grep/glob/read exploration.
+Enrich codebase exploration with indexed knowledge from `codebase-memory-mcp`. This skill provides grounded, accurate codebase context by querying a semantic and structural graph for questions about structure and relationships.
+
+## Route by the Question
+
+Choose the tool that fits the question. For callers, callees, dependencies, impact, or an unknown execution flow, use the graph (`search_graph`, `trace_path`). For exact text, flags or literals, use literal search (`rg`, `search_code`). For a known file's full contents, read it directly. For evaluated behaviour or measurements, use the runtime or toolchain. Verify the relevant source before concluding or editing. If a graph query is irrelevant, refine it once with known names or path filters, then use targeted text search for the gap, and report the actual condition (no coverage, poor relevance, transport unavailable) instead of calling it a broken connection.
 
 ## Codebase Transport
 
@@ -24,7 +28,7 @@ Resolve the transport above. If either MCP or CLI works, continue to Step 2. Onl
 
 ### Step 2: Check Index Freshness and Auto-Index
 
-Call `list_projects` and match against the current repo (from `git rev-parse --show-toplevel` basename) to determine whether an index exists.
+Call `list_projects` and match the project whose `root_path` equals `git rev-parse --show-toplevel` (the name is the root path with the leading `/` removed and `/` replaced by `-`). Do not match on the directory basename: worktrees and renamed repos share basenames. Use `index_status` on that name to confirm it is indexed.
 
 Read `.claude/codebase.local.md` if it exists. Resolve the `auto_index` preference (`always`, `never`, `ask`; default `ask`) and `index_mode` (default `moderate`).
 
@@ -64,7 +68,7 @@ After a successful auto-index, update `last_indexed` in `.claude/codebase.local.
 
 **If activated during brainstorming or planning (exploring project context):**
 
-1. Call `get_architecture` with `project` set to the matched project name. Request all aspects: `["languages", "packages", "services", "dependencies", "entry_points", "hotspots", "clusters"]`.
+1. Call `get_architecture` with `project` set to the matched project name. Request only the aspects the topic needs; default to `["packages", "entry_points"]` and add `"services"`, `"dependencies"`, `"languages"`, `"hotspots"` or `"clusters"` when the question is about them.
 
 2. Summarize the architecture overview as grounded context:
    - Primary languages and their distribution
@@ -73,7 +77,7 @@ After a successful auto-index, update `last_indexed` in `.claude/codebase.local.
    - Dependency patterns and hotspots
 
 3. If the brainstorming/planning topic is known, run targeted queries:
-   - Call `search_graph` with `semantic_query` matching the topic to find relevant existing code
+   - Call `search_graph` with `semantic_query` (array of strings) matching the topic to find relevant existing code, bounded by `semantic_limit`
    - For the top 3-5 results, note the file:line references and what each does
 
 4. Present the results as context for the brainstorming/planning session. Frame it as "here's what exists that's relevant to what we're discussing."

@@ -156,7 +156,7 @@ For each function in the function set:
 2. If the function appears with identical or near-identical body on ≥2 sibling types in the same hierarchy → flag **Pull Up Method** (or **Pull Up Field** for fields). Confidence: high if textual similarity > 0.9, medium otherwise.
 3. If the function exists on a parent type but is overridden identically on every child → flag **Push Down Method** (or **Pull Up Constructor Body** if it is a constructor).
 4. If the parent type has only one child and they could be merged → flag **Collapse Hierarchy**. Confidence: medium (always — judgment call).
-5. If a class is detected as having two distinct responsibility clusters (use `trace_call_path` to see which methods call which fields; clusters that share no fields with each other are candidates) → flag **Extract Class**.
+5. If a class is detected as having two distinct responsibility clusters (use `trace_path` to see which methods call which fields; clusters that share no fields with each other are candidates) → flag **Extract Class**.
 6. If a subclass has only one or two methods that override the parent and behaves more like a wrapper than a specialization → flag **Replace Subclass with Delegate** (or **Replace Superclass with Delegate**, or **Remove Subclass**).
 7. If duplicate code exists in sibling classes that do NOT yet share a parent → flag **Extract Superclass**.
 
@@ -232,8 +232,8 @@ Each candidate MUST include all of:
 - `confidence` — `high` | `medium`
 - `new_function` — `{file, line_start, line_end, qualified_name, source}`
 - `matches` — list of `{file, line_start, line_end, qualified_name, similarity, source}`. Empty list `[]` if the pattern has no paired examples (Pass B singletons, Pass D solo discriminants).
-- `related_callers` — list of qualified names (from `trace_call_path` if available; empty list otherwise)
-- `related_callees` — list of qualified names (from `trace_call_path` if available; empty list otherwise)
+- `related_callers` — list of qualified names (from `trace_path` if available; empty list otherwise)
+- `related_callees` — list of qualified names (from `trace_path` if available; empty list otherwise)
 - `note` — one-sentence explanation
 
 After writing the file, return to the orchestrator:
