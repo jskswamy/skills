@@ -69,7 +69,8 @@
             skillshare-audit = {
               enable = true;
               name = "skillshare-audit";
-              entry = "skillshare audit -p ./skills -T high --no-tui -y";
+              # skillshare is not packaged in the dev shell: skip with a message when absent
+              entry = "sh -c 'command -v skillshare >/dev/null || { echo \"skillshare not installed; skipping skill audit\"; exit 0; }; skillshare audit -p ./skills -T high --no-tui -y'";
               language = "system";
               pass_filenames = false;
               stages = [ "pre-push" ];
