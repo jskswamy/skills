@@ -50,3 +50,6 @@ docs/superpowers/
 
 # Working notes and handoff documents
 jot-capture-plugin-improvements.md
+
+# Beads lock file created in the repo root
+.beads.gate.lock
