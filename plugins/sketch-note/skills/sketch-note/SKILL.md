@@ -400,7 +400,7 @@ This workflow generates PNG directly without creating an intermediate Excalidraw
 
 1. **If globally installed:** Use `mmdc` directly
 2. **If nix available:** Use `nix-shell -p mermaid-cli --run "mmdc ..."`
-3. **If npx available:** Use `npx -y @mermaid-js/mermaid-cli ...`
+3. **If npx available:** Use `npx -y @mermaid-js/mermaid-cli@12.0.0 ...`
 4. **None available:** Prompt user
 
 **If mermaid-cli is available (globally, via nix, or via npx):**
@@ -646,7 +646,7 @@ sequenceDiagram
 
    **If `mermaid_runner: npx`:**
    ```bash
-   npx -y @mermaid-js/mermaid-cli -i /tmp/sketch-{timestamp}.mmd \
+   npx -y @mermaid-js/mermaid-cli@12.0.0 -i /tmp/sketch-{timestamp}.mmd \
         -o "${workbench_path}/sketches/{filename}.png" \
         -c /tmp/mermaid-config.json \
         -s {png_scale} \
@@ -703,7 +703,7 @@ excalidraw-brute-export-cli -i "${workbench_path}/sketches/{filename}.excalidraw
 
 *If via npx (`excalidraw_runner: npx`):*
 ```bash
-npx -y excalidraw-brute-export-cli -i "${workbench_path}/sketches/{filename}.excalidraw" \
+npx -y excalidraw-brute-export-cli@0.4.0 -i "${workbench_path}/sketches/{filename}.excalidraw" \
   --format png \
   --scale {png_scale} \
   --background 1 \
@@ -719,7 +719,7 @@ excalidraw-cli "${workbench_path}/sketches/{filename}.excalidraw" "${workbench_p
 
 *If via npx (`excalidraw_runner: npx`):*
 ```bash
-npx -y @tommywalkie/excalidraw-cli "${workbench_path}/sketches/{filename}.excalidraw" "${workbench_path}/sketches/"
+npx -y @tommywalkie/excalidraw-cli@0.5.0 "${workbench_path}/sketches/{filename}.excalidraw" "${workbench_path}/sketches/"
 ```
 
 **If export fails:**

@@ -59,7 +59,7 @@ run_brute_export() {
         nix)
             # Note: excalidraw-brute-export-cli may not be in nixpkgs, fall back to npx
             echo "Note: excalidraw-brute-export-cli not in nixpkgs, using npx..."
-            npx -y excalidraw-brute-export-cli \
+            npx -y excalidraw-brute-export-cli@0.4.0 \
                 -i "$INPUT" \
                 --format png \
                 --scale "$SCALE" \
@@ -67,7 +67,7 @@ run_brute_export() {
                 -o "$OUTPUT"
             ;;
         npx)
-            npx -y excalidraw-brute-export-cli \
+            npx -y excalidraw-brute-export-cli@0.4.0 \
                 -i "$INPUT" \
                 --format png \
                 --scale "$SCALE" \
@@ -89,10 +89,10 @@ run_excalidraw_cli() {
         nix)
             # Note: excalidraw-cli may not be in nixpkgs, fall back to npx
             echo "Note: excalidraw-cli not in nixpkgs, using npx..."
-            npx -y @tommywalkie/excalidraw-cli "$INPUT" "$OUTPUT_DIR"
+            npx -y @tommywalkie/excalidraw-cli@0.5.0 "$INPUT" "$OUTPUT_DIR"
             ;;
         npx)
-            npx -y @tommywalkie/excalidraw-cli "$INPUT" "$OUTPUT_DIR"
+            npx -y @tommywalkie/excalidraw-cli@0.5.0 "$INPUT" "$OUTPUT_DIR"
             ;;
     esac
 }

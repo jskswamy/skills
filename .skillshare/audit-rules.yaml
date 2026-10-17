@@ -1,0 +1,28 @@
+# Project audit rules (merged over built-in and global rules).
+# Rules match per line, so false positives are suppressed with `exclude`
+# instead of disabling the rule repo-wide.
+rules:
+  # jot/capture.md documents "host contains youtube.com"; the regex reads
+  # the word "host" followed by a backtick as a DNS lookup.
+  - id: data-exfiltration-3
+    severity: HIGH
+    pattern: data-exfiltration
+    message: "Potential DNS data exfiltration via encoded subdomain"
+    regex: '(?i)\b(dig|nslookup|host)\b\s+.*(\$[({]|`)'
+    exclude: '(?i)host contains'
+
+  # review-commits/lib/apply-split.sh drives git on purpose.
+  - id: shell-execution-0
+    severity: HIGH
+    pattern: shell-execution
+    message: "Python shell execution detected"
+    regex: '(?i)\b(os\.system|subprocess\.(run|call|Popen|check_output|check_call))\s*\('
+    exclude: "subprocess\\.\\w+\\(\\['git'"
+
+  # Pinned versions (pkg@1.2.3) are reproducible; only flag unpinned npx -y.
+  - id: untrusted-install-0
+    severity: MEDIUM
+    pattern: untrusted-install
+    message: "Auto-execute untrusted npm package without confirmation"
+    regex: '(?i)\bnpx\s+(-y\s+|--yes\s+)'
+    exclude: '(?i)\bnpx\s+(-y|--yes)\s+\S+@\d'
