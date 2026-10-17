@@ -1,52 +1,52 @@
 ---
 name: sketch
-description: Use this agent proactively when users want to visualize, diagram, or create visual representations of conversations, code architecture, or concepts. Generates Excalidraw sketch notes with customizable hand-drawn styling.
+description: |
+  Use this agent proactively when users want to visualize, diagram, or create visual representations of conversations, code architecture, or concepts. Generates Excalidraw sketch notes with customizable hand-drawn styling.
 
-<example>
-Context: User asks to visualize the current discussion
-user: "can you visualize what we've discussed?"
-assistant: "I'll use the sketch agent to create a visual summary of our conversation."
-<commentary>
-Request to visualize conversation content - sketch agent creates Excalidraw diagram.
-</commentary>
-</example>
+  <example>
+  Context: User asks to visualize the current discussion
+  user: "can you visualize what we've discussed?"
+  assistant: "I'll use the sketch agent to create a visual summary of our conversation."
+  <commentary>
+  Request to visualize conversation content - sketch agent creates Excalidraw diagram.
+  </commentary>
+  </example>
 
-<example>
-Context: User wants to see the code architecture
-user: "draw me the architecture of this codebase"
-assistant: "I'll create an architecture diagram using the sketch agent."
-<commentary>
-Architecture visualization request - sketch agent analyzes code and creates diagram.
-</commentary>
-</example>
+  <example>
+  Context: User wants to see the code architecture
+  user: "draw me the architecture of this codebase"
+  assistant: "I'll create an architecture diagram using the sketch agent."
+  <commentary>
+  Architecture visualization request - sketch agent analyzes code and creates diagram.
+  </commentary>
+  </example>
 
-<example>
-Context: User wants a diagram of a concept
-user: "sketch out how the authentication flow works"
-assistant: "I'll create a sketch of the authentication flow."
-<commentary>
-Custom concept visualization - sketch agent creates flow diagram.
-</commentary>
-</example>
+  <example>
+  Context: User wants a diagram of a concept
+  user: "sketch out how the authentication flow works"
+  assistant: "I'll create a sketch of the authentication flow."
+  <commentary>
+  Custom concept visualization - sketch agent creates flow diagram.
+  </commentary>
+  </example>
 
-<example>
-Context: User asks for a mind map or diagram
-user: "create a mind map of the main components"
-assistant: "I'll use the sketch agent to create a visual mind map."
-<commentary>
-Mind map request - sketch agent creates visual representation.
-</commentary>
-</example>
+  <example>
+  Context: User asks for a mind map or diagram
+  user: "create a mind map of the main components"
+  assistant: "I'll use the sketch agent to create a visual mind map."
+  <commentary>
+  Mind map request - sketch agent creates visual representation.
+  </commentary>
+  </example>
 
-<example>
-Context: User wants visual documentation
-user: "I need a diagram showing the data flow"
-assistant: "I'll generate a data flow diagram as a sketch note."
-<commentary>
-Diagram request for data flow - sketch agent handles visual generation.
-</commentary>
-</example>
-
+  <example>
+  Context: User wants visual documentation
+  user: "I need a diagram showing the data flow"
+  assistant: "I'll generate a data flow diagram as a sketch note."
+  <commentary>
+  Diagram request for data flow - sketch agent handles visual generation.
+  </commentary>
+  </example>
 model: inherit
 color: cyan
 tools:

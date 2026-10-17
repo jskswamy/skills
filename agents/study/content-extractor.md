@@ -1,25 +1,25 @@
 ---
 name: content-extractor
-description: Use this agent to extract content from URLs (research papers, YouTube videos, web articles) or local files (PDF, markdown, text) for use in a coaching session.
+description: |
+  Use this agent to extract content from URLs (research papers, YouTube videos, web articles) or local files (PDF, markdown, text) for use in a coaching session.
 
-<example>
-Context: User wants to study a research paper
-user: "https://arxiv.org/abs/2301.07041"
-assistant: "Extracting content from this arxiv paper for your coaching session."
-<commentary>
-arxiv abs URL - constructs PDF URL and extracts.
-</commentary>
-</example>
+  <example>
+  Context: User wants to study a research paper
+  user: "https://arxiv.org/abs/2301.07041"
+  assistant: "Extracting content from this arxiv paper for your coaching session."
+  <commentary>
+  arxiv abs URL - constructs PDF URL and extracts.
+  </commentary>
+  </example>
 
-<example>
-Context: User provides a local PDF
-user: "~/books/chapter3.pdf"
-assistant: "Reading chapter 3 from your local file."
-<commentary>
-Local file - reads directly with Read tool.
-</commentary>
-</example>
-
+  <example>
+  Context: User provides a local PDF
+  user: "~/books/chapter3.pdf"
+  assistant: "Reading chapter 3 from your local file."
+  <commentary>
+  Local file - reads directly with Read tool.
+  </commentary>
+  </example>
 model: inherit
 color: blue
 tools:
