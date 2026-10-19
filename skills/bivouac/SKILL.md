@@ -1,6 +1,6 @@
 ---
 name: bivouac
-description: Use when the user asks to start, monitor, attach to, pull, merge, or tear down a disposable remote coding-agent session or VM with the bivouac CLI, e.g. "start a bivouac session", "run this on a remote box", "bivouac status", "pull the session work", "merge the bivouac session", "bivouac up" or "bivouac down".
+description: Use when the user asks to manage disposable remote coding-agent sessions, VMs, configuration, or custom cloud images with the bivouac CLI, including start, status, attach, pull, merge, delete, up, down, and image generate/build/list/tag/prune.
 ---
 
 # Bivouac Skill
@@ -9,11 +9,13 @@ description: Use when the user asks to start, monitor, attach to, pull, merge, o
 
 Use this skill when the user wants to start, inspect, attach to, retrieve, merge, or shut down a disposable remote coding-agent workspace managed by `bivouac`.
 
-`bivouac` is repo-scoped. It creates a remote VM from declarative config, starts named git-backed sessions on that instance, and brings work home through `session pull` or `session merge`. The skill's job is to choose safe next steps from deterministic state checks and the CLI's own metadata, not to reimplement the CLI.
+Bivouac sessions are repo-scoped; image operations can run outside a repository. It creates a remote VM from declarative config, starts named git-backed sessions on that instance, and brings work home through `session pull` or `session merge`. The skill's job is to choose safe next steps from deterministic state checks and the CLI's own metadata, not to reimplement the CLI.
 
 ## Preflight Checks
 
-Before workflow actions, establish state with the checks that are relevant to the user's request:
+Route image requests to [Custom Cloud Images](#custom-cloud-images) before repository preflight: `image list`, `image tag`, and `image prune` need no project config or git repo; `image generate` and `image build` can use an explicit config or personal base config.
+
+For session/instance workflows, establish state with the checks relevant to the user's request:
 
 ```bash
 command -v bivouac
@@ -60,7 +62,8 @@ Route by combining the user's request with detected state:
 
 | User intent / detected state | Behavior |
 | --- | --- |
-| No git repo | Stop and explain that bivouac is repo-scoped. |
+| Image requested | Use the image workflow below; repository/session preflight does not apply. |
+| No git repo for a session request | Stop and explain that bivouac sessions are repo-scoped. |
 | `bivouac` missing | Stop and ask the user to install it or enter the right environment. |
 | No explicit intent | Run status/list checks, summarize state, and offer safe next actions. |
 | No `bivouac.pkl` | Offer `bivouac init`; do not invent config. |
@@ -68,7 +71,8 @@ Route by combining the user's request with detected state:
 | Instance exists, no sessions | Offer `bivouac session start <name>`. |
 | Start requested | Check local git state, choose or confirm a session name, run `bivouac up` if needed, then run `bivouac session start <name>` with `--task` or `--issue` when context is available. |
 | Pull requested | Resolve the session from an explicit argument, current worktree, or the only active session. If ambiguous, ask. Run `bivouac session pull [name]`. |
-| Merge requested | Require an unambiguous session. Warn that commits are replayed, signed, and verified locally. Run `bivouac session merge [name]`. |
+| Merge requested | Require an unambiguous session and clean main/session worktrees. Explain local signed replay and resumable retirement. Run `bivouac session merge [name]`. |
+| Delete requested | Resolve the session and confirm the target. Plain delete protects unmerged work; `--force` needs explicit authority to discard it. |
 | Status requested | Run `bivouac status` and usually `bivouac session list`; use `--json` when the result will be parsed. |
 | Cost requested | Run `bivouac list --cost`; use `--json` when parsing fleet-wide state. |
 | SSH/attach requested | Run `bivouac ssh`, `bivouac tmux`, `bivouac herdr`, or `bivouac pair` after summarizing the target. Remember `bivouac herdr [name]` takes an instance name, not a session name. |
@@ -127,6 +131,12 @@ bivouac init
 ```
 
 Do not generate a custom `bivouac.pkl` unless the user explicitly asks for config authoring help.
+
+When configuring or migrating:
+
+- Shared defaults live in `~/.config/bivouac/base.pkl`; project config layers on top.
+- `sshKeys` contains public-key file paths, not account IDs or fingerprints. Relative paths resolve against the declaring config. Use `init` to migrate old entries; keep private keys local. Encrypted keys must already be unlocked in ssh-agent. `up` requires approval before registering missing public keys; registrations remain if VM creation fails or on `down`.
+- Select coding harnesses with `agents`, not guessed entries in `packages`. Selected unfree agents are permitted narrowly. For unfree packages supplied by imported modules, use `allowUnfreePackages` with package names rather than enabling all unfree software.
 
 If config exists and the user wants an instance:
 
@@ -224,12 +234,50 @@ bivouac session merge [name]
 
 Before merging:
 
-- require an unambiguous session,
-- warn that merge replays/signs/verifies commits locally,
+- require an unambiguous session and clean main/session worktrees,
+- warn that merge replays/signs/verifies commits locally, then retires the session and its recorded Herdr resources,
 - remind the user that merge does not push to a shared git remote,
 - remind the user to push any issue database remote separately when their workflow requires it.
 
-If merge reports conflicts, stop and let the user resolve them with the normal git flow. After `git cherry-pick --continue`, rerun `bivouac session merge [name]`; merge resumes where it stopped rather than replaying commits that already landed.
+Replay uses the session's recorded starting commit, so rebasing, folding, or re-signing the destination branch does not by itself prevent merge. If that starting commit has been garbage-collected, pull the session, apply the work manually, and verify it before requesting a forced delete.
+
+If merge reports conflicts, stop and let the user resolve them with the normal git flow. After `git cherry-pick --continue`, rerun `bivouac session merge [name]`; merge resumes where it stopped rather than replaying commits that already landed. For other failures, follow [Resumable Retirement](#resumable-retirement).
+
+### Custom Cloud Images
+
+Discover flags and side effects with `bivouac manifest`. Image commands are DigitalOcean-specific; all support `--json`.
+
+For inspection or a local-only Packer bundle:
+
+```bash
+bivouac image list --tag my-dev --json
+bivouac image generate --tag my-dev
+```
+
+Generation needs `pkl`, makes no cloud calls, and writes `./bivouac-image` by default. Generate/build config selection is explicit `--config <file>`, otherwise the project config, otherwise personal `base.pkl`. Invalid existing configs fail rather than falling back. `--config` and `--repo` are mutually exclusive; `--name` does not apply. Both refuse a nonempty output directory.
+
+Before building, explain and confirm the effects: a billed temporary Droplet and snapshot, config writeback, and automatic pruning of older snapshots. Builds need `pkl`, `packer`, and a local DigitalOcean token; bivouac does not install Packer.
+
+```bash
+bivouac image build --tag my-dev --no-prune --json
+```
+
+Use `--no-prune` to retain all images unless retention is explicitly agreed. Default retention keeps the newest plus one previous image per tag/region/architecture; `--keep-previous` changes that and cannot be combined with `--no-prune`. A successful build sets `image = "tag:my-dev"` in the selected config. Symlinked, read-only, Nix-store, or expression-valued configs are left untouched with a suggested line to add.
+
+Builds evaluate arbitrary Nix with network access: use trusted configurations. Secrets embedded in Nix store paths remain in snapshots; review bundles before sharing. Provider credentials stay local to Packer and launch-time credentials are not loaded into builds. Builds support `x86_64` only, start from stock Ubuntu, and reject local-path or authenticated private flake inputs.
+
+For promotion or retention:
+
+```bash
+bivouac image tag <image-id> stable
+bivouac image prune --tag my-dev --dry-run
+```
+
+Tagging a ready Bivouac image makes it eligible for that tag's retention. Preview pruning, confirm scope and deletions, then use `--yes` only with explicit approval when running noninteractively. Foreign or non-ready images are excluded; prune rechecks each image and stops on uncertainty. Serialize builds/prunes sharing a tag/region/architecture.
+
+Launch with `image = "tag:<tag>"`, a numeric image ID, or a stock slug. Custom images must be ready Bivouac snapshots matching region, architecture, shell, and disk requirements; `up` fails rather than falling back or building. Provisioning still runs at launch.
+
+On failure inspect `phase`, `image_created`, `image_id`, and `cleanup` in JSON. A nonzero build may already have created a usable snapshot or updated config: inspect before rebuilding. Retry failed pruning separately. Interrupted Packer runs may leave billed resources; inspect the reported cleanup guidance.
 
 ### Ports and File Transfer
 
@@ -303,6 +351,18 @@ bivouac session list
 bivouac session delete <name>
 ```
 
+Plain delete refuses commits not on the current branch or issue changes not landed locally. Manually cherry-picked, rebased, or re-signed work can have different hashes: verify it landed before seeking explicit discard approval for `bivouac session delete <name> --force`.
+
+### Resumable Retirement
+
+Merge and delete record durable progress. Inspect `bivouac session list --json` for `retirementPhase` and `lastFailure`. When cleanup stops, preserve recovery state and rerun the same command; a completed retry succeeds from its completion receipt.
+
+A merge or delete refused before accepting work may be replaced with an explicitly approved `session delete <name> --force`; a plain delete paused in cleanup may also gain `--force`. Once removal has begun or merge has accepted work, finish with the original operation. `session merge` has no `--force` flag.
+
+Herdr cleanup closes only resources with matching recorded server and ownership proof. Legacy unknown ownership needs interactive adoption. Forced delete may leave an unprovable workspace open with a warning; unreachable cleanup remains pending, even with force. Do not erase state or manually remove worktrees to bypass a failure.
+
+### Destroy the Instance
+
 Before destroying the instance, inspect sessions and explain the consequence:
 
 ```bash
@@ -310,7 +370,7 @@ bivouac session list
 bivouac down
 ```
 
-`down` is designed to rescue session work before destroying the VM, but it is still destructive to the instance. Ask before running it.
+`down` rescues session work before destroying the VM and refuses unmerged commits or unlanded issue state without explicit force. Ask before running it; forced destruction needs explicit approval to discard that work.
 
 ## Session Naming
 
@@ -368,7 +428,7 @@ Preserve these invariants:
 - Treat `beads = "dolthub"` as credential-bearing mode. Warn that the DoltHub credential is account-wide for the life of the instance.
 - Treat `session merge` as local replay/sign/verify, not a remote push.
 - After merge, remind the operator to push any separate issue database remote when their workflow requires it.
-- Do not run `provision`, `down`, `delete`, `serve`, or `unserve` without clear user intent.
+- Do not run `provision`, `down`, `delete`, `serve`, `unserve`, image builds, tagging, or pruning without clear user intent; explain billing, config writes, and retention before an image build.
 - Prefer status output over action when session resolution is ambiguous.
 
 ## What This Skill Does NOT Do
