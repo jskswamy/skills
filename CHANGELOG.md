@@ -2,6 +2,20 @@
 
 All notable changes to this skills/plugins collection will be documented in this file.
 
+## [2.1.21] - 2026-10-19
+
+### Changed
+
+- Update bivouac guidance for images and session retirement
+
+### Other
+
+- Leave remote pushes to the user
+
+Replace mandatory push instructions with a local handoff policy.
+Reserve Git and Beads remote synchronization for the user unless
+explicitly requested.
+
 ## [2.1.20] - 2026-10-17
 
 ### Added
@@ -3041,6 +3055,7 @@ as a dependency.
 ### Removed
 
 - Remove welcome message from shell hook by @jskswamy
+[2.1.21]: https://github.com/jskswamy/skills/compare/v2.1.20..v2.1.21
 [2.1.20]: https://github.com/jskswamy/skills/compare/v2.1.19..v2.1.20
 [2.1.19]: https://github.com/jskswamy/skills/compare/v2.1.18..v2.1.19
 [2.1.18]: https://github.com/jskswamy/skills/compare/v2.1.17..v2.1.18
