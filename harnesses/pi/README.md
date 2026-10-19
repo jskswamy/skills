@@ -39,6 +39,23 @@ pi -e .
 This loads the working tree directly, including local edits under `skills/` and
 `harnesses/pi/extensions`.
 
+## Commit workflow
+
+The package extension registers `/commit` and routes agent-initiated commits
+through `commit-action` in every repository. No project instructions or
+configuration are required. `/skill:commit-action` reaches the same workflow.
+Classic style is the default; message confirmation is still required. Commits
+stay local and the user handles pushing and remote issue synchronization.
+
+A `tool_call` handler blocks direct shell/MCP commits, including nested calls
+from codemode, and redirects the agent to the workflow. The environment bypass
+token is a convention, not a security boundary or proof of approval.
+
+A Skillshare skill-only copy does not load executable Pi extensions. Install
+the Pi package once for the `/commit` alias and guard; copying skill files alone
+still supports `/skill:commit-action` with self-contained resources. See the
+[commit-tools documentation](../../templates/commit-tools/README.md).
+
 ## Invoking skills
 
 Invoke a skill by name:

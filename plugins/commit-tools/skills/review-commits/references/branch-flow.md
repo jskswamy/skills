@@ -50,13 +50,14 @@ mkdir -p "$WORKING_DIR/msgs"
 ```
 
 Resolve `$STYLE_FILE` by reading `.claude/git-commit.local.md` →
-`commit_style` value → `plugins/commit-tools/styles/<style>.md`. If the
-local settings file is missing, default to `classic`.
+`commit_style` value → the installed commit-action skill's `styles/<style>.md`.
+Honor `--style` first. If no flag or settings exist, default to `classic`.
+Load `commit-action` to resolve its absolute location; if unavailable, stop.
 
 Read each commit in `$base..HEAD` oldest-to-newest using
 `git log --reverse --format='%H%x00%s%x00%b%x00---END---' "$base..HEAD"`
 so commit bodies are available to the synthesizer. Run the planning
-checklist at `plugins/commit-tools/skills/review-commits/lib/synthesizer-prompt.md`
+checklist at this skill's `lib/synthesizer-prompt.md`
 and write `$WORKING_DIR/plan.yaml`. Cluster detection runs as part of
 that checklist (Step 5 in the synthesizer prompt) using
 `lib/detect-clusters.sh`.
@@ -93,6 +94,13 @@ Write the full plan to the result file before executing. The Modify and Reset
 paths are unavailable in unattended mode; if the plan cannot be executed
 mechanically, fail non-zero instead of asking.
 
+Before Step 6, invoke `commit-action` with the authored plan and follow its
+history-review approval branch. Show full messages, validate each one and
+obtain explicit approval of the exact operations and messages. Plan previews
+and unattended defaults do not grant commit approval. Without approval,
+write reason: `confirmation-required` and stop without rewriting history.
+If the plan changes, repeat this gate.
+
 ### Step 6: Execute
 
 Build the todo file and message directory, then run the rebase:
@@ -100,10 +108,13 @@ Build the todo file and message directory, then run the rebase:
 ```bash
 msgdir="$WORKING_DIR/msgs"
 mkdir -p "$msgdir"
-bash plugins/commit-tools/skills/review-commits/lib/build-todo.sh \
+# REVIEW_SKILL_DIR is the absolute directory of this loaded review skill.
+COMMIT_ACTION_STYLE="$selected_style" \
+  bash "$REVIEW_SKILL_DIR/lib/build-todo.sh" \
   "$WORKING_DIR/plan.yaml" "$msgdir" > "$WORKING_DIR/todo"
+__GIT_COMMIT_PLUGIN__=1 COMMIT_ACTION_STYLE="$selected_style" \
 GIT_EDITOR=true \
-GIT_SEQUENCE_EDITOR="cat $WORKING_DIR/todo >" \
+GIT_SEQUENCE_EDITOR="cat '$WORKING_DIR/todo' >" \
   git rebase -i "$base"
 ```
 
@@ -111,10 +122,10 @@ GIT_SEQUENCE_EDITOR="cat $WORKING_DIR/todo >" \
 message during this step, you are violating the contract — stop, return to
 Step 4, and fix the plan instead.
 
-`build-todo.sh` and `apply-split.sh` set `__GIT_COMMIT_PLUGIN__=1` on the
-`git commit --amend` and `git commit -F` calls they emit/run, which is the
-documented bypass for the git-commit plugin's PreToolUse block. The skill
-itself does not need to re-set this — the helpers handle it.
+`build-todo.sh`, `apply-split.sh` and `revalidate.sh` use the installed
+commit-action executor. They require the approval convention inherited
+from the confirmed plan; they do not set it themselves. The token is not a
+security boundary. A missing sibling commit-action installation is a blocker.
 
 If the rebase reports a conflict:
 1. Stop immediately
@@ -129,8 +140,8 @@ run `git rebase --abort`, restore the recorded original HEAD if needed, write
 ### Step 7: Revalidate
 
 ```bash
-PATH_TO_LIB=plugins/commit-tools/skills/review-commits/lib \
-  bash plugins/commit-tools/skills/review-commits/lib/revalidate.sh \
+__GIT_COMMIT_PLUGIN__=1 PATH_TO_LIB="$REVIEW_SKILL_DIR/lib" \
+  bash "$REVIEW_SKILL_DIR/lib/revalidate.sh" \
   "$WORKING_DIR/plan.yaml" "$msgdir" "$base" "$STYLE_FILE" \
   || echo "drift remained — see warnings"
 ```
@@ -191,7 +202,7 @@ If the user chose "Reset" in Step 5, instead of interactive rebase:
 git reset --soft $base
 ```
 
-This unstages all changes. Group files by top-level directory and concern,
+This keeps all changes staged. Group files by top-level directory and concern,
 then present groupings via AskUserQuestion. For each group:
 1. Stage the group's files: `git add <files>`
 2. Invoke `/commit`

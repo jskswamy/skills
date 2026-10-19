@@ -4,13 +4,16 @@
 set -euo pipefail
 hash="$1"
 plan="$2"
+if [[ "${__GIT_COMMIT_PLUGIN__:-}" != 1 ]]; then
+  echo 'Load commit-action and obtain plan confirmation before splitting.' >&2
+  exit 1
+fi
+commit_script="$(cd -- "$(dirname -- "$0")/../../commit-action/lib" && pwd)/commit.mjs"
 
-git reset HEAD~1 >/dev/null
+python3 - "$hash" "$plan" "$commit_script" <<'PY'
+import sys, re, subprocess, os, tempfile
 
-python3 - "$hash" "$plan" <<'PY'
-import sys, re, subprocess, os
-
-hash_arg, plan_path = sys.argv[1], sys.argv[2]
+hash_arg, plan_path, commit_script = sys.argv[1:]
 text = open(plan_path).read()
 
 # Find this action's block.
@@ -23,12 +26,13 @@ block = m.group(1)
 
 # Extract each split_into group.
 group_re = re.compile(
-    r'^      - files:\s*\[([^\]]*)\]\s*$\s*'
-    r'^        message:\s*\|\s*$'
+    r'^      - files:[ \t]*\[([^\]]*)\][ \t]*\n'
+    r'^        message:[ \t]*\|[ \t]*\n'
     r'([\s\S]*?)(?=^      - files:|\Z)',
     re.MULTILINE)
 
-env = dict(os.environ, __GIT_COMMIT_PLUGIN__='1')
+style = os.environ.get('COMMIT_ACTION_STYLE', 'classic')
+splits = []
 for files_csv, msg_block in group_re.findall(block):
     files = [f.strip() for f in files_csv.split(',') if f.strip()]
     # Strip 10-space indent from message lines, drop blank trailing lines.
@@ -42,7 +46,18 @@ for files_csv, msg_block in group_re.findall(block):
             break  # left the message scalar
     msg = '\n'.join(msg_lines).rstrip() + '\n'
 
+    if not files or not msg.strip():
+        sys.exit('split requires files and a nonempty message')
+    splits.append((files, msg))
+
+if not splits:
+    sys.exit('no split groups found in plan')
+subprocess.check_call(['git', 'reset', 'HEAD~1'], stdout=subprocess.DEVNULL)
+for files, msg in splits:
     subprocess.check_call(['git', 'add', '--', *files])
-    p = subprocess.run(['git', 'commit', '-q', '-F', '-'],
-                       input=msg.encode(), env=env, check=True)
+    with tempfile.NamedTemporaryFile(mode='w+', suffix='.message') as message_file:
+        message_file.write(msg)
+        message_file.flush()
+        subprocess.run(['node', commit_script, '--message-file', message_file.name,
+                        '--style', style], check=True)
 PY

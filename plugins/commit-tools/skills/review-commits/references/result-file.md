@@ -5,7 +5,7 @@
 ```json
 {
   "outcome": "done | failed",
-  "reason": "conflict | drift | tests | no-base | tree-mismatch | validation | null",
+  "reason": "conflict | drift | tests | no-base | tree-mismatch | validation | confirmation-required | null",
   "base": "<sha>",
   "originalHead": "<sha>",
   "newHead": "<sha>",

@@ -2,10 +2,16 @@
 # build-todo.sh: reads plan.yaml, writes per-commit message files, prints rebase todo
 # Usage: build-todo.sh <plan.yaml> <msgdir>
 set -euo pipefail
-exec python3 - "$@" <<'PYEOF'
+lib_dir=$(cd -- "$(dirname -- "$0")" && pwd)
+exec python3 - "$1" "$2" "$lib_dir" <<'PYEOF'
 import sys
 import re
 import os
+import shlex
+
+commit_script = os.path.abspath(os.path.join(sys.argv[3], '../../commit-action/lib/commit.mjs'))
+split_script = os.path.join(sys.argv[3], 'apply-split.sh')
+style = os.environ.get('COMMIT_ACTION_STYLE', 'classic')
 
 plan_path = sys.argv[1]
 msgdir = sys.argv[2]
@@ -58,12 +64,13 @@ for blk in blocks:
         sys.exit(f"plan.yaml: hash field is not a hex SHA: {h!r}")
     a = a_match.group(1)
 
-    # Defensive quoting for paths that may contain spaces.
-    msgdir_q = msgdir.replace("'", "'\\''")
-    plan_q = plan_path.replace("'", "'\\''")
-
     if a == 'pick':
         todo_lines.append(f'pick {h}')
+        msg = parse_literal_block(blk, 'new_message')
+        if msg is not None:
+            with open(os.path.join(msgdir, h), 'w') as f:
+                f.write(msg)
+            todo_lines.append('exec ' + shlex.join(['node', commit_script, '--amend', '--message-file', os.path.join(msgdir, h), '--style', style]))
         prev_pick = h
     elif a == 'fixup':
         todo_lines.append(f'fixup {h}')
@@ -72,7 +79,7 @@ for blk in blocks:
             with open(os.path.join(msgdir, prev_pick), 'w') as f:
                 f.write(msg)
             todo_lines.append(
-                f"exec __GIT_COMMIT_PLUGIN__=1 git commit --amend -F '{msgdir_q}/{prev_pick}'"
+                'exec ' + shlex.join(['node', commit_script, '--amend', '--message-file', os.path.join(msgdir, prev_pick), '--style', style])
             )
         # Do NOT update prev_pick
     elif a == 'drop':
@@ -85,13 +92,14 @@ for blk in blocks:
             with open(os.path.join(msgdir, h), 'w') as f:
                 f.write(msg)
             todo_lines.append(
-                f"exec __GIT_COMMIT_PLUGIN__=1 git commit --amend -F '{msgdir_q}/{h}'"
+                'exec ' + shlex.join(['node', commit_script, '--amend', '--message-file', os.path.join(msgdir, h), '--style', style])
             )
         prev_pick = h
     elif a == 'edit':
-        todo_lines.append(f'edit {h}')
+        # The helper performs the approved split; a Git edit would pause first.
+        todo_lines.append(f'pick {h}')
         todo_lines.append(
-            f"exec bash plugins/commit-tools/skills/review-commits/lib/apply-split.sh {h} '{plan_q}'"
+            'exec ' + shlex.join(['bash', split_script, h, plan_path])
         )
         prev_pick = h
 

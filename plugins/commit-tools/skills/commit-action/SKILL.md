@@ -1,11 +1,21 @@
 ---
 name: commit-action
-description: 'Use when the user wants to PERFORM a git commit: "commit this", "commit these changes", "ready to commit", "commit for me", "let''s commit", "make a commit", "go ahead and commit", "please commit", "time to commit". Not for questions about commit style; see commit-style.'
+description: 'Use when any agent is about to create or amend a Git commit: explicit commit requests, automatic task-completion commits, message-only amendments, task-context commits, and history-review replay. Applies even without a user request to commit. Not for questions about commit style; see commit-style.'
 ---
 
 # Commit Action Skill
 
-Generate intelligent git commit messages with support for classic and conventional commit styles, strict atomic commit validation, and pair programming attribution.
+Create or amend commits only after validating the message and receiving explicit confirmation. This workflow applies in every repository; no project instructions or settings are required. Leave commits local. Remote synchronization and pushing belong to the user.
+
+## Harness and resource resolution
+
+Set `COMMIT_SKILL_DIR` to the absolute directory containing this loaded `SKILL.md`. Resolve every bundled path against it, even when the working repository is elsewhere. Styles and executables ship inside this skill; no plugin root or sibling skill is needed.
+
+Load this skill before any commit/amend, including completion steps chosen by another workflow. In Claude Code, `/commit` invokes this skill; in Pi, `/commit` (package extension) and `/skill:commit-action` reach the same workflow. If the skill or a bundled resource is unavailable, report the blocker and stop.
+
+Where steps say AskUserQuestion, use the harness's question tool if available; otherwise present the same choices in chat and wait for a reply. No UI is not approval: non-interactive runs stop before committing unless the exact messages and operations were explicitly approved. Neither an instruction to finish a task nor `--unattended` substitutes for message confirmation.
+
+For an already-authored history-review plan, read `references/review-plan.md` and follow that branch instead of the normal staged-change flow.
 
 ## Argument Parsing
 
@@ -48,7 +58,9 @@ First, verify we're in a git repository and check the current state:
    - Try: `mcp__1mcp__git_1mcp_git_diff_staged`
    - Fallback: `git diff --staged --stat`
 
-4. If NO staged changes:
+4. If `--amend` is set and no staged changes exist, keep the index unchanged and continue to Step 2. Use `git show HEAD` and the current message as context; leave unrelated unstaged/untracked files alone.
+
+5. Otherwise, if NO staged changes:
    - Get unstaged changes: `git diff --stat` and `git status --porcelain`
    - Use AskUserQuestion:
      ```
@@ -68,14 +80,6 @@ First, verify we're in a git repository and check the current state:
    - If "Select files": Show file list with multiSelect, stage selected files
    - If "Cancel": Exit
 
-### Step 1b: Ensure CLAUDE.md Has Commit Instructions
-
-Check if the project's CLAUDE.md includes instructions to use `/commit`. This helps ensure agents use the commit plugin instead of raw `git commit`.
-
-Read `references/claude-md-instructions.md` and follow it: skip if there is no CLAUDE.md (never create one for this); if CLAUDE.md exists but lacks a `/commit` instruction, ask via AskUserQuestion whether to append the `## Git Commits` section, and confirm after adding.
-
-5. Continue to Step 2
-
 ### Step 2: Load User Preferences
 
 Read `.claude/git-commit.local.md` if it exists:
@@ -94,15 +98,7 @@ pairs:
 2. Setting from `.claude/git-commit.local.md`
 3. Default: `classic`
 
-**First-time setup:** If no settings file exists AND no `--style` flag:
-- Use AskUserQuestion:
-  ```
-  Which commit message style do you prefer?
-  ○ Classic (Default) - Clean subject lines following the "7 rules" of commit messages
-  ○ Conventional - Structured format (feat:, fix:, etc.) for automation and changelogs
-  ```
-- Ask: "Save this preference for future commits?"
-- If yes, create `.claude/git-commit.local.md` with the selection
+With no settings file or flag, use `classic` immediately. Settings are optional; do not create project instructions or configuration as part of committing.
 
 ### Step 3: Gather Context
 
@@ -118,19 +114,17 @@ pairs:
    - Fallback: `git log --oneline -5`
 
 4. **If `--amend` flag is set:**
-   - Verify we can amend (safety check):
-     a. Get HEAD commit author: `git log -1 --format='%an %ae'`
-     b. Check if commit is pushed: `git status` shows "Your branch is ahead"
-     c. If pushed to remote, warn and ask for confirmation
-     d. If not the user's commit (different author), refuse to amend
+   - Read `references/last-commit-comparison.md` and verify the same author/unpublished prerequisites before proceeding. Use local remote-tracking refs only; do not fetch or push. Refuse known-published commits and commits authored by others.
    - Get current commit message: `git log -1 --format=%B`
+   - Set `AMEND_MODE=true` and capture `LAST_DIFF=$(git show HEAD)`.
 
 5. **User context:** Any remaining arguments after flags are treated as context/intention
 
 ### Step 3b: Last Commit Comparison
 
-**Skip this step entirely if `--amend` flag was set** — explicit amend is handled by Step 3.
-Set `AMEND_MODE=false` and proceed to Step 4.
+**If `--amend` was set, keep `AMEND_MODE=true` from Step 3 and proceed to Step 4.**
+
+Otherwise start with `AMEND_MODE=false` and run the comparison below.
 
 Read `references/last-commit-comparison.md` for the prerequisites (a commit exists, authored by the current user, unpushed), the Jaccard file-overlap heuristic with its decision table, and the LLM path for ambiguous cases. If any prerequisite fails, set `AMEND_MODE=false`.
 
@@ -140,7 +134,7 @@ Read `references/last-commit-comparison.md` for the prerequisites (a commit exis
 
 ### Step 4: Atomic Commit Validation
 
-**Skip this step if `--no-atomic-check` flag is set.**
+**Skip this step if `--no-atomic-check` is set, or if this is a message-only amend with no staged changes.**
 
 Analyze the staged changes to determine if they represent a single, atomic unit of work.
 
@@ -154,9 +148,9 @@ If atomicity violations are detected, read `references/atomicity-warning-flow.md
 
 ### Step 5: Load Commit Style Rules
 
-Load the style rules from the plugin's `styles/` directory based on the selected style.
+Load the selected style from this skill's bundled `styles/` directory.
 
-**Style files location:** `${PLUGIN_ROOT}/styles/<style-name>.md`
+**Style files location:** `$COMMIT_SKILL_DIR/styles/<style-name>.md`
 
 **Available styles:**
 - `classic.md` - Traditional git commit style (default)
@@ -261,8 +255,8 @@ See `references/message-example.md` for a worked example of a message that uses 
 Run the shared style script against the generated subject line:
 
 ```bash
-SCRIPT=plugins/commit-tools/skills/review-commits/lib/style-check.sh
-STYLE_FILE=plugins/commit-tools/styles/<selected_style>.md
+SCRIPT="$COMMIT_SKILL_DIR/lib/style-check.sh"
+STYLE_FILE="$COMMIT_SKILL_DIR/styles/<selected_style>.md"
 bash "$SCRIPT" "$subject" "$STYLE_FILE"
 ```
 
@@ -286,13 +280,13 @@ Read `references/content-leak-check.md` for the five rejection categories (inter
 
 ### Step 8: Present and Confirm
 
-**When `AMEND_MODE=true` (detected in Step 3b), show the amend dialog instead:**
+**When `AMEND_MODE=true` (explicit or detected), show the amend dialog instead:**
 
 Show the amend dialog from `references/message-dialogs.md` (section "Amend dialog"): the regenerated message with options Amend / Edit message / New commit instead / Cancel.
 
 - **"Amend"** → proceed to Step 9 with `AMEND_MODE=true`
 - **"Edit message"** → same edit flow as the standard dialog below; re-show this amend dialog after edit (not the standard dialog)
-- **"New commit instead"** → set `AMEND_MODE=false`, unset `LAST_DIFF` (set it to empty string), return to Step 7 with only the staged diff, regenerate the message, then proceed through the standard dialog below
+- **"New commit instead"** → if the index is empty, return to Step 1's staging choices; otherwise set `AMEND_MODE=false`, unset `LAST_DIFF`, and regenerate from Step 7 using only the staged diff
 - **"Cancel"** → exit without committing
 
 **When `AMEND_MODE=false`, show the standard dialog:**
@@ -326,44 +320,16 @@ Show the standard dialog from `references/message-dialogs.md` (section "Standard
 
 Based on user selection:
 
-**Creating the commit:**
-
-The `__GIT_COMMIT_PLUGIN__=1` prefix bypasses the PreToolUse hook that
-blocks direct `git commit` commands. This token is recognized by the
-hook script to allow commits originating from this plugin workflow.
+Write the exact confirmed message to a temporary file (`MESSAGE_FILE`) using the file-write tool. Then use this skill's executor:
 
 ```bash
-# Standard commit (no co-author)
-__GIT_COMMIT_PLUGIN__=1 git commit -m "$(cat <<'EOF'
-Subject line here
-
-Body text here, wrapped at 72 characters as required by
-the style guidelines.
-EOF
-)"
-
-# Only if --pair flag was used and human co-author was selected:
-__GIT_COMMIT_PLUGIN__=1 git commit -m "$(cat <<'EOF'
-Subject line here
-
-Body text here, wrapped at 72 characters as required by
-the style guidelines.
-
-Co-Authored-By: Human Name <human@email.com>
-EOF
-)"
+__GIT_COMMIT_PLUGIN__=1 node "$COMMIT_SKILL_DIR/lib/commit.mjs" \
+  --message-file "$MESSAGE_FILE" --style "$selected_style"
 ```
 
-**IMPORTANT:** Never add Claude/Anthropic-related Co-Authored-By lines.
+For an explicit or detected amendment, append `--amend`. Append `--allow-style-override` only after the user explicitly chose "Commit anyway" for a style violation. The executor rechecks style, line wrapping, AI attribution and amend safety before calling Git. Keep the normal content-leak and atomicity checks above; the executor does not replace them.
 
-**If `--amend` flag OR `AMEND_MODE=true` (auto-detected in Step 3b):**
-
-```bash
-__GIT_COMMIT_PLUGIN__=1 git commit --amend -m "$(cat <<'EOF'
-...
-EOF
-)"
-```
+The environment token is a workflow convention, not proof of approval or a security boundary. Set it only after Step 8 confirmation. On a failed commit, preserve the message and report the error; do not change the index, bypass hooks, retry with different Git options, or push.
 
 **After commit:**
 

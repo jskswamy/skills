@@ -3,16 +3,7 @@
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "mcp__1mcp__git_1mcp_git_commit",
-        "hooks": [
-          {
-            "type": "prompt",
-            "prompt": "${CLAUDE_PLUGIN_ROOT}/hooks/intercept-mcp-commit.md"
-          }
-        ]
-      },
-      {
-        "matcher": "Bash",
+        "matcher": "Bash|mcp__.*git.*commit",
         "hooks": [
           {
             "type": "command",

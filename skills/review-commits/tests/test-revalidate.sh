@@ -1,11 +1,13 @@
 #!/bin/bash
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# Helpers are linted separately; pre-commit may batch this file without them.
+# shellcheck source=/dev/null
 source "$SCRIPT_DIR/helpers.sh"
 SCRIPT="$SCRIPT_DIR/../lib/revalidate.sh"
 LIB_DIR="$SCRIPT_DIR/../lib"
 
-tmp=$(mktemp -d); trap "rm -rf $tmp" EXIT
+tmp=$(mktemp -d); trap 'rm -rf "$tmp"' EXIT
 mk_repo "$tmp/repo"
 cd "$tmp/repo"
 base=$(git rev-parse HEAD)
@@ -34,7 +36,7 @@ cat > "$plan" <<EOF
 base: $base
 style_file: $classic
 actions:
-  - hash: $(git log --format=%h $base..HEAD | tail -1)
+  - hash: $(git log --format=%h "$base..HEAD" | tail -1)
     action: pick
   - hash: $bad_hash
     action: reword
@@ -42,7 +44,7 @@ actions:
       Add y properly
 EOF
 
-PATH_TO_LIB="$LIB_DIR" bash "$SCRIPT" "$plan" "$msgdir" "$base" "$classic"
+__GIT_COMMIT_PLUGIN__=1 PATH_TO_LIB="$LIB_DIR" bash "$SCRIPT" "$plan" "$msgdir" "$base" "$classic"
 
 # revalidator should have amended the bad commit
 new_subj=$(git log -1 --format=%s)

@@ -8,7 +8,8 @@ flow runs these steps inline.
 
 - `$base` — base SHA for the rebase
 - `$WORKING_DIR` — directory to write `plan.yaml` to
-- `$STYLE_FILE` — absolute path to `plugins/commit-tools/styles/<style>.md`
+- `$STYLE_FILE` — absolute path to the installed commit-action skill's `styles/<style>.md`
+- `$REVIEW_SKILL_DIR` — absolute directory of the loaded review-commits skill
 - `$SEMANTIC_AVAILABLE` — `true` if codebase-memory-mcp is reachable via MCP or CLI AND
   the index is fresh; `false` otherwise
 - `codebase_transport` — selected `mcp` or `cli` transport from SKILL.md; use it for all semantic tools, with automatic CLI retry on MCP connection failure
@@ -17,7 +18,7 @@ flow runs these steps inline.
 
 - `git log`, `git show`, `git diff`, `git diff-tree` (read-only)
 - Read: `$STYLE_FILE`, anything under `$WORKING_DIR`
-- `bash plugins/commit-tools/skills/review-commits/lib/detect-clusters.sh "$base"`
+- `bash "$REVIEW_SKILL_DIR/lib/detect-clusters.sh" "$base"`
 - If `$SEMANTIC_AVAILABLE=true`: codebase-memory-mcp `search_graph`,
   `trace_path`, `get_architecture` via the selected transport (for CLI, pipe JSON arguments to `codebase-memory-mcp cli --json <tool>` and check `isError` and `content[]`)
 
@@ -57,15 +58,11 @@ flow runs these steps inline.
    codebase-memory-mcp to confirm or dismiss Layer 2's `non-atomic` flags
    via cluster membership and `trace_path`.
 
-4. **Run hygiene Layer 4.** Resolve the package root as the nearest
-   ancestor containing `registry.json` or `package.json`, then execute:
+4. **Run hygiene Layer 4.** Use the loaded skill's absolute location:
 
    ```bash
-   bash "<package-root>/skills/review-commits/lib/detect-tracker-leaks.sh" "$base"
+   bash "$REVIEW_SKILL_DIR/lib/detect-tracker-leaks.sh" "$base"
    ```
-
-   When running from a generated Claude Code plugin, the equivalent generated
-   path is `<plugin-root>/skills/review-commits/lib/detect-tracker-leaks.sh`.
 
    Convert each TSV row into a hygiene finding. `subject-prefix` and
    `narrative` findings require `reword`; `trailer` and `parenthetical`
@@ -74,8 +71,8 @@ flow runs these steps inline.
 5. **Detect logical clusters.** Run both detectors:
 
    ```bash
-   bash plugins/commit-tools/skills/review-commits/lib/detect-clusters.sh "$base"
-   bash plugins/commit-tools/skills/review-commits/lib/detect-branch-cluster.sh "$base"
+   bash "$REVIEW_SKILL_DIR/lib/detect-clusters.sh" "$base"
+   bash "$REVIEW_SKILL_DIR/lib/detect-branch-cluster.sh" "$base"
    ```
 
    `detect-clusters.sh` finds **high-confidence sub-clusters** (contiguous

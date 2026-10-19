@@ -39,6 +39,6 @@ collapses into existing primitives, not a new schema entry:
 - every **other** commit of the cluster gets `action: fixup`
 
 `build-todo.sh` already handles this combination correctly: the fixups
-fold into the pick; the `exec git commit --amend -F <msg>` line written
-after the pick retitles the collapsed commit with the saved text. No
+fold into the pick; the `exec node <commit-action>/lib/commit.mjs --amend`
+line after the pick applies the approved saved message. No
 plan-schema field changes for v2.

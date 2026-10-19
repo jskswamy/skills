@@ -131,14 +131,17 @@
         "agents": [],
         "hooks": [
           "commit-tools/hooks.json",
-          "commit-tools/intercept-mcp-commit.md",
           "commit-tools/scripts/intercept-git-commit.sh"
         ],
         "templates": [],
         "extra": [
           {
-            "from": "templates/commit-tools/styles",
+            "from": "skills/commit-action/styles",
             "to": "styles"
+          },
+          {
+            "from": "templates/commit-tools/README.md",
+            "to": "README.md"
           }
         ]
       },

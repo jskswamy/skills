@@ -8,13 +8,12 @@
    - Current user email: `git config user.email`
    - Last commit email: `git log -1 --format='%ae'`
    - Must match exactly
-3. Last commit is unpushed. Check with:
-   `git log @{u}.. 2>/dev/null | head -1` — if this outputs something (or
-   if the command fails because there is no upstream), the commit is
-   unpushed. A branch with no upstream tracking is always unpushed.
-   Treat `git log @{u}..` failing AND `git status` not showing
-   "behind" or "up to date" as unpushed. Only reject if `git status`
-   explicitly shows "Your branch is up to date" or "behind".
+3. Last commit is not contained in any known remote-tracking branch:
+   `git for-each-ref --format='%(refname)' --contains=HEAD refs/remotes/`
+   must succeed with empty output. A missing upstream is not evidence that
+   the commit is unpublished. These refs are a local snapshot, not proof of
+   remote state; do not fetch implicitly. If the conversation indicates
+   the commit was published, refuse the amend even if local refs are stale.
 
 **If all prerequisites pass, run the file-overlap heuristic:**
 

@@ -1,10 +1,12 @@
 #!/bin/bash
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# Helpers are linted separately; pre-commit may batch this file without them.
+# shellcheck source=/dev/null
 source "$SCRIPT_DIR/helpers.sh"
 SCRIPT="$SCRIPT_DIR/../lib/apply-split.sh"
 
-tmp=$(mktemp -d); trap "rm -rf $tmp" EXIT
+tmp=$(mktemp -d); trap 'rm -rf "$tmp"' EXIT
 mk_repo "$tmp/repo"
 cd "$tmp/repo"
 echo a > a.txt; echo b > b.txt
@@ -29,7 +31,7 @@ actions:
 EOF
 
 # simulate rebase --exec position: HEAD is the commit just applied.
-GIT_AUTHOR_NAME=t GIT_AUTHOR_EMAIL=t@t \
+__GIT_COMMIT_PLUGIN__=1 GIT_AUTHOR_NAME=t GIT_AUTHOR_EMAIL=t@t \
 GIT_COMMITTER_NAME=t GIT_COMMITTER_EMAIL=t@t \
   bash "$SCRIPT" "$HASH" "$plan"
 

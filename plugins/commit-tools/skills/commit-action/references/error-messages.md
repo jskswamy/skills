@@ -18,13 +18,8 @@ No changes to commit. Stage some changes first:
 
 **Commit already pushed:**
 ```
-Warning: This commit has already been pushed to the remote.
-Amending will require a force push, which can cause issues for collaborators.
-
-Are you sure you want to amend?
-○ Yes, I understand the implications
-○ No, create a new commit instead
-○ Cancel
+Error: Cannot amend a known-published commit.
+Create a new commit instead, or cancel. Remote synchronization belongs to you.
 ```
 
 **Not user's commit:**

@@ -12,7 +12,12 @@ planner/executor split: all commit message authoring happens in the planning
 phase, and the executor is purely mechanical replay via
 `git rebase --exec` with `GIT_EDITOR=true` so no editor ever opens
 mid-rebase. A revalidation step auto-amends any subject that drifts from the
-saved style.
+saved style. Before rewriting history, load `commit-action` to validate and
+explicitly approve the complete message plan. Its shared executor owns every
+explicit commit/amend; this skill owns analysis and replay sequencing.
+Resolve bundled paths from the absolute directory of this loaded skill,
+not from the working repository. Where AskUserQuestion is unavailable, ask
+in chat and wait; unattended runs return a blocker instead of asking.
 
 ## Arguments
 
@@ -30,8 +35,11 @@ saved style.
 When `--unattended` is set, this skill is safe for agents running with no
 human attached:
 
-1. It never calls AskUserQuestion. At every user gate it chooses the option
-   marked recommended/default and records the decision in the result file.
+1. It never calls AskUserQuestion. Analysis gates choose the option marked
+   recommended/default and record the decision. Commit approval is separate:
+   invoke `commit-action` for the exact full plan. Without explicit approval
+   already supplied for that plan, write reason: `confirmation-required`
+   and stop before any history rewrite.
 2. It stays within the current branch scope: never check out another branch,
    never merge, never delete a branch, never remove a worktree, never tag
    (ignore `--tag`), and never push.
@@ -263,7 +271,7 @@ and exit non-zero.
 
 ## Integration
 
-See `references/integration.md` for how this skill relates to /commit (reads the style files; never invokes /commit at execute time), /codebase:index, Superpowers, and standalone use.
+See `references/integration.md` for delegation to commit-action, /codebase:index, Superpowers, and standalone use.
 Run `/review-commits` anytime — before pushing, after a messy session, to
 clean up agent commits.
 

@@ -1,3 +1,4 @@
+#!/bin/bash
 # tests/helpers.sh
 set -euo pipefail
 
@@ -21,5 +22,8 @@ mk_repo() {
   local dir="$1"
   rm -rf "$dir" && mkdir -p "$dir" && cd "$dir"
   git init -q -b main
+  git config user.name t
+  git config user.email t@t
+  git config commit.gpgsign false
   git -c user.email=t@t -c user.name=t commit -q --allow-empty -m "init"
 }

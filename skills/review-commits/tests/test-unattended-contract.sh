@@ -1,4 +1,6 @@
 #!/bin/bash
+# Patterns below match literal Markdown backticks, not shell substitutions.
+# shellcheck disable=SC2016
 set -euo pipefail
 cd "$(dirname "$0")/.."
 skill="SKILL.md"
@@ -26,7 +28,7 @@ require "$skill" 'ignore `--tag`' 'review-commits ignores tag in unattended mode
 require "$skill" 'git rebase --abort' 'review-commits aborts rebase conflicts unattended'
 require "$skill" 'reason: `conflict`' 'review-commits records conflict reason'
 require "$skill" 'git diff <original HEAD> HEAD' 'review-commits enforces tree invariant'
-require "$skill" 'validate-commits --unattended --base <base>' 'review-commits invokes validate unattended'
+require "references/branch-flow.md" 'validate-commits --unattended --base <base>' 'review-commits invokes validate unattended'
 require "$skill" 'add `.review-commits/` to `.git/info/exclude`' 'review-commits excludes default result directory'
 require "$validate" '`--unattended`' 'validate-commits documents --unattended argument'
 require "$validate" 'reason: `no-base`' 'validate-commits records no-base reason'

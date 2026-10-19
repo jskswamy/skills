@@ -171,12 +171,14 @@ Resolve the active style file:
 1. Read `.claude/git-commit.local.md` and extract the `commit_style` value
    from its YAML frontmatter
 2. If missing, default to `classic`
-3. Style file path: `plugins/commit-tools/styles/<style>.md`
+3. Locate the installed `commit-action` skill and set `COMMIT_SKILL_DIR` to
+   its absolute directory. Style file: `$COMMIT_SKILL_DIR/styles/<style>.md`.
+   If missing, report a blocker rather than guessing a working-repo path.
 
 Then for each commit in `$BASE..HEAD`, run the shared style check:
 
 ```bash
-SCRIPT=plugins/commit-tools/skills/review-commits/lib/style-check.sh
+SCRIPT="$COMMIT_SKILL_DIR/lib/style-check.sh"
 for h in $(git rev-list --reverse $BASE..HEAD); do
   subj=$(git log -1 --format=%s "$h")
   if ! reason=$(bash "$SCRIPT" "$subj" "$STYLE_FILE" 2>&1); then

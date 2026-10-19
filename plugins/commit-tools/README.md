@@ -1,51 +1,62 @@
 # commit-tools
 
-End-to-end commit hygiene for Claude Code: write atomic, well-styled
-commit messages; review and consolidate commits before pushing; and
-validate the final history meets project standards.
-
-## What's included
-
-| Command | Purpose |
-|---------|---------|
-| `/commit` | Write an atomic commit with classic or conventional style, intelligent message generation from session context, and pair-programming attribution |
-| `/review-commits` | Plan a rebase to squash/reword/drop commits before push; supports cluster detection (path heuristic + branch heuristic), body preservation through fixup, and a user-gated plan review |
-| `/validate-commits` | Seven deterministic checks (clean worktree, tests pass, no AI co-author leaks, no conflict markers, no rebase residue, style, no tracker-ID leaks) |
-
-## Skills
-
-- `commit-style` — Educational guidance on classic vs conventional commit styles and the seven-rules canon.
-- `commit-action` — The action skill behind `/commit`: stages, validates atomicity, generates and confirms the message, executes.
-- `review-commits` — The action skill behind `/review-commits`: planner/executor split with cluster detection, body preservation, and drift recovery.
-- `validate-commits` — The action skill behind `/validate-commits`.
-
-## Hook
-
-This plugin installs a `PreToolUse` hook on `Bash` calls that intercepts
-direct `git commit` invocations and redirects them to the `/commit`
-workflow. Internal callers can bypass the hook by setting
-`__GIT_COMMIT_PLUGIN__=1` on the commit command. The plugin's own helpers
-(`build-todo.sh`, `revalidate.sh`) and recommended user automation should
-use this bypass when committing programmatically.
-
-## Style files
-
-Commit message styles ship at `plugins/commit-tools/styles/`:
-- `classic.md` — The seven-rules canon (Tim Pope), default
-- `conventional.md` — Conventional Commits 1.0.0
-
-User preference is stored in `.claude/git-commit.local.md` and read by
-both `/commit` and `/review-commits` so the two share authoring style.
+Write atomic commits, review local history, and validate commit hygiene.
+Install once; use in any Git repository without adding `AGENTS.md`,
+`CLAUDE.md`, settings or repository hooks.
 
 ## Install
 
-```
+Claude Code:
+
+```text
 /plugin install commit-tools@skills
+/commit
 ```
 
-## History
+Pi (global package install, once):
 
-`commit-tools` is the v2.0.0 consolidation of the former `git-commit`
-and `clean-merge` plugins. Command names and behavior are unchanged;
-only the package they ship in changed. See `MIGRATION-v2.md` at the
-repo root for upgrade steps.
+```bash
+pi install git:github.com/jskswamy/skills@main
+```
+
+Then use `/commit` or `/skill:commit-action`. Installing/copying **only skill
+files** through Skillshare supplies instructions and bundled scripts, not Pi
+executable extensions. The Pi package is needed for `/commit` and its guard.
+Restart or reload Pi after updating the installed package.
+
+## Workflow
+
+- `commit-action` owns every commit/amend, including agent-initiated task
+  completion. It validates atomicity and messages, then asks for confirmation.
+- Classic style is the default. `--style conventional` overrides it; existing
+  `.claude/git-commit.local.md` preferences remain optional.
+- `--amend` works with an empty index when only the message changes. Unrelated
+  unstaged files are left alone. Known-published commits and other authors'
+  commits cannot be amended. Published-state checks use local cached refs;
+  there is no implicit fetch.
+- `task-commit` gathers task context and delegates to `commit-action`.
+- `review-commits` plans history changes, then delegates full-message validation
+  and approval to `commit-action`. Replay uses its shared executor. Unattended
+  review returns `confirmation-required` without approval of the exact plan.
+- Commits remain local. The user owns pushes and remote issue synchronization.
+
+## Guards and limits
+
+Claude Code's `PreToolUse` hook and Pi's `tool_call` handler redirect direct
+shell and MCP Git commits to the workflow. Pi also checks nested tool calls
+from codemode. Compound commands and command substitutions are checked; a read
+operation elsewhere in the command does not exempt a commit.
+
+`__GIT_COMMIT_PLUGIN__=1` is an approval **convention**, not a security boundary.
+Helpers require it after workflow confirmation; they do not mint it themselves.
+The shell guard is not a sandbox: arbitrary programs, generated scripts and Git
+aliases can hide writes. Use OS-level controls for an untrusted agent.
+
+## Bundled resources
+
+`skills/commit-action/` contains its style guides, validator and executor.
+They resolve from the installed skill location, not the working repository.
+The generated Claude wrapper also exports `styles/` for compatibility.
+
+`commit-style` explains the rules; `validate-commits` runs the seven final
+history checks. No guard automatically confirms a message or initiates a push.

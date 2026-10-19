@@ -3,10 +3,12 @@
 # and lands as the final commit's full message body.
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# Helpers are linted separately; pre-commit may batch this file without them.
+# shellcheck source=/dev/null
 source "$SCRIPT_DIR/helpers.sh"
 BUILD_TODO="$SCRIPT_DIR/../lib/build-todo.sh"
 
-tmp=$(mktemp -d); trap "rm -rf $tmp" EXIT
+tmp=$(mktemp -d); trap 'rm -rf "$tmp"' EXIT
 
 # 1. Build a real repo with 3 commits, each with a body.
 mk_repo "$tmp/repo"
@@ -64,7 +66,7 @@ EOF
 todo="$tmp/todo"
 bash "$BUILD_TODO" "$plan" "$msgdir" > "$todo"
 
-GIT_EDITOR=true \
+__GIT_COMMIT_PLUGIN__=1 GIT_EDITOR=true \
 GIT_SEQUENCE_EDITOR="cat $todo >" \
   $GIT rebase -i "$base"
 
@@ -80,7 +82,7 @@ if ! grep -qF "$expected_body_fragment" <<<"$final_msg"; then
   echo "FAIL: body fragment missing"
   echo "  want fragment: $expected_body_fragment"
   echo "  got message:"
-  echo "$final_msg" | sed 's/^/    /'
+  printf '%s\n' "$final_msg"
   exit 1
 fi
 

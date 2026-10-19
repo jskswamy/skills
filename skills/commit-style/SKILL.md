@@ -9,17 +9,17 @@ This skill provides **educational context** about writing effective git commit m
 
 ## When NOT to Activate
 
-Do NOT use this skill when the user wants to **perform a commit**. The following are handled by the `commit` skill:
+Do NOT use this skill when the user wants to **perform a commit**. The following are handled by the `commit-action` skill:
 - "commit these changes"
 - "let's commit"
 - "make a commit"
 - "commit this"
 
-For action requests, the `commit` skill invokes the `/commit` workflow.
+For action requests, load the `commit-action` skill behind `/commit`.
 
 ## Available Commit Styles
 
-This plugin supports multiple commit styles. For detailed rules, examples, and anti-patterns, read the style files in the `styles/` directory:
+Load the installed `commit-action` skill to locate its bundled `styles/` directory. It owns the authoritative rules; resolve paths from that skill's absolute location, not the working repository:
 
 - **Classic** (`styles/classic.md`) - Traditional git commit style following the "7 Rules"
 - **Conventional** (`styles/conventional.md`) - Structured format for automation
@@ -30,7 +30,7 @@ This plugin supports multiple commit styles. For detailed rules, examples, and a
 |--------|---------|--------------|
 | Subject case | Capitalized | lowercase |
 | Type prefix | No | Yes (feat:, fix:, etc.) |
-| Max subject | 50 chars | 50 chars (including type) |
+| Max subject | 50 chars | 72 chars (including type) |
 | Body wrap | 72 chars | 72 chars |
 | Mood | Imperative | Imperative |
 | Automation | Manual | Changelog/semver friendly |
@@ -73,4 +73,4 @@ An atomic commit represents a **single, complete, coherent unit of work**.
 
 ## Detailed Style Guides
 
-For comprehensive rules, examples, and anti-patterns for each style, read the corresponding file in the `styles/` directory. The style files are the authoritative source for formatting rules.
+For comprehensive rules and examples, read the corresponding file in the installed commit-action skill's `styles/` directory.
