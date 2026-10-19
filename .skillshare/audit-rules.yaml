@@ -11,13 +11,14 @@ rules:
     regex: '(?i)\b(dig|nslookup|host)\b\s+.*(\$[({]|`)'
     exclude: '(?i)host contains'
 
-  # review-commits/lib/apply-split.sh drives git on purpose.
+  # apply-split.sh drives Git and its fixed sibling commit-action executor.
+  # Exempt only that Node call signature, not arbitrary Node subprocesses.
   - id: shell-execution-0
     severity: HIGH
     pattern: shell-execution
     message: "Python shell execution detected"
     regex: '(?i)\b(os\.system|subprocess\.(run|call|Popen|check_output|check_call))\s*\('
-    exclude: "subprocess\\.\\w+\\(\\['git'"
+    exclude: "subprocess\\.\\w+\\(\\['git'|^\\s*subprocess\\.run\\(\\['node', commit_script, '--message-file', message_file\\.name,\\s*$"
 
   # Pinned versions (pkg@1.2.3) are reproducible; only flag unpinned npx -y.
   - id: untrusted-install-0

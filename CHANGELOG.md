@@ -16,6 +16,15 @@ Add shared shell and MCP guards plus a Pi command so missed skill
 selection redirects to message validation and explicit confirmation.
 Keep settings optional and leave remote synchronization to the user.
 
+- Allow the bundled commit executor in audits
+
+The split helper now calls the bundled Node executor instead of Git.
+The existing audit exception recognized only direct Git subprocesses,
+so the pre-push gate rejected the intended commit workflow.
+
+Exempt only the bundled executor call signature. Keep arbitrary Node
+and shell subprocess calls blocked at HIGH severity.
+
 ## [2.1.22] - 2026-10-19
 
 ### Other
