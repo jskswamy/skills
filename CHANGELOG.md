@@ -2,6 +2,20 @@
 
 All notable changes to this skills/plugins collection will be documented in this file.
 
+## [2.1.23] - 2026-10-19
+
+### Other
+
+- Make commit routing repository-independent
+
+Repository instructions were not enough to keep automatic commits on
+the validated path. Bundle commit resources with the skill and route
+task completion, amendments and history replay through the same flow.
+
+Add shared shell and MCP guards plus a Pi command so missed skill
+selection redirects to message validation and explicit confirmation.
+Keep settings optional and leave remote synchronization to the user.
+
 ## [2.1.22] - 2026-10-19
 
 ### Other
@@ -3065,6 +3079,7 @@ as a dependency.
 ### Removed
 
 - Remove welcome message from shell hook by @jskswamy
+[2.1.23]: https://github.com/jskswamy/skills/compare/v2.1.22..v2.1.23
 [2.1.22]: https://github.com/jskswamy/skills/compare/v2.1.21..v2.1.22
 [2.1.21]: https://github.com/jskswamy/skills/compare/v2.1.20..v2.1.21
 [2.1.20]: https://github.com/jskswamy/skills/compare/v2.1.19..v2.1.20
