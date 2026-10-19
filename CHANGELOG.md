@@ -2,6 +2,16 @@
 
 All notable changes to this skills/plugins collection will be documented in this file.
 
+## [2.1.22] - 2026-10-19
+
+### Other
+
+- Reduce commit skill context overhead
+
+Shorten invocation descriptions and move the branch review workflow
+into a linked reference without changing its safeguards.
+Add regression checks and regenerate plugin copies.
+
 ## [2.1.21] - 2026-10-19
 
 ### Changed
@@ -3055,6 +3065,7 @@ as a dependency.
 ### Removed
 
 - Remove welcome message from shell hook by @jskswamy
+[2.1.22]: https://github.com/jskswamy/skills/compare/v2.1.21..v2.1.22
 [2.1.21]: https://github.com/jskswamy/skills/compare/v2.1.20..v2.1.21
 [2.1.20]: https://github.com/jskswamy/skills/compare/v2.1.19..v2.1.20
 [2.1.19]: https://github.com/jskswamy/skills/compare/v2.1.18..v2.1.19
