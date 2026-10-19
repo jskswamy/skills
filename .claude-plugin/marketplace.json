@@ -52,7 +52,7 @@
     {
       "name": "commit-tools",
       "description": "End-to-end commit hygiene: write atomic commits with style enforcement, review and consolidate them before push, validate the final history",
-      "version": "1.0.7",
+      "version": "1.0.8",
       "author": {
         "name": "Krishnaswamy Subramanian"
       },
@@ -103,7 +103,7 @@
     {
       "name": "craft",
       "description": "The craft of building software end-to-end: capture ideas, understand problems, decompose work into structured units, dispatch subagents to execute them, and commit with full task context",
-      "version": "1.0.2",
+      "version": "1.0.3",
       "author": {
         "name": "Krishnaswamy Subramanian"
       },
