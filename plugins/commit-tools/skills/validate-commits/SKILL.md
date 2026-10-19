@@ -1,14 +1,6 @@
 ---
 name: validate-commits
-description: >
-  Validate commits before pushing. Runs seven deterministic checks: clean
-  worktree, tests pass, no AI co-author leaks (Claude, Anthropic, GPT,
-  OpenAI, Copilot), no conflict markers, no squash/fixup residue,
-  subject lines conform to the configured style (classic or conventional),
-  and no tracker-ID leaks.
-  Activates on: "validate commits", "check commits before push",
-  "any AI leaks", "check for co-author", "are my commits clean",
-  "validate before pushing", "check commits".
+description: Use when checking commits before pushing, validating commit style or hygiene, checking for AI attribution or tracker leaks, or running unattended commit validation.
 argument-hint: "[--base <ref>] [--unattended] [--result <path>] [--test-cmd <cmd>]"
 ---
 
