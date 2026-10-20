@@ -1,6 +1,6 @@
 ---
 name: bivouac
-description: Use when the user asks to manage disposable remote coding-agent sessions, VMs, configuration, or custom cloud images with the bivouac CLI, including start, status, attach, pull, merge, delete, up, down, and image generate/build/list/tag/prune.
+description: Use when the user asks to manage disposable remote coding-agent sessions, VMs, configuration, or custom cloud images with the bivouac CLI, including start, status, issues, attach, pull, merge, delete, up, down, and image generate/build/list/tag/prune.
 ---
 
 # Bivouac Skill
@@ -9,7 +9,7 @@ description: Use when the user asks to manage disposable remote coding-agent ses
 
 Use this skill when the user wants to start, inspect, attach to, retrieve, merge, or shut down a disposable remote coding-agent workspace managed by `bivouac`.
 
-Bivouac sessions are repo-scoped; image operations can run outside a repository. It creates a remote VM from declarative config, starts named git-backed sessions on that instance, and brings work home through `session pull` or `session merge`. The skill's job is to choose safe next steps from deterministic state checks and the CLI's own metadata, not to reimplement the CLI.
+Bivouac sessions are repo-scoped; image operations can run outside a repository. It creates a remote VM from declarative config, starts named git-backed sessions on that instance, tracks session issue progress live, and brings work home through `session pull` or `session merge`. The skill's job is to choose safe next steps from deterministic state checks and the CLI's own metadata, not to reimplement the CLI.
 
 ## Preflight Checks
 
@@ -41,6 +41,8 @@ bivouac manifest
 bivouac status --json
 bivouac list --json
 bivouac session list --json
+bivouac session status [name] --json
+bivouac session issues [name] --json
 ```
 
 Use `bivouac manifest` to discover current commands, flags, side effects, JSON support, and examples instead of scraping prose help or relying on memory.
@@ -70,10 +72,11 @@ Route by combining the user's request with detected state:
 | Config exists, no instance | Offer `bivouac up`. |
 | Instance exists, no sessions | Offer `bivouac session start <name>`. |
 | Start requested | Check local git state, choose or confirm a session name, run `bivouac up` if needed, then run `bivouac session start <name>` with `--task` or `--issue` when context is available. |
-| Pull requested | Resolve the session from an explicit argument, current worktree, or the only active session. If ambiguous, ask. Run `bivouac session pull [name]`. |
-| Merge requested | Require an unambiguous session and clean main/session worktrees. Explain local signed replay and resumable retirement. Run `bivouac session merge [name]`. |
-| Delete requested | Resolve the session and confirm the target. Plain delete protects unmerged work; `--force` needs explicit authority to discard it. |
-| Status requested | Run `bivouac status` and usually `bivouac session list`; use `--json` when the result will be parsed. |
+| Pull requested | Resolve the session from an explicit argument, current worktree, or the only active session. If ambiguous, ask. Run `bivouac session pull [name]`. Reviews new commits and issue sync receipt. |
+| Merge requested | Require an unambiguous session and clean main/session worktrees. Explain local signed replay, issue verification, and resumable retirement. Run `bivouac session merge [name]`. If paused on unsynced issues that cannot land, use `--accept-unsynced` with operator approval. |
+| Delete requested | Resolve the session and confirm the target. Plain delete protects unmerged commits and unlanded issue changes; `--force` needs explicit authority to discard them. |
+| Status requested | For the instance, run `bivouac status`; for session progress (epic issues and attention items), run `bivouac session status [name]`; for session inventory across instances, run `bivouac session list`. Use `--json` when parsing. |
+| Issues requested | Run `bivouac session issues [name]` to inspect live issue changes and sync state (`✓`, `✗`, `?`) before pulling. |
 | Cost requested | Run `bivouac list --cost`; use `--json` when parsing fleet-wide state. |
 | SSH/attach requested | Run `bivouac ssh`, `bivouac tmux`, `bivouac herdr`, or `bivouac pair` after summarizing the target. Remember `bivouac herdr [name]` takes an instance name, not a session name. |
 | Port requested | Prefer `bivouac connect --port <port>` for temporary access. Use `serve`/`unserve` only when publishing on the tailnet is clearly requested. |
@@ -183,16 +186,53 @@ bivouac ssh
 
 ### Observe or Attach
 
-For a read-only summary:
+For an instance overview or cost:
 
 ```bash
 bivouac status
-bivouac session list
+bivouac list --cost
 bivouac status --json
+bivouac list --json
+```
+
+`bivouac status` describes the remote VM instance (IP, uptime, cost, live reachable state). It does not report session progress.
+
+For session inventory across all instances:
+
+```bash
+bivouac session list
 bivouac session list --json
 ```
 
-For an interactive shell or agent-facing view, choose the command the user requested:
+For live session progress and issue status, query the instance directly (never cached or last-known):
+
+```bash
+bivouac session status [name]
+bivouac session status [name] --json
+```
+
+`bivouac session status [name]` reads live state from the instance:
+- Displays retirement state, unmerged commit count, and worktree condition (`clean`, `dirty`, or `no worktree`).
+- For sessions started with `--issue <epic-id>`, shows progress against the epic: planned issues closed (`✓` closed, `◐` in progress, `○` open, `✗` removed), "X of Y planned closed", followed by issues discovered during the session (and how many are closed) and updated issue counts.
+- For sessions without an epic target, reports honest counts of created, closed, and updated issues.
+- Highlights items needing operator attention: rewritten base branch or issue history, or the target epic closed while planned work remains open.
+- For sessions with no start record, accurately explains whether issue reporting predates the session or is absent.
+
+For live issue changes and sync state without pulling:
+
+```bash
+bivouac session issues [name]
+bivouac session issues [name] --json
+```
+
+`bivouac session issues [name]` lists every issue the session created, closed, updated, or removed so far, with its local sync status:
+- `✓` synced: issue change has reached the local database.
+- `✗` not synced: issue change exists on the instance but has not landed locally.
+- `?` unknown: local `bd` is unavailable or could not be verified.
+
+It also reports the target epic status and any discovered issues filed outside that epic. Run before `session pull` to preview what a pull will bring.
+
+For an interactive shell or agent-facing view, choose the command requested:
 
 ```bash
 bivouac ssh
@@ -202,6 +242,8 @@ bivouac pair
 ```
 
 `bivouac herdr [name]` takes an optional instance name. Bivouac resolves the session from the current worktree, the only live session, or an interactive picker when a terminal is available. Outside Herdr it launches Herdr against the instance SSH endpoint. Inside Herdr it registers or focuses one saved machine for the instance and creates or focuses a workspace named for the bivouac session. If no session resolves inside Herdr, start one first or run Herdr outside Herdr to attach to its default remote session.
+
+In interactive progress panes (`up`, `provision`), Ctrl-C stops the terminal display and detaches without killing the remote operation (e.g. background Home Manager switch continues; re-attach with `bivouac provision`).
 
 Do not attach to a destructive workflow. Observation commands should not merge, delete, down, provision, serve, or unserve.
 
@@ -222,6 +264,11 @@ Resolve `[name]` in this order:
 
 If multiple sessions are possible, ask which one to pull.
 
+`session pull` ends with an issue receipt summarizing `created`, `closed`, `updated`, and `removed` issues:
+- When all issues have landed locally, reports `all X synced ✓`.
+- If any issue has not landed locally, reports `X NOT synced` and lists each straggler with instance vs local timestamps (`hh:mm`, `missing`, or `unknown`).
+- Issues move independently of git commits: an agent that only triaged or updated issues still produces an issue receipt even when no new commits are pulled.
+
 ### Merge Session Work
 
 Use merge when the user wants to replay the session's commits onto the current branch with the local user's signature:
@@ -235,11 +282,17 @@ bivouac session merge [name]
 Before merging:
 
 - require an unambiguous session and clean main/session worktrees,
-- warn that merge replays/signs/verifies commits locally, then retires the session and its recorded Herdr resources,
+- warn that merge replays/signs/verifies commits locally, pulls and verifies issue changes, and then retires the session and its recorded Herdr resources,
 - remind the user that merge does not push to a shared git remote,
-- remind the user to push any issue database remote separately when their workflow requires it.
+- remind the user to push any issue database remote separately when their workflow requires it (`bd dolt push` or `bd sync`).
 
 Replay uses the session's recorded starting commit, so rebasing, folding, or re-signing the destination branch does not by itself prevent merge. If that starting commit has been garbage-collected, pull the session, apply the work manually, and verify it before requesting a forced delete.
+
+Merge verifies session issues before retiring the session:
+- For a session that records where its issues started, merge pulls the session's issues and verifies that *every* issue the session touched has landed locally before deleting the instance's copy.
+- If any issue is not synced (or the instance issue history was rewritten, or local `bd` is unavailable), merge pauses with `pausedOn: "issues"` ("issues not synced") and lists the unsynced issues. Rerunning `bivouac session merge [name]` pulls and checks again.
+- `--accept-unsynced`: for gaps that can never close (such as an issue intentionally deleted locally), run `bivouac session merge [name] --accept-unsynced`. This merges anyway and lists the accepted unverified issues. It *never* steps over a failed pull (network/SSH failure) or commit checks. Always seek operator approval before passing `--accept-unsynced`.
+- If the repository syncs issues elsewhere (`ModeGit` or `ModeExternal`), bivouac reminds: `"issues are only local until you \`bd dolt push\`"`.
 
 If merge reports conflicts, stop and let the user resolve them with the normal git flow. After `git cherry-pick --continue`, rerun `bivouac session merge [name]`; merge resumes where it stopped rather than replaying commits that already landed. For other failures, follow [Resumable Retirement](#resumable-retirement).
 
@@ -353,9 +406,13 @@ bivouac session delete <name>
 
 Plain delete refuses commits not on the current branch or issue changes not landed locally. Manually cherry-picked, rebased, or re-signed work can have different hashes: verify it landed before seeking explicit discard approval for `bivouac session delete <name> --force`.
 
+If plain delete pauses on a Herdr workspace that can no longer be proven to belong to the session (its original pane was closed or replaced), it instructs the operator to close the workspace in Herdr manually and retry, or use `--force` to leave it open with a warning.
+
 ### Resumable Retirement
 
-Merge and delete record durable progress. Inspect `bivouac session list --json` for `retirementPhase` and `lastFailure`. When cleanup stops, preserve recovery state and rerun the same command; a completed retry succeeds from its completion receipt.
+Merge and delete record durable progress. Inspect `bivouac session list --json` for `retirementPhase`, `pausedOn`, and `lastFailure`. When cleanup stops, preserve recovery state and rerun the same command; a completed retry succeeds from its completion receipt.
+
+When `pausedOn` is "issues", merge paused because touched issues have not synced locally. Pull the issues and verify they landed, or pass `--accept-unsynced` with operator approval.
 
 A merge or delete refused before accepting work may be replaced with an explicitly approved `session delete <name> --force`; a plain delete paused in cleanup may also gain `--force`. Once removal has begun or merge has accepted work, finish with the original operation. `session merge` has no `--force` flag.
 
@@ -427,7 +484,9 @@ Preserve these invariants:
 - Do not place GitHub credentials or signing keys on the instance.
 - Treat `beads = "dolthub"` as credential-bearing mode. Warn that the DoltHub credential is account-wide for the life of the instance.
 - Treat `session merge` as local replay/sign/verify, not a remote push.
-- After merge, remind the operator to push any separate issue database remote when their workflow requires it.
+- After merge, remind the operator to push any separate issue database remote (`bd dolt push` or `bd sync`) when their repository syncs issues elsewhere.
+- Plain delete and merge protect against unlanded issue changes in addition to unmerged commits.
+- Never pass `--accept-unsynced` or `--force` without explicit operator authority.
 - Do not run `provision`, `down`, `delete`, `serve`, `unserve`, image builds, tagging, or pruning without clear user intent; explain billing, config writes, and retention before an image build.
 - Prefer status output over action when session resolution is ambiguous.
 

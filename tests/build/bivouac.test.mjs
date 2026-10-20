@@ -32,3 +32,13 @@ test("bivouac config guidance uses public key paths and curated agents", () => {
   assert.match(skill, /allowUnfreePackages/);
   assert.match(skill, /agents.*packages/);
 });
+
+test("bivouac covers session status, issues tracking, and merge verification", () => {
+  assert.match(skill, /session status \[name\]/);
+  assert.match(skill, /session issues \[name\]/);
+  assert.match(skill, /--accept-unsynced/);
+  assert.match(skill, /pausedOn.*issues/);
+  assert.match(skill, /bd dolt push/);
+  assert.match(skill, /synced ✓/);
+});
+

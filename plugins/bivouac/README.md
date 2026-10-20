@@ -11,7 +11,7 @@ Safe workflows for disposable remote coding-agent sessions with bivouac.
 ## Commands
 
 ```text
-/bivouac [start|status|pull|merge|delete|ssh|connect|serve|unserve|sync|download|provision|down|image] [request...]
+/bivouac [start|status|issues|pull|merge|delete|ssh|connect|serve|unserve|sync|download|provision|down|image] [request...]
 ```
 
 The command is a thin wrapper around the canonical `bivouac` skill and forwards all arguments exactly as provided.

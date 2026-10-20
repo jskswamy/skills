@@ -1,7 +1,7 @@
 ---
 name: bivouac
 description: Manage disposable remote coding-agent sessions and custom cloud images with bivouac
-argument-hint: "[start|status|pull|merge|delete|ssh|connect|serve|unserve|sync|download|provision|down|image] [request...]"
+argument-hint: "[start|status|issues|pull|merge|delete|ssh|connect|serve|unserve|sync|download|provision|down|image] [request...]"
 ---
 
 # /bivouac Command
