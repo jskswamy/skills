@@ -2,6 +2,25 @@
 
 All notable changes to this skills/plugins collection will be documented in this file.
 
+## [2.1.24] - 2026-10-20
+
+### Changed
+
+- Update bivouac skill for session issue tracking
+
+Document the live session inspection and issue synchronization checks
+introduced in cloudlab.
+
+Cover `bivouac session status [name]` for querying epic progress,
+planned and discovered issues, and attention items live from the
+instance. Document `bivouac session issues [name]` for previewing
+touched issue changes and sync states prior to pulling.
+
+Explain the issue receipt and verification gate on merge, the
+`--accept-unsynced` flag for uncloseable sync gaps, plain delete checks
+over unmerged commits and unlanded issues, and the reminder to push
+separate issue database remotes.
+
 ## [2.1.23] - 2026-10-19
 
 ### Other
@@ -3088,6 +3107,7 @@ as a dependency.
 ### Removed
 
 - Remove welcome message from shell hook by @jskswamy
+[2.1.24]: https://github.com/jskswamy/skills/compare/v2.1.23..v2.1.24
 [2.1.23]: https://github.com/jskswamy/skills/compare/v2.1.22..v2.1.23
 [2.1.22]: https://github.com/jskswamy/skills/compare/v2.1.21..v2.1.22
 [2.1.21]: https://github.com/jskswamy/skills/compare/v2.1.20..v2.1.21
