@@ -29,18 +29,24 @@ actions:
       Reworded subject
 
       Body line.
+  - hash: eeeeeee
+    action: fixup
+    fixup_for: aaaaaaa
+    fixup_target_message: |
+      Final parent message after non-adjacent fixup
 EOF
 
 todo=$(bash "$SCRIPT" "$plan" "$msgdir")
 expected="pick aaaaaaa
 fixup bbbbbbb
+fixup eeeeeee
 drop ccccccc
 pick ddddddd"
 assert_eq "$(grep -v '^exec ' <<<"$todo")" "$expected" "todo actions"
-assert_eq "$(grep -c '^exec ' <<<"$todo")" 2 "two message applications"
+assert_eq "$(grep -c '^exec ' <<<"$todo")" 3 "three message applications"
 
 # message files written
-assert_eq "$(cat "$msgdir/aaaaaaa")" "Retitled parent message" "fixup target message file"
+assert_eq "$(cat "$msgdir/aaaaaaa")" "Final parent message after non-adjacent fixup" "fixup target message file"
 assert_eq "$(head -1 "$msgdir/ddddddd")" "Reworded subject" "reword message file subject"
 assert_eq "$(cat "$msgdir/ddddddd")" "Reworded subject
 

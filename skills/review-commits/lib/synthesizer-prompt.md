@@ -151,7 +151,10 @@ flow runs these steps inline.
 7. **Emit `plan.yaml` to `$WORKING_DIR/plan.yaml`** matching
    `lib/plan-schema.md`. Cluster collapse uses `pick` on the first commit
    (with `new_message`) and `fixup` on the rest, per `plan-schema.md`'s
-   "Logical clustering" section.
+   "Logical clustering" section. For any non-adjacent `fixup` (where the
+   target commit is not the immediately preceding kept commit), set
+   `fixup_for: <target-hash>` so `build-todo.sh` reorders the fixup
+   immediately after its target commit.
 
 8. **Reply with a one-line summary and action counts** before handing off
    to the plan-review user gate.

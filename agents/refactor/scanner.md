@@ -166,17 +166,19 @@ For each candidate, capture the involved types in a `note` field on the yaml out
 
 **Goal:** Detect places where conditional logic on a type tag should be replaced with polymorphism.
 
+When `ast-grep` is available (`command -v ast-grep >/dev/null 2>&1`), prefer structural AST queries (`ast-grep -p '<pattern>' -l <lang>`) over line-based `grep` so multi-line switch/conditional blocks are matched accurately. If `ast-grep` is not installed, fall back to `rg`/`Grep` + `Read` without failing the scan.
+
 Apply per language:
 
-- **Go:** grep the function set's source for `switch x.(type)` blocks. If a switch has ≥3 cases and the same switch shape appears in ≥2 different functions → flag **Replace Conditional with Polymorphism**. Also flag fields named `Type`, `Kind`, or similar with `string` or `int` typing combined with `switch`/`if` chains on the field's value → **Replace Type Code with Subclasses**.
-- **Python:** grep for `isinstance(x, ...)` chains with ≥3 alternatives and `type(x) ==` chains. Same flag rules.
-- **TypeScript / JavaScript:** grep for discriminated unions handled with `switch (x.kind)` or `switch (x.type)` chains, and `instanceof` chains with ≥3 alternatives.
+- **Go:** search the function set's source (via `ast-grep` or `grep`) for `switch x.(type)` blocks. If a switch has ≥3 cases and the same switch shape appears in ≥2 different functions → flag **Replace Conditional with Polymorphism**. Also flag fields named `Type`, `Kind`, or similar with `string` or `int` typing combined with `switch`/`if` chains on the field's value → **Replace Type Code with Subclasses**.
+- **Python:** search (via `ast-grep` or `grep`) for `isinstance(x, ...)` chains with ≥3 alternatives and `type(x) ==` chains. Same flag rules.
+- **TypeScript / JavaScript:** search (via `ast-grep` or `grep`) for discriminated unions handled with `switch (x.kind)` or `switch (x.type)` chains, and `instanceof` chains with ≥3 alternatives.
 
 For each candidate, the `new_function` is the function containing the discriminant; `matches` lists the other functions with the same switch shape.
 
 ### Pass E: Idiom Check (Section 5.5)
 
-**Goal:** Detect language-specific anti-patterns with structural or correctness impact. No codebase-memory query needed — the signal is in the diff alone.
+**Goal:** Detect language-specific anti-patterns with structural or correctness impact. No codebase-memory query needed — the signal is in the diff alone. When scanning package or repo files, prefer `ast-grep -p '<pattern>' -l <lang>` if `command -v ast-grep >/dev/null 2>&1` succeeds to match multi-line syntax anti-patterns without regex false positives; otherwise fall back to `rg`/`Grep` + `Read`.
 
 9. Detect the primary language of the diff from file extensions.
 

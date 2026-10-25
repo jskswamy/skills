@@ -9,6 +9,7 @@ style_file: <absolute path>           # required — path to styles/<name>.md
 actions:
   - hash: <abbrev hash>               # required — 7+ char abbrev
     action: pick|fixup|squash|drop|reword|edit
+    fixup_for: <target abbrev hash>   # optional — target parent hash when fixup is non-adjacent
     new_message: |                    # optional — required iff action ∈ {squash,reword}
       <full multi-line message>
     fixup_target_message: |           # optional — required iff action == fixup

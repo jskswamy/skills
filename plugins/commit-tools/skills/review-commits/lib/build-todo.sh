@@ -49,7 +49,8 @@ def parse_literal_block(block, key):
 
 
 prev_pick = None
-todo_lines = []
+groups = []
+by_hash = {}
 
 for blk in blocks:
     blk = blk.strip()
@@ -65,43 +66,58 @@ for blk in blocks:
     a = a_match.group(1)
 
     if a == 'pick':
-        todo_lines.append(f'pick {h}')
+        lines = [f'pick {h}']
         msg = parse_literal_block(blk, 'new_message')
         if msg is not None:
             with open(os.path.join(msgdir, h), 'w') as f:
                 f.write(msg)
-            todo_lines.append('exec ' + shlex.join(['node', commit_script, '--amend', '--message-file', os.path.join(msgdir, h), '--style', style]))
+            lines.append('exec ' + shlex.join(['node', commit_script, '--amend', '--message-file', os.path.join(msgdir, h), '--style', style]))
+        groups.append(lines)
+        by_hash[h] = lines
         prev_pick = h
     elif a == 'fixup':
-        todo_lines.append(f'fixup {h}')
+        target_match = re.search(r'^    fixup_for:\s*(\S+)', blk, re.MULTILINE)
+        if target_match and not re.match(r'^[0-9a-f]{4,40}$', target_match.group(1)):
+            sys.exit(f"plan.yaml: fixup_for field is not a hex SHA: {target_match.group(1)!r}")
+        target = target_match.group(1) if target_match else prev_pick
+        target_lines = by_hash.get(target) if target else None
+        if target_lines is None:
+            target_lines = []
+            groups.append(target_lines)
+        target_lines.append(f'fixup {h}')
         msg = parse_literal_block(blk, 'fixup_target_message')
-        if msg is not None and prev_pick is not None:
-            with open(os.path.join(msgdir, prev_pick), 'w') as f:
+        if msg is not None and target is not None:
+            with open(os.path.join(msgdir, target), 'w') as f:
                 f.write(msg)
-            todo_lines.append(
-                'exec ' + shlex.join(['node', commit_script, '--amend', '--message-file', os.path.join(msgdir, prev_pick), '--style', style])
+            target_lines.append(
+                'exec ' + shlex.join(['node', commit_script, '--amend', '--message-file', os.path.join(msgdir, target), '--style', style])
             )
         # Do NOT update prev_pick
     elif a == 'drop':
-        todo_lines.append(f'drop {h}')
+        groups.append([f'drop {h}'])
         # Do NOT update prev_pick
     elif a in ('reword', 'squash'):
-        todo_lines.append(f'pick {h}')
+        lines = [f'pick {h}']
         msg = parse_literal_block(blk, 'new_message')
         if msg is not None:
             with open(os.path.join(msgdir, h), 'w') as f:
                 f.write(msg)
-            todo_lines.append(
+            lines.append(
                 'exec ' + shlex.join(['node', commit_script, '--amend', '--message-file', os.path.join(msgdir, h), '--style', style])
             )
+        groups.append(lines)
+        by_hash[h] = lines
         prev_pick = h
     elif a == 'edit':
         # The helper performs the approved split; a Git edit would pause first.
-        todo_lines.append(f'pick {h}')
-        todo_lines.append(
-            'exec ' + shlex.join(['bash', split_script, h, plan_path])
-        )
+        lines = [
+            f'pick {h}',
+            'exec ' + shlex.join(['bash', split_script, h, plan_path]),
+        ]
+        groups.append(lines)
+        by_hash[h] = lines
         prev_pick = h
 
+todo_lines = [line for group in groups for line in group]
 print('\n'.join(todo_lines))
 PYEOF

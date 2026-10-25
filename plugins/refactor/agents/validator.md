@@ -105,7 +105,7 @@ TDD-first refactoring steps:
    <list every resolved candidate's qualified_name and file:line>
 2. Run the tests and confirm they pass.
 3. Introduce the new shared abstraction per the target shape above.
-4. Update each call site listed below to use the new abstraction:
+4. Update each call site listed below to use the new abstraction (when `command -v ast-grep >/dev/null 2>&1` is available and call sites follow a uniform syntax pattern, use `ast-grep -p '<old>' -r '<new>' -l <lang> -U`; otherwise update each file with standard Edit tools):
    <list every related_caller from every resolved candidate, deduplicated>
 5. Run the tests again and confirm behavior is unchanged.
 6. Remove the now-unused duplicate implementations.

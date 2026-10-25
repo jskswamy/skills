@@ -9,7 +9,7 @@ Enrich codebase exploration with indexed knowledge from `codebase-memory-mcp`. T
 
 ## Route by the Question
 
-Choose the tool that fits the question. For callers, callees, dependencies, impact, or an unknown execution flow, use the graph (`search_graph`, `trace_path`). For exact text, flags or literals, use literal search (`rg`, `search_code`). For a known file's full contents, read it directly. For evaluated behaviour or measurements, use the runtime or toolchain. Verify the relevant source before concluding or editing. If a graph query is irrelevant, refine it once with known names or path filters, then use targeted text search for the gap, and report the actual condition (no coverage, poor relevance, transport unavailable) instead of calling it a broken connection.
+Choose the tool that fits the question. For callers, callees, dependencies, impact, or an unknown execution flow, use the graph (`search_graph`, `trace_path`). For structural syntax patterns (function calls, AST shapes, multi-line expressions) or deterministic multi-file syntax rewrites, use `ast-grep` (`ast-grep -p '<pattern>' -l <lang>`, or `ast-grep -p '<pattern>' -r '<rewrite>' -l <lang> -U`) when `command -v ast-grep >/dev/null 2>&1` succeeds; if `ast-grep` is unavailable, fall back to `rg`/`Grep` + `Read` and standard file-edit tools. For exact text, flags or literals, use literal search (`rg`, `search_code`). For querying or aggregating structured data files (`.jsonl`, `.csv`, `.parquet`, `.sqlite`, `.beads/issues.jsonl`, or session transcripts), use `duckdb -c "SELECT ..."` when `command -v duckdb >/dev/null 2>&1` succeeds; if `duckdb` is unavailable, fall back to `jq` (for JSON/JSONL), `sqlite3` (for SQLite), or `awk`/`python3` (for CSV). For a known file's full contents, read it directly. For evaluated behaviour or measurements, use the runtime or toolchain. Verify the relevant source before concluding or editing. If a graph query is irrelevant, refine it once with known names or path filters, then use targeted structural (`ast-grep`, if installed) or text (`rg`) search for the gap, and report the actual condition (no coverage, poor relevance, transport unavailable) instead of calling it a broken connection.
 
 ## Codebase Transport
 
@@ -91,5 +91,5 @@ Code, `/codebase:ask` remains a convenience command for the same workflow.
 
 If a tool call fails during exploration, first retry MCP connection failures through CLI as described above. If the selected transport still fails:
 - Do NOT fail the overall workflow
-- Fall back to available search/read tools for the specific information needed, such as `Grep`/`Glob`/`Read` in Claude Code or `grep`/`find`/`read`/`bash` in Pi
+- Fall back to available search/read tools for the specific information needed: `ast-grep` (if installed; otherwise `rg`/`Grep` + `Read`) for structural syntax patterns, `duckdb` (if installed; otherwise `jq`/`sqlite3`/`python3`) for structured data (`.jsonl`, `.csv`, `.parquet`, `.sqlite`), and `Grep`/`Glob`/`Read` in Claude Code or `rg`/`grep`/`find`/`read`/`bash` in Pi for text and files
 - Continue with whatever results are available

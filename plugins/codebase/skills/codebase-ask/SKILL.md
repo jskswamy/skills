@@ -116,4 +116,4 @@ Format the answer with:
 
 Do NOT dump raw MCP JSON. Synthesize the results into a clear narrative.
 
-If `codebase-memory-mcp` returns no results or empty results for any query, fall back to available search/read tools for that specific sub-query, such as `Grep`/`Glob`/`Read` in Claude Code or `grep`/`find`/`read`/`bash` in Pi. Do not fail silently — try the fallback and include those results in the answer.
+If `codebase-memory-mcp` returns no results or empty results for any query, fall back to available search/read tools for that specific sub-query: `ast-grep -p '<pattern>' -l <lang>` (if `command -v ast-grep >/dev/null 2>&1` succeeds; otherwise `rg`/`Grep` + `Read`) for structural syntax queries, `duckdb -c "SELECT ..."` (if `command -v duckdb >/dev/null 2>&1` succeeds; otherwise `jq`/`sqlite3`/`python3`) for structured data files (`.jsonl`, `.csv`, `.parquet`, `.sqlite`), and `Grep`/`Glob`/`Read` in Claude Code or `rg`/`grep`/`find`/`read`/`bash` in Pi for literal text and files. Do not fail silently — try the fallback and include those results in the answer.

@@ -17,3 +17,9 @@ Code Discovery Protocol:
    always Read a file before editing it.
 3. If a project is not indexed yet, follow the codebase-index/codebase-explore flow: ask before indexing unless auto_index is always, and never index when it is never.
 REMINDER
+if command -v ast-grep >/dev/null 2>&1; then
+  echo "4. Use ast-grep (-p '<pattern>' -l <lang>) for structural AST search and multi-file syntax rewrites (-r '<rewrite>' -U); fall back to rg/Edit when text-only."
+fi
+if command -v duckdb >/dev/null 2>&1; then
+  echo "5. Use duckdb -c \"SELECT ...\" to query or aggregate .jsonl, .csv, .parquet, and .sqlite files instead of complex jq pipelines."
+fi
