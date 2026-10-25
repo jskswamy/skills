@@ -2,6 +2,26 @@
 
 All notable changes to this skills/plugins collection will be documented in this file.
 
+## [2.1.25] - 2026-10-25
+
+### Other
+
+- Route skills to ast-grep, duckdb and git-absorb
+
+Teach codebase, refactor, and commit-review skills to use ast-grep,
+duckdb, and git-absorb when installed while preserving fallbacks when
+absent:
+
+- Check for `ast-grep` explicitly instead of `sg` so Linux hosts with
+  shadow's `sg` switch-group binary do not false-positive
+- Route structural syntax searches and uniform call-site rewrites to
+  `ast-grep`, falling back to `rg`/Grep and standard edit tools
+- Route structured data queries over JSONL, CSV, Parquet, and SQLite
+  to `duckdb`, falling back to `jq`, `sqlite3`, or `python3`
+- Offer `git absorb --base` after a clean dry run in interactive
+  `review-commits` runs without rewriting history before approval
+- Support `fixup_for` in `build-todo.sh` so non-adjacent fixup commits
+  are reordered immediately after their target commit during rebase
 ## [2.1.24] - 2026-10-20
 
 ### Changed
