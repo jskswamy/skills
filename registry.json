@@ -131,7 +131,8 @@
         "agents": [],
         "hooks": [
           "commit-tools/hooks.json",
-          "commit-tools/scripts/intercept-git-commit.sh"
+          "commit-tools/scripts/intercept-git-commit.sh",
+          "commit-tools/scripts/routing-reminder.sh"
         ],
         "templates": [],
         "extra": [
