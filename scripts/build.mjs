@@ -1,9 +1,8 @@
 #!/usr/bin/env node
 // Usage: node scripts/build.mjs [--release] [--out <dir>]
 // Writes into a fresh temp dir by default, so day-to-day builds never touch
-// the repo; only --release writes dist/ and .claude-plugin/ in place.
-import { copyFile, mkdir, mkdtemp } from "node:fs/promises";
-import { existsSync } from "node:fs";
+// the repo; only --release writes dist/, .claude-plugin/, and .agents/ in place.
+import { mkdir, mkdtemp } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { parseArgs } from "node:util";
@@ -28,14 +27,8 @@ if (values.release && values.out) {
   console.error("--release writes into the repository; it cannot be combined with --out");
   process.exit(1);
 }
-if (values.out && existsSync(join(values.out, "package.json"))) {
-  console.error(`${values.out} already has a package.json; pick an empty or new folder for --out`);
-  process.exit(1);
-}
 const outRoot = values.release ? repoRoot : values.out ? resolve(values.out) : await mkdtemp(join(tmpdir(), "skills-build-"));
 await mkdir(outRoot, { recursive: true });
-// Pi loads a package from its package.json, so a non-release build carries one.
-if (outRoot !== repoRoot) await copyFile(join(repoRoot, "package.json"), join(outRoot, "package.json"));
 
 const report = await runAdapters({ repoRoot, outRoot, registry });
 console.log("Generated harness output");

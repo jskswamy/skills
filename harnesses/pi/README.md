@@ -1,98 +1,49 @@
-# Pi Harness Support
+# Pi Harness Support (`harnesses/pi`)
 
-This repository exposes its plugins to Pi as one package, `dist/pi/`, named
-by the hand-written `pi` block in the root `package.json`. The release build
-(`npm run build:release`) writes it from `registry.json` for every plugin
-with `harnesses.pi.enabled`. It is self-contained: the plugins' skills,
-hooks, templates and scripts at their canonical paths, the prompt
-templates, one hook manifest and a copy of the runtime. Do not edit it by
-hand. Tested with Pi 1.4.0.
+## Overview
+Build adapter, Pi extension runtime, and tool-mapping table that package each Pi-enabled registry plugin into a self-contained Pi package under `dist/pi/<plugin>/`. Converts plugin commands into Pi prompt templates (`dist/pi/<plugin>/prompts/`), copies skills and canonical hook resources, and—when a plugin carries hooks—includes a Pi extension (`dist/pi/<plugin>/runtime/pi/runtime.mjs`) that runs canonical Claude Code hooks on Pi lifecycle events.
+
+The release build (`npm run build:release`) writes one Pi package per plugin with `harnesses.pi.enabled` under `dist/pi/<name>/`. Each package is self-contained: it includes the plugin's skills, templates, prompt templates, and—for plugins with hooks—a `hooks.manifest.json` and copy of the runtime. Do not edit generated packages by hand. Tested with Pi 1.4.0.
+
+## Interface
+- `id` (`adapter.mjs`): Harness identifier `"pi"`.
+- `pluginsDir` (`adapter.mjs`): Output directory `"dist/pi"`.
+- `capabilities` (`adapter.mjs`): Declares `skills` (`native`), `commands` (`as-file`), `agents` (`none`), and `hooks` (`shim` for `session-start`, `pre-tool`, `post-tool`, `stop`).
+- `generateRoot({ outRoot, plugins })` (`adapter.mjs`): Removes `<outRoot>/dist/pi` and returns `{ promptName }` collision resolver across enabled plugins.
+- `generate({ repoRoot, outRoot, model, state, report })` (`adapter.mjs`): Copies plugin resources (excluding `commands`, `agents`, and `hooks/hooks.json`) to `<outRoot>/dist/pi/<plugin>/`, converts commands to prompt templates in `prompts/`, reports degraded agents, and—when carried hooks exist—copies `RUNTIME` and writes `hooks.manifest.json` along with `package.json`.
+- `canCarry(entry)` (`adapter.mjs`): Marks `subagent-start` hooks as `notApplicable` and validates `pre-tool`/`post-tool` matchers against `PI_TOOLS`.
+- `validate({ repoRoot, outRoot = repoRoot, plugin })` (`adapter.mjs`): Validates `<outRoot>/dist/pi/<plugin>/package.json` paths using `validatePiPackage` and verifies that all scripts referenced in `hooks.manifest.json` exist.
+- `loadManifest(path)` (`runtime.mjs`): Synchronously reads `entries` from `hooks.manifest.json` (defaulting to `<PACKAGE_ROOT>/hooks.manifest.json`), returning `[]` on error.
+- `createRuntime({ entries, root, log })` (`runtime.mjs`): Returns a Pi extension registration function `piHooks(pi)` that binds `session_start`, `tool_call`, `tool_result`, and `agent_settled` handlers; default export initializes `createRuntime({ entries: loadManifest() })`.
+- `PI_TOOLS` (`tools.mjs`): Maps Claude tool names and input fields to Pi 1.4.0 tool names (`bash`, `read`, `edit`, `write`, `find`, `grep`) and passes `mcp__*` tool names and patterns through.
+
+## Invariants
+- Each Pi-enabled plugin gets its own self-contained package directory at `dist/pi/<plugin>/package.json`.
+- `package.json#pi` includes `skills` only when `model.skills.length > 0`, `prompts` only when `model.commands.length > 0`, and `extensions` (plus `runtime/` and `hooks.manifest.json`) only when the plugin has carried hooks (`hooks.length > 0`).
+- A throwing `tool_call` handler in Pi blocks tool execution, so all event handlers in `runtime.mjs` are wrapped in `guarded(...)` to catch unexpected exceptions and only return `{ block: true, reason }` when a hook exits with code `2`.
+- Commands that do not already reference `$ARGUMENTS`, `$@`, `$1..$9`, or `${...}` have `Arguments: $ARGUMENTS` appended during prompt generation because Pi only substitutes explicit placeholders.
+- Pre-tool hook context is buffered per `toolCallId` in `pending` and prepended to `tool_result` content when the tool finishes.
+
+## Side Effects
+- `generateRoot` and `generate` delete and recreate `<outRoot>/dist/pi/<plugin>/`, copying skills, hooks, templates, prompts, runtime modules (when hooks exist), `hooks.manifest.json` (when hooks exist), and `package.json`.
+- At runtime, `runtime.mjs` reads `hooks.manifest.json` on module load, sets `PI_PACKAGE_ROOT` in hook environments, sends hidden `hook-context` session messages via `pi.sendMessage`, appends hook context to tool results, and spawns canonical hook scripts via [`../lib/hook-runner.mjs`](../lib/README.md).
+
+## Verification
+- Run: `npm test`
+- Run: `npm run validate`
 
 ## Install
 
-Install a released tag for a stable snapshot. Tags are the recommended
-target for repeatable and shared team setups:
+Install a plugin folder from a checkout, directly or through Skillshare:
 
 ```bash
-pi install git:github.com/jskswamy/skills@vX.Y.Z
+pi install <checkout>/dist/pi/<plugin>
+skillshare plugin add <checkout> --plugin <plugin> --target pi -g
 ```
 
-Install `main` for the last release (only a release changes `dist/pi/`):
-
-```bash
-pi install git:github.com/jskswamy/skills@main
-```
-
-`dist/pi/` is also a Pi package on its own, with its own `package.json`, so
-a checkout can install just that folder, directly or through skillshare:
-
-```bash
-pi install <checkout>/dist/pi
-skillshare plugin add <checkout>/dist/pi --target pi -g
-```
-
-For local development, build into a temp dir and load that:
+For local development, build into a temp dir and load a plugin folder:
 
 ```bash
 npm run build      # last line: Output: <dir>
-pi -e <dir>
+pi -e <dir>/dist/pi/<plugin>
 ```
-
-## What the package contains
-
-Pi loads:
-
-- `skills`: `./dist/pi/skills`, the skills of those plugins, invoked with
-  `/skill:<skill-name>`
-- `prompts`: `./dist/pi/prompts`, a prompt template per command
-  (`/commit`, `/ask`, ...). Pi names a prompt by file name alone, so a
-  command name two plugins share gets the plugin as a prefix (`/jot-setup`,
-  `/study-setup`). A command that does not place its arguments gets
-  `Arguments: $ARGUMENTS` appended.
-- `extensions`: `./dist/pi/runtime/pi/runtime.mjs`, a copy of
-  `harnesses/pi/runtime.mjs`, which runs the plugins' hooks
-
-Pi has no sub-agents, so plugin agents are not available; the build report
-lists them. [`docs/command-skill-map.md`](../../docs/command-skill-map.md)
-lists every prompt with its canonical skill.
-
-## Hooks
-
-The canonical hooks under `hooks/<plugin>/` are Claude-format scripts. The
-build collects them into `dist/pi/hooks.manifest.json`, with
-`${CLAUDE_PLUGIN_ROOT}` paths mapped to the canonical paths inside `dist/pi/`
-(the runtime sets `PI_PACKAGE_ROOT` to that folder), and the runtime runs
-them under Claude's contract using
-`harnesses/lib/hook-runner.mjs`:
-
-| Claude event | Pi event |
-| --- | --- |
-| `SessionStart` | `session_start`; context is sent once per session |
-| `PreToolUse` | `tool_call`; exit 2 blocks the tool |
-| `PostToolUse` | `tool_result`; context is appended to the tool result |
-| `Stop` | `agent_settled`; Pi cannot keep the agent going, so exit 2 is only logged |
-| `SubagentStart` | not applicable |
-
-Matchers are mapped through `tools.mjs` (`bash`, `read`, `edit`, `write`,
-`find`, `grep`, the last two only when enabled with `--tools`; MCP tools keep
-their `mcp__<server>__<tool>` names). Only exit 2 blocks. A missing script,
-crash or timeout is logged and does not block.
-
-## Commit workflow
-
-The `/commit` prompt forwards to `commit-action`, and a commit-tools
-session-start hook routes agent-initiated commits through it in every
-repository. No project instructions or configuration are required.
-`/skill:commit-action` reaches the same workflow. Classic style is the
-default; message confirmation is still required. Commits stay local and the
-user handles pushing and remote issue synchronization.
-
-The commit-tools pre-tool hook blocks direct shell/MCP commits, including
-nested calls from codemode, and redirects the agent to the workflow. The
-environment bypass token is a convention, not a security boundary or proof
-of approval.
-
-A Skillshare skill-only copy does not load executable Pi extensions. Install
-the Pi package once for the `/commit` prompt and guard; copying skill files
-alone still supports `/skill:commit-action` with self-contained resources.
-See the [commit-tools documentation](../../templates/commit-tools/README.md).

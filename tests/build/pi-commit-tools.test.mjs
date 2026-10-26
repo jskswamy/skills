@@ -8,15 +8,16 @@ import * as piAdapter from "../../harnesses/pi/adapter.mjs";
 import { runAdapters } from "../../scripts/lib/adapters/index.mjs";
 import { readJson } from "../../scripts/lib/fs-utils.mjs";
 
-// Drives a fresh build of the Pi package (manifest + copied runtime), the
-// way Pi loads it, so the test sees current sources and not committed dist/.
+// Drives a fresh build of the commit-tools Pi package (manifest + copied
+// runtime), the way Pi loads it, so the test sees current sources and not
+// committed dist/.
 const outRoot = await mkdtemp(join(tmpdir(), "pi-commit-tools-"));
 test.after(() => rm(outRoot, { recursive: true, force: true }));
 await runAdapters({ repoRoot: ".", outRoot, registry: await readJson("registry.json"), adapters: [piAdapter] });
-const PI = join(outRoot, "dist/pi");
+const PI = join(outRoot, "dist/pi/commit-tools");
 const { createRuntime, loadManifest } = await import(pathToFileURL(join(PI, "runtime/pi/runtime.mjs")).href);
 
-async function load(t, entries = loadManifest().filter((entry) => entry.plugin === "commit-tools")) {
+async function load(t, entries = loadManifest()) {
   const events = new Map(), messages = [], logs = [];
   const cwd = await mkdtemp(join(tmpdir(), "pi bare repo "));
   t.after(() => rm(cwd, { recursive: true, force: true }));

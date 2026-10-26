@@ -10,7 +10,7 @@ async function sourcesOnly() {
   const dir = await mkdtemp(join(tmpdir(), "validate-cli-"));
   const files = execFileSync("git", ["ls-files", "-co", "--exclude-standard", "-z"], { encoding: "utf8" }).split("\0").filter(Boolean);
   for (const file of files) await cp(file, join(dir, file), { recursive: true }).catch((e) => (e.code === "ENOENT" ? undefined : Promise.reject(e)));
-  for (const built of ["dist", ".claude-plugin", "plugins"]) await rm(join(dir, built), { recursive: true, force: true });
+  for (const built of ["dist", ".claude-plugin", ".agents", "plugins"]) await rm(join(dir, built), { recursive: true, force: true });
   return dir;
 }
 
