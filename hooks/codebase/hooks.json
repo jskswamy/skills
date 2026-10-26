@@ -5,14 +5,20 @@
       {
         "matcher": "startup|resume|clear|compact",
         "hooks": [
-          { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/session-reminder.sh" }
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/session-reminder.sh"
+          }
         ]
       }
     ],
     "SubagentStart": [
       {
         "hooks": [
-          { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/subagent-reminder.sh" }
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/subagent-reminder.sh"
+          }
         ]
       }
     ],
@@ -20,13 +26,11 @@
       {
         "matcher": "Grep|Glob",
         "hooks": [
-          { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/discovery-augment.sh", "timeout": 5 }
-        ]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [
-          { "type": "command", "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/pretooluse-grep.sh", "timeout": 5 }
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/discovery-augment.sh",
+            "timeout": 5
+          }
         ]
       }
     ]

@@ -64,7 +64,7 @@ const CODEBASE = {
   description: "graph",
   resources: {
     skills: [],
-    hooks: ["codebase/hooks.json", "codebase/session-reminder.sh", "codebase/subagent-reminder.sh", "codebase/pretooluse-grep.sh", "codebase/discovery-augment.sh"],
+    hooks: ["codebase/hooks.json", "codebase/session-reminder.sh", "codebase/subagent-reminder.sh", "codebase/discovery-augment.sh"],
   },
   harnesses: { antigravity: { enabled: true, optional: { "pre-tool:discovery-augment": "no grep tool on agy" } } },
 };
