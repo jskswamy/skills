@@ -2,6 +2,82 @@
 
 All notable changes to this skills/plugins collection will be documented in this file.
 
+## [2.2.1] - 2026-10-26
+
+### Added
+
+- Add hook boot test and refresh Claude snapshot
+
+hook-boot.test.mjs runs every canonical hook on benign input and
+expects exit 0 inside its timeout, so a hook that fails or hangs at
+boot is caught before a release.
+
+Regenerate the Claude snapshot for the hook changes above. It also
+picks up plugin.json hashes that were already stale.
+
+### Other
+
+- Select agent harnesses in bivouac config
+
+Add an agents block so the bivouac instance provisions the claude,
+pi, antigravity and opencode coding harnesses. This supports the
+multi-harness adapter design. The change only takes effect on the
+next bivouac up or provision. by @jskswamy
+- Run Nix lint hooks as one ordered hook
+
+nixfmt, statix and deadnix each rewrite flake.nix in place, and
+Claude Code runs separate hooks in parallel, so they could overwrite
+each other's edits. Run them in order from a single nix-tools.sh.
+
+The script also keeps stdout valid JSON by sending tool output to
+stderr, reports failed tools instead of claiming success, and passes
+the file path through the environment so a crafted file name cannot
+inject commands. The registry and docs now name post-tool:nix-tools.
+- Show parked ideas through a Stop systemMessage
+
+Plain stdout from a Stop hook is never shown, so the parked-ideas
+reminder was lost. Print it as a JSON systemMessage instead.
+
+Add a 5 second timeout so a stuck bd cannot hold up a stop.
+- Refuse oversized commit commands unscanned
+
+The commit guard's tokenizer is quadratic in bash: a 46 KB command
+takes about 4 s. A hook that times out lets the command through, so
+a long enough command could bypass the guard.
+
+Past 16 KB, a command that names git and commit is now refused
+without scanning it. Long text should be written with a file tool.
+- Cap total time of session start hooks
+
+Pi and OpenCode ran start hooks one after another, each allowed its
+own timeout, so a few slow hooks could hold up a session at boot.
+
+runEvent now takes a time budget. Session-start and subagent-start get
+20 s in total: a running hook is cut to what is left and the rest are
+skipped with a log line.
+- Answer allow on Antigravity PreToolUse
+
+agy requires a decision on PreToolUse and treats {} as a denial with
+an empty reason, so every run_command failed with "denied by pre-tool
+hook". The shim now prints {"decision":"allow"} when a pre-tool hook
+does not block, and {} for the other events. The allow skips agy's own
+permission prompt for that call.
+
+A pre-tool event without a toolCall now gets an empty tool_input, so
+the commit guard's input check cannot deny it. Tests cover each
+failure path, and the README gains a smoke checklist to run against a
+signed-in agy before a release.
+
+### Removed
+
+- Remove the no-op grep PreToolUse hook
+
+pretooluse-grep.sh printed graph results as plain stdout on
+PreToolUse. No harness turns that into model context, so it only cost
+a jq, git and codebase-memory-mcp call on every Bash command. It also
+relied on grep -P, which macOS grep lacks.
+
+Drop the script, its hooks.json entry and its registry listing.
 ## [2.2.0] - 2026-10-26
 
 ### Added
@@ -21,7 +97,15 @@ The design also lists the spikes to run first, covering OpenCode
 hook blocking, agy plugin install and Pi prompt templates.
 
 It targets the harness versions installed for testing: OpenCode 2.1.1,
-agy 1.4.1 and Pi 1.4.0.
+agy 1.4.1 and Pi 1.4.0. by @jskswamy
+- Add bivouac instance config
+
+bivouac sessions are seeded from the repository, so the project
+config has to live in git for a remote session to match the local
+setup.
+
+Use the docker template on gcloud and join the instance to the
+personal tailnet. by @jskswamy
 - Add a session-start hook that routes commits
 
 The Pi extension told the agent, before every run, to load and follow
@@ -34,7 +118,7 @@ canonical tree and an installed Claude wrapper, as the commit guard
 already does. Claude Code adds its plain output to the session
 context, so Claude users now get the same reminder.
 
-Its timeout is 5, in seconds as Claude reads it.
+Its timeout is 5, in seconds as Claude reads it. by @jskswamy
 - Add shared transforms and a hook runner
 
 Each harness adapter needs the same conversions: reading a plugin's
@@ -51,7 +135,16 @@ reason, additionalContext on stdout is injected, and a missing,
 crashing or slow script never blocks. A hook a harness cannot carry is
 an error unless the registry marks it optional with a reason.
 A hook command that quotes ${CLAUDE_PLUGIN_ROOT} is an error too: the
-runtimes substitute an already quoted root, which would unquote it.
+runtimes substitute an already quoted root, which would unquote it. by @jskswamy
+
+### Changed
+
+- Update CHANGELOG for v2.2.0
+
+Document the v2.2.0 changes: multi-harness adapters generated into
+dist, the session-start commit hook, the bash rewrite of the commit
+guard, and the removed npx route. Entries for the bivouac config and
+the font whitespace trim are left out as they do not affect users. by @jskswamy
 
 ### Documentation
 
@@ -70,10 +163,19 @@ how its hooks run. Contributors commit sources only and try changes
 from the temp dir npm run build prints. Adding a Harness walks through
 writing an adapter, a tool table and a hook runtime, and the hook
 policy. The command to skill map lists each command's name per
-harness.
+harness. by @jskswamy
 
 ### Other
 
+- Trim trailing whitespace in font licenses
+
+The trim-trailing-whitespace pre-push hook rewrote the vendored
+JetBrains Mono and Source Serif license files on every push, which
+left the working tree dirty and aborted the push.
+
+Strip the trailing spaces in the canonical templates/ copies and
+regenerate the plugins/ copies so the hook finds nothing to fix.
+The change is whitespace only. by @jskswamy
 - Generate every harness from one source into dist
 
 Claude Code wrappers were the only generated output and Pi ran on a
@@ -110,7 +212,7 @@ extra, since nothing hand-written may live in generated output.
 
 registry.json enables Antigravity and OpenCode for every plugin, and
 names the hooks agy cannot carry with the reason. The build reports,
-per plugin and harness, everything degraded or skipped.
+per plugin and harness, everything degraded or skipped. by @jskswamy
 - Rewrite the commit guard and executor in bash
 
 Plugins should not need Node.js at runtime, but commit-tools did: the
@@ -133,7 +235,7 @@ characters, no AI co-author, the style check and the amend guards. It
 commits the validated bytes rather than re-reading the file. The skill,
 its review-plan reference and the review-commits scripts call it, and
 the Skillshare audit exemption names the bash call. The tests run both
-with node removed from PATH.
+with node removed from PATH. by @jskswamy
 - Bump plugins whose built output changed
 
 A release decided which plugins to bump from the source paths each one
@@ -156,7 +258,7 @@ meant to lag the sources until the release. The doc gains an optional
 step that installs the release output into every harness, natively and
 through skillshare, and records the limits found doing so. The local
 hook that auto-bumped versions on edits under plugins/ goes, and
-update-readme.sh drops an unused plugins path.
+update-readme.sh drops an unused plugins path. by @jskswamy
 - Generate every harness into dist
 
 Run the release build once, without a version bump, so main has every
@@ -168,7 +270,7 @@ point into dist/claude-code.
 The Claude plugins carry the changes made since v2.1.25 at their old
 versions; the release doc names the plugins to bump in the next
 release. changed-plugins reports nothing, so a fresh build of these
-sources matches what is committed.
+sources matches what is committed. by @jskswamy
 - Give hook timeouts in seconds
 
 Claude Code reads a hook's timeout in seconds, but the commit-tools
@@ -179,7 +281,17 @@ guard waited 5005 seconds. They are now 5 and 60, as intended.
 
 A test keeps every canonical hook timeout at 600 seconds or less. The
 committed dist/ keeps the old values until the next release, which
-changed-plugins will flag codebase, commit-tools and devenv for.
+changed-plugins will flag codebase, commit-tools and devenv for. by @jskswamy
+- Release v2.2.0
+
+Bump plugin versions: codebase 0.1.8 to 0.2.0, commit-tools 1.0.9 to
+1.1.0, devenv 1.3.4 to 1.4.0, sketch-note 1.2.4 to 1.3.0 and
+typst-notes 1.0.5 to 1.1.0.
+
+Write every harness's output via npm run build:release, so dist/ and
+the Claude marketplace now carry Claude Code, Antigravity, OpenCode
+and Pi. sketch-note and typst-notes are bumped by hand: their sources
+changed before changed-plugins could see them. by @jskswamy
 
 ### Removed
 
@@ -189,7 +301,7 @@ Plugins should not depend on Node.js, and sketch-note fell back to
 npx to run the Mermaid and Excalidraw converters. PNG export now uses
 a globally installed CLI or, for mermaid-cli, nix. When neither is
 found, the prompts ask the user to install one and check again,
-instead of suggesting npm install -g.
+instead of suggesting npm install -g. by @jskswamy
 - Drop duplicate registry checks
 
 validateRegistryResources had its own cruder check that a listed skill's
@@ -197,8 +309,15 @@ frontmatter has a name and description. validateSkills already checks
 every skill folder for both with the real parser, so the duplicate goes,
 along with its two tests; the empty block description case moves to the
 validateSkills tests. pathExists was copied in registry.mjs and
-pi-package.mjs and now lives once in fs-utils.mjs.
+pi-package.mjs and now lives once in fs-utils.mjs. by @jskswamy
 ## [2.1.25] - 2026-10-25
+
+### Changed
+
+- Update changelog for v2.1.25
+
+Document the ast-grep, duckdb and git-absorb skill routing included
+in the v2.1.25 release. by @jskswamy
 
 ### Other
 
@@ -217,7 +336,12 @@ absent:
 - Offer `git absorb --base` after a clean dry run in interactive
   `review-commits` runs without rewriting history before approval
 - Support `fixup_for` in `build-todo.sh` so non-adjacent fixup commits
-  are reordered immediately after their target commit during rebase
+  are reordered immediately after their target commit during rebase by @jskswamy
+- Release v2.1.25
+
+Bump plugin versions: commit-tools 1.0.8 → 1.0.9,
+codebase 0.1.7 → 0.1.8, refactor 0.1.3 → 0.1.4.
+Regenerate Claude Code wrappers via npm run build. by @jskswamy
 ## [2.1.24] - 2026-10-20
 
 ### Changed
@@ -235,9 +359,33 @@ touched issue changes and sync states prior to pulling.
 Explain the issue receipt and verification gate on merge, the
 `--accept-unsynced` flag for uncloseable sync gaps, plain delete checks
 over unmerged commits and unlanded issues, and the reminder to push
-separate issue database remotes.
+separate issue database remotes. by @jskswamy
+- Update changelog for v2.1.24
 
+Document the bivouac skill updates and session issue tracking checks
+included in the v2.1.24 release. by @jskswamy
+
+### Other
+
+- Release v2.1.24
+
+Bump plugin versions: bivouac 0.1.3 → 0.1.4.
+Regenerate Claude Code wrappers via npm run build. by @jskswamy
 ## [2.1.23] - 2026-10-19
+
+### Changed
+
+- Update changelog for v2.1.23
+
+Document repository-independent commit routing for this release. by @jskswamy
+- Allow the bundled commit executor in audits
+
+The split helper now calls the bundled Node executor instead of Git.
+The existing audit exception recognized only direct Git subprocesses,
+so the pre-push gate rejected the intended commit workflow.
+
+Exempt only the bundled executor call signature. Keep arbitrary Node
+and shell subprocess calls blocked at HIGH severity. by @jskswamy
 
 ### Other
 
@@ -249,18 +397,19 @@ task completion, amendments and history replay through the same flow.
 
 Add shared shell and MCP guards plus a Pi command so missed skill
 selection redirects to message validation and explicit confirmation.
-Keep settings optional and leave remote synchronization to the user.
+Keep settings optional and leave remote synchronization to the user. by @jskswamy
+- Release v2.1.23
 
-- Allow the bundled commit executor in audits
-
-The split helper now calls the bundled Node executor instead of Git.
-The existing audit exception recognized only direct Git subprocesses,
-so the pre-push gate rejected the intended commit workflow.
-
-Exempt only the bundled executor call signature. Keep arbitrary Node
-and shell subprocess calls blocked at HIGH severity.
-
+Bump commit-tools to 1.0.8 and craft to 1.0.3.
+Regenerate marketplace metadata from the plugin registry. by @jskswamy
 ## [2.1.22] - 2026-10-19
+
+### Changed
+
+- Update changelog for v2.1.22
+
+Document the commit skill context improvements while preserving
+previously published release notes. by @jskswamy
 
 ### Other
 
@@ -268,13 +417,21 @@ and shell subprocess calls blocked at HIGH severity.
 
 Shorten invocation descriptions and move the branch review workflow
 into a linked reference without changing its safeguards.
-Add regression checks and regenerate plugin copies.
+Add regression checks and regenerate plugin copies. by @jskswamy
+- Release v2.1.22
 
+Bump commit-tools from 1.0.6 to 1.0.7 to distribute the reduced
+context overhead and clearer invocation descriptions.
+Regenerate plugin metadata. by @jskswamy
 ## [2.1.21] - 2026-10-19
 
 ### Changed
 
-- Update bivouac guidance for images and session retirement
+- Update bivouac guidance for images and session retirement by @jskswamy
+- Update changelog for v2.1.21
+
+Document the bivouac workflow updates and user-owned remote sync
+policy. Preserve previously published release notes. by @jskswamy
 
 ### Other
 
@@ -282,8 +439,11 @@ Add regression checks and regenerate plugin copies.
 
 Replace mandatory push instructions with a local handoff policy.
 Reserve Git and Beads remote synchronization for the user unless
-explicitly requested.
+explicitly requested. by @jskswamy
+- Release v2.1.21
 
+Bump bivouac from 0.1.2 to 0.1.3 to distribute the updated image
+and session retirement guidance. Regenerate plugin metadata. by @jskswamy
 ## [2.1.20] - 2026-10-17
 
 ### Added
@@ -294,7 +454,14 @@ Add six skill-trigger cases for commit-tools, craft and codebase
 under evals/, graded by whether a skill was loaded. The eval tool
 only reads cases from inside a plugin folder, so npm run eval stages
 them into the gitignored plugins/<name>/evals, runs, and removes the
-copy. They stay out of installs, and results stay local.
+copy. They stay out of installs, and results stay local. by @jskswamy
+
+### Changed
+
+- Update CHANGELOG and README for v2.1.20
+
+Document all changes included in the v2.1.20 release.
+Regenerate plugins section in README from registry.json. by @jskswamy
 
 ### Other
 
@@ -313,32 +480,37 @@ untracked after every session. by @jskswamy
 The pre-push audit hook called skillshare from PATH, but the dev
 shell does not provide it, so the push failed on machines without
 it. Skip with a message when the command is missing, and run the
-audit in project mode as before when it is present.
+audit in project mode as before when it is present. by @jskswamy
 - Stop flagging hyphenated words as tracker IDs
 
 The lowercase project-style pattern matched any word-word pair, so
 prose like codebase-explore and pre-push failed the tracker check on
 every review. Match unknown lowercase prefixes only when the suffix
 mixes letters and digits or carries a .N child suffix. Keep the
-known beads and claude-plugins prefixes and configured patterns.
+known beads and claude-plugins prefixes and configured patterns. by @jskswamy
 - Quote agent descriptions that failed YAML parse
 
 Five agents had multi-line plain-scalar descriptions containing
 example blocks, which strict YAML parsers reject. Convert them to
 block scalars without changing the wording, and move the example
-blocks of the study coach agent out of the tools list.
+blocks of the study coach agent out of the tools list. by @jskswamy
 - Keep skill tests out of plugin wrappers
 
 Copying whole skill directories shipped dev-only tests, such as
 those of review-commits, to every install. Skip a skill's tests
-directory when generating wrappers and cover it with a build test.
+directory when generating wrappers and cover it with a build test. by @jskswamy
 - Require skill triggers and valid reference links
 
 Give bivouac and refactor-scan trigger phrases, then make a missing
 trigger a validation error instead of a warning. Also fail when a
 SKILL.md links a references file that does not exist, or a
 references file is linked from nowhere in its skill, so split skills
-cannot silently break.
+cannot silently break. by @jskswamy
+- Release v2.1.20
+
+Bump plugin versions: bivouac 0.1.2, commit-tools 1.0.6, jot 2.0.3,
+sketch-note 1.2.4, study 1.0.5, refactor 0.1.3. Regenerate Claude
+Code wrappers via npm run build. by @jskswamy
 ## [2.1.19] - 2026-10-17
 
 ### Added
@@ -3323,6 +3495,9 @@ as a dependency.
 ### Removed
 
 - Remove welcome message from shell hook by @jskswamy
+[2.2.1]: https://github.com/jskswamy/skills/compare/v2.2.0..v2.2.1
+[2.2.0]: https://github.com/jskswamy/skills/compare/v2.1.25..v2.2.0
+[2.1.25]: https://github.com/jskswamy/skills/compare/v2.1.24..v2.1.25
 [2.1.24]: https://github.com/jskswamy/skills/compare/v2.1.23..v2.1.24
 [2.1.23]: https://github.com/jskswamy/skills/compare/v2.1.22..v2.1.23
 [2.1.22]: https://github.com/jskswamy/skills/compare/v2.1.21..v2.1.22
