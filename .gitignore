@@ -54,6 +54,5 @@ jot-capture-plugin-improvements.md
 # Beads lock file created in the repo root
 .beads.gate.lock
 
-# Eval cases are staged into plugins/<name>/evals only while running; results stay local
-plugins/*/evals/
+# Eval results stay local
 evals/results/

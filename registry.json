@@ -35,10 +35,21 @@
         "agents": [],
         "hooks": [],
         "templates": [],
-        "extra": []
+        "extra": [
+          {
+            "from": "templates/bivouac/README.md",
+            "to": "README.md"
+          }
+        ]
       },
       "harnesses": {
         "claude-code": {
+          "enabled": true
+        },
+        "antigravity": {
+          "enabled": true
+        },
+        "opencode": {
           "enabled": true
         },
         "pi": {
@@ -84,11 +95,26 @@
           {
             "from": "templates/devenv/.mcp.json",
             "to": ".mcp.json"
+          },
+          {
+            "from": "templates/devenv/README.md",
+            "to": "README.md"
           }
         ]
       },
       "harnesses": {
         "claude-code": {
+          "enabled": true
+        },
+        "antigravity": {
+          "enabled": true,
+          "optional": {
+            "post-tool:nixfmt": "agy file-edit hook names and args are unverified, and agy ignores PostToolUse output",
+            "post-tool:statix": "agy file-edit hook names and args are unverified, and agy ignores PostToolUse output",
+            "post-tool:deadnix": "agy file-edit hook names and args are unverified, and agy ignores PostToolUse output"
+          }
+        },
+        "opencode": {
           "enabled": true
         },
         "pi": {
@@ -148,6 +174,15 @@
       },
       "harnesses": {
         "claude-code": {
+          "enabled": true
+        },
+        "antigravity": {
+          "enabled": true,
+          "optional": {
+            "pre-tool:intercept-git-commit": "agy hook naming for MCP tools is unknown; the run_command guard is still carried"
+          }
+        },
+        "opencode": {
           "enabled": true
         },
         "pi": {
@@ -211,10 +246,21 @@
           "jot/capture/trove.md",
           "jot/capture/video.md"
         ],
-        "extra": []
+        "extra": [
+          {
+            "from": "templates/jot/README.md",
+            "to": "README.md"
+          }
+        ]
       },
       "harnesses": {
         "claude-code": {
+          "enabled": true
+        },
+        "antigravity": {
+          "enabled": true
+        },
+        "opencode": {
           "enabled": true
         },
         "pi": {
@@ -277,10 +323,21 @@
           "craft/scripts/check-parked-ideas.sh"
         ],
         "templates": [],
-        "extra": []
+        "extra": [
+          {
+            "from": "templates/craft/README.md",
+            "to": "README.md"
+          }
+        ]
       },
       "harnesses": {
         "claude-code": {
+          "enabled": true
+        },
+        "antigravity": {
+          "enabled": true
+        },
+        "opencode": {
           "enabled": true
         },
         "pi": {
@@ -333,11 +390,21 @@
           {
             "from": "shared-scripts/sketch-note",
             "to": "scripts"
+          },
+          {
+            "from": "templates/sketch-note/README.md",
+            "to": "README.md"
           }
         ]
       },
       "harnesses": {
         "claude-code": {
+          "enabled": true
+        },
+        "antigravity": {
+          "enabled": true
+        },
+        "opencode": {
           "enabled": true
         },
         "pi": {
@@ -399,11 +466,21 @@
           {
             "from": "templates/typst-notes/themes",
             "to": "themes"
+          },
+          {
+            "from": "templates/typst-notes/README.md",
+            "to": "README.md"
           }
         ]
       },
       "harnesses": {
         "claude-code": {
+          "enabled": true
+        },
+        "antigravity": {
+          "enabled": true
+        },
+        "opencode": {
           "enabled": true
         },
         "pi": {
@@ -451,10 +528,24 @@
           "codebase/discovery-augment.sh"
         ],
         "templates": [],
-        "extra": []
+        "extra": [
+          {
+            "from": "templates/codebase/README.md",
+            "to": "README.md"
+          }
+        ]
       },
       "harnesses": {
         "claude-code": {
+          "enabled": true
+        },
+        "antigravity": {
+          "enabled": true,
+          "optional": {
+            "pre-tool:discovery-augment": "agy has no Grep or Glob tool, and its PreToolUse cannot inject context"
+          }
+        },
+        "opencode": {
           "enabled": true
         },
         "pi": {
@@ -500,10 +591,21 @@
         "templates": [
           "study/study-note.md"
         ],
-        "extra": []
+        "extra": [
+          {
+            "from": "templates/study/README.md",
+            "to": "README.md"
+          }
+        ]
       },
       "harnesses": {
         "claude-code": {
+          "enabled": true
+        },
+        "antigravity": {
+          "enabled": true
+        },
+        "opencode": {
           "enabled": true
         },
         "pi": {
@@ -546,11 +648,21 @@
           {
             "from": "templates/refactor/fixtures",
             "to": "fixtures"
+          },
+          {
+            "from": "templates/refactor/README.md",
+            "to": "README.md"
           }
         ]
       },
       "harnesses": {
         "claude-code": {
+          "enabled": true
+        },
+        "antigravity": {
+          "enabled": true
+        },
+        "opencode": {
           "enabled": true
         },
         "pi": {

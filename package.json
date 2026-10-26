@@ -12,16 +12,20 @@
   ],
   "scripts": {
     "build": "node scripts/build.mjs",
+    "build:release": "node scripts/build.mjs --release",
     "validate": "node scripts/validate.mjs",
     "eval": "node scripts/eval.mjs",
     "test": "node --test tests/**/*.test.mjs"
   },
   "pi": {
     "skills": [
-      "./skills"
+      "./dist/pi/skills"
+    ],
+    "prompts": [
+      "./dist/pi/prompts"
     ],
     "extensions": [
-      "./harnesses/pi/extensions"
+      "./dist/pi/runtime/pi/runtime.mjs"
     ]
   }
 }

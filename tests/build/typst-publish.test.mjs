@@ -6,7 +6,6 @@ import { join } from "node:path";
 import { spawn } from "node:child_process";
 
 const canonicalPath = "skills/typst-publish/SKILL.md";
-const generatedPath = "plugins/typst-notes/skills/typst-publish/SKILL.md";
 
 test("typst-publish accepts Nix as a non-install fallback", async () => {
   const content = await readFile(canonicalPath, "utf8");
@@ -15,13 +14,6 @@ test("typst-publish accepts Nix as a non-install fallback", async () => {
   assert.match(content, /NIX_AVAILABLE/, "preflight has a Nix availability state");
   assert.match(content, /nix shell nixpkgs#typst -c typst/, "skill documents nix shell invocation for Typst");
   assert.match(content, /without installing Typst globally/i, "Nix fallback is documented as no global install");
-});
-
-test("typst-publish generated plugin skill stays in sync", async () => {
-  const canonical = await readFile(canonicalPath, "utf8");
-  const generated = await readFile(generatedPath, "utf8");
-
-  assert.equal(generated, canonical);
 });
 
 test("compile script uses nix command when typst and nix-shell are unavailable", async () => {

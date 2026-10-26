@@ -5,8 +5,8 @@ import { promisify } from "node:util";
 import { readFile } from "node:fs/promises";
 
 const execFileAsync = promisify(execFile);
-const script = "plugins/commit-tools/skills/review-commits/lib/style-check.sh";
-const classic = "plugins/commit-tools/styles/classic.md";
+const script = "skills/review-commits/lib/style-check.sh";
+const classic = "skills/commit-action/styles/classic.md";
 
 async function check(subject) {
   try {

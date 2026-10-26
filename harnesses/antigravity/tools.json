@@ -1,0 +1,6 @@
+{
+  "tools": {
+    "Bash": { "name": "run_command", "input": { "command": "CommandLine" } },
+    "Read": { "name": "view_file", "input": { "file_path": "AbsolutePath" } }
+  }
+}
