@@ -2,6 +2,49 @@
 
 All notable changes to this skills/plugins collection will be documented in this file.
 
+## [2.3.0] - 2026-10-26
+
+### Added
+
+- Add Codex harness adapter and marketplace
+
+Add the codex adapter to emit .agents/plugins/marketplace.json and
+per-plugin .codex-plugin/plugin.json bundles under dist/codex/<plugin>.
+Convert plugin commands into <plugin>-cmd-<command> skills and report
+agents and lifecycle hooks as unsupported on Codex.
+
+Enable codex across all 10 plugins in registry.json, check the Codex
+marketplace in changed-plugins.mjs, and update release and user docs.
+
+### Documentation
+
+- Document build pipeline and harness contracts
+
+Add directory-level README contracts for the build scripts, transforms,
+adapter runner, and harness modules describing interfaces, invariants,
+side effects, and verification commands.
+
+Include the design specification for per-plugin Pi package emission and
+Codex harness support.
+
+### Other
+
+- Emit per-plugin Pi packages under dist/pi
+
+Replace the single aggregate dist/pi package with self-contained
+per-plugin packages at dist/pi/<plugin>/package.json so each plugin can
+be installed and versioned independently on Pi.
+
+Only include prompts when a plugin defines commands, and only emit the
+hook extension runtime and hooks.manifest.json when a plugin defines
+carryable hooks. Remove the root aggregate pi block from package.json
+and its corresponding root-package check from validate.mjs.
+- Release v2.3.0
+
+Bump all 10 plugin versions in registry.json for per-plugin Pi package
+emission and Codex harness support.
+
+Write every harness's output via npm run build:release.
 ## [2.2.1] - 2026-10-26
 
 ### Added
@@ -13,7 +56,13 @@ expects exit 0 inside its timeout, so a hook that fails or hangs at
 boot is caught before a release.
 
 Regenerate the Claude snapshot for the hook changes above. It also
-picks up plugin.json hashes that were already stale.
+picks up plugin.json hashes that were already stale. by @jskswamy
+
+### Changed
+
+- Update CHANGELOG for v2.2.1
+
+Document all changes included in the v2.2.1 release. by @jskswamy
 
 ### Other
 
@@ -32,13 +81,13 @@ each other's edits. Run them in order from a single nix-tools.sh.
 The script also keeps stdout valid JSON by sending tool output to
 stderr, reports failed tools instead of claiming success, and passes
 the file path through the environment so a crafted file name cannot
-inject commands. The registry and docs now name post-tool:nix-tools.
+inject commands. The registry and docs now name post-tool:nix-tools. by @jskswamy
 - Show parked ideas through a Stop systemMessage
 
 Plain stdout from a Stop hook is never shown, so the parked-ideas
 reminder was lost. Print it as a JSON systemMessage instead.
 
-Add a 5 second timeout so a stuck bd cannot hold up a stop.
+Add a 5 second timeout so a stuck bd cannot hold up a stop. by @jskswamy
 - Refuse oversized commit commands unscanned
 
 The commit guard's tokenizer is quadratic in bash: a 46 KB command
@@ -46,7 +95,7 @@ takes about 4 s. A hook that times out lets the command through, so
 a long enough command could bypass the guard.
 
 Past 16 KB, a command that names git and commit is now refused
-without scanning it. Long text should be written with a file tool.
+without scanning it. Long text should be written with a file tool. by @jskswamy
 - Cap total time of session start hooks
 
 Pi and OpenCode ran start hooks one after another, each allowed its
@@ -54,7 +103,7 @@ own timeout, so a few slow hooks could hold up a session at boot.
 
 runEvent now takes a time budget. Session-start and subagent-start get
 20 s in total: a running hook is cut to what is left and the rest are
-skipped with a log line.
+skipped with a log line. by @jskswamy
 - Answer allow on Antigravity PreToolUse
 
 agy requires a decision on PreToolUse and treats {} as a denial with
@@ -66,7 +115,17 @@ permission prompt for that call.
 A pre-tool event without a toolCall now gets an empty tool_input, so
 the commit guard's input check cannot deny it. Tests cover each
 failure path, and the README gains a smoke checklist to run against a
-signed-in agy before a release.
+signed-in agy before a release. by @jskswamy
+- Release v2.2.1
+
+Bump plugin versions: bivouac 0.1.4 to 0.1.5, codebase 0.2.0 to
+0.2.1, commit-tools 1.1.0 to 1.1.1, craft 1.0.3 to 1.0.4, devenv
+1.4.0 to 1.4.1, jot 2.0.3 to 2.0.4, refactor 0.1.4 to 0.1.5,
+sketch-note 1.3.0 to 1.3.1, study 1.0.5 to 1.0.6 and typst-notes
+1.1.0 to 1.1.1.
+
+Write every harness's output via npm run build:release and refresh
+the Claude snapshot for the new versions. by @jskswamy
 
 ### Removed
 
@@ -77,7 +136,7 @@ PreToolUse. No harness turns that into model context, so it only cost
 a jq, git and codebase-memory-mcp call on every Bash command. It also
 relied on grep -P, which macOS grep lacks.
 
-Drop the script, its hooks.json entry and its registry listing.
+Drop the script, its hooks.json entry and its registry listing. by @jskswamy
 ## [2.2.0] - 2026-10-26
 
 ### Added
@@ -3495,6 +3554,7 @@ as a dependency.
 ### Removed
 
 - Remove welcome message from shell hook by @jskswamy
+[2.3.0]: https://github.com/jskswamy/skills/compare/v2.2.1..v2.3.0
 [2.2.1]: https://github.com/jskswamy/skills/compare/v2.2.0..v2.2.1
 [2.2.0]: https://github.com/jskswamy/skills/compare/v2.1.25..v2.2.0
 [2.1.25]: https://github.com/jskswamy/skills/compare/v2.1.24..v2.1.25
