@@ -19,7 +19,7 @@
           {
             "type": "command",
             "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/intercept-git-commit.sh",
-            "timeout": 5000
+            "timeout": 5
           }
         ]
       }

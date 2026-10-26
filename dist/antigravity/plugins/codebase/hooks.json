@@ -16,7 +16,7 @@
           {
             "type": "command",
             "command": "bash runtime/antigravity/hook-shim.sh pre-tool:pretooluse-grep",
-            "timeout": 5005
+            "timeout": 10
           }
         ]
       }

@@ -1,6 +1,6 @@
 {
   "name": "@jskswamy/opencode-commit-tools",
-  "version": "1.0.9",
+  "version": "1.1.0",
   "description": "End-to-end commit hygiene: write atomic commits with style enforcement, review and consolidate them before push, validate the final history",
   "type": "module",
   "main": "./index.js",

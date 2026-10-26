@@ -6,7 +6,7 @@
       "event": "post-tool",
       "matcher": "Write|Edit",
       "command": "bash \"${PI_PACKAGE_ROOT}\"/hooks/devenv/scripts/nixfmt.sh",
-      "timeoutMs": 60000000
+      "timeoutMs": 60000
     },
     {
       "plugin": "devenv",
@@ -14,7 +14,7 @@
       "event": "post-tool",
       "matcher": "Write|Edit",
       "command": "bash \"${PI_PACKAGE_ROOT}\"/hooks/devenv/scripts/statix.sh",
-      "timeoutMs": 60000000
+      "timeoutMs": 60000
     },
     {
       "plugin": "devenv",
@@ -22,7 +22,7 @@
       "event": "post-tool",
       "matcher": "Write|Edit",
       "command": "bash \"${PI_PACKAGE_ROOT}\"/hooks/devenv/scripts/deadnix.sh",
-      "timeoutMs": 60000000
+      "timeoutMs": 60000
     },
     {
       "plugin": "commit-tools",
@@ -37,7 +37,7 @@
       "event": "pre-tool",
       "matcher": "Bash|mcp__.*git.*commit",
       "command": "bash \"${PI_PACKAGE_ROOT}\"/hooks/commit-tools/scripts/intercept-git-commit.sh",
-      "timeoutMs": 5000000
+      "timeoutMs": 5000
     },
     {
       "plugin": "craft",
@@ -58,7 +58,7 @@
       "event": "pre-tool",
       "matcher": "Grep|Glob",
       "command": "bash \"${PI_PACKAGE_ROOT}\"/hooks/codebase/discovery-augment.sh",
-      "timeoutMs": 5000000
+      "timeoutMs": 5000
     },
     {
       "plugin": "codebase",
@@ -66,7 +66,7 @@
       "event": "pre-tool",
       "matcher": "Bash",
       "command": "bash \"${PI_PACKAGE_ROOT}\"/hooks/codebase/pretooluse-grep.sh",
-      "timeoutMs": 5000000
+      "timeoutMs": 5000
     }
   ]
 }

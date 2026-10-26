@@ -7,7 +7,7 @@
     "pre-tool:pretooluse-grep": {
       "event": "pre-tool",
       "command": "bash \"${ANTIGRAVITY_PLUGIN_ROOT}\"/hooks/pretooluse-grep.sh",
-      "timeoutMs": 5000000
+      "timeoutMs": 5000
     }
   }
 }
