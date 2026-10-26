@@ -1,9 +1,40 @@
-# Antigravity Harness Support
+# Antigravity Harness Support (`harnesses/antigravity`)
+
+## Overview
+Build adapter and bash/`jq` runtime hook shim for Google Antigravity (`agy`). Generates standalone Antigravity plugins under `dist/antigravity/plugins/<plugin>/` by converting commands into `<plugin>-cmd-<command>` skills, normalizing agent frontmatter to `name` and `description`, and bridging canonical Claude Code hooks to Antigravity's root `hooks.json` contract via `hook-shim.sh` and `tools.json`.
 
 The release build (`npm run build:release`) generates one native Antigravity
 plugin per registry plugin with `harnesses.antigravity.enabled` under
 `dist/antigravity/plugins/`. Do not edit them by hand. `npm run build` writes
 the same tree into a temp dir for local testing. Tested with agy 1.4.1.
+
+## Interface
+- `id` (`adapter.mjs`): Harness identifier `"antigravity"`.
+- `pluginsDir` (`adapter.mjs`): Output directory `"dist/antigravity/plugins"`.
+- `capabilities` (`adapter.mjs`): Declares `skills` (`native`), `commands` (`as-skill`), `agents` (`native`), and `hooks` (`shim` for `session-start`, `pre-tool`, `post-tool`, `stop`).
+- `generateRoot({ outRoot })` (`adapter.mjs`): Removes `<outRoot>/dist/antigravity/plugins` before generating enabled plugins.
+- `generate({ repoRoot, outRoot, model, report })` (`adapter.mjs`): Generates `.antigravity-plugin/plugin.json`, copies skills/templates/hook scripts, converts commands to skills, maps agents, and emits `hooks.json`, `runtime/antigravity/hooks.manifest.json`, `hook-shim.sh`, and `tools.json`.
+- `commandSkillName(plugin, command)` (`adapter.mjs`): Returns the converted skill name `${plugin}-cmd-${command}`.
+- `splitMatcher(entry)` (`adapter.mjs`): Splits pipe-delimited `pre-tool`/`post-tool` matchers into mappable and unmappable entries so known tool guards are carried while unknown parts go through hook policy reporting.
+- `canCarry(entry)` (`adapter.mjs`): Evaluates whether a hook entry is supported on Antigravity based on event type, `startup` session matcher compatibility, and `tools.json` tool mappings.
+- `validate({ repoRoot, outRoot = repoRoot, plugin })` (`adapter.mjs`): Runs `agy plugin validate <dir> --json --strict` (when `agy` is on `PATH`) in an isolated temporary `HOME`/`XDG_*_HOME` and verifies component counts (`skills`, `agents`, `hooks`).
+- `hook-shim.sh <hook-id>`: Bash + `jq` entrypoint invoked by Antigravity from the plugin root that translates Antigravity hook stdin into Claude hook stdin, executes the canonical hook command with a timeout, and formats Antigravity JSON decisions (`{"decision":"allow"|"deny"|"continue"}` or `{"injectSteps":...}`).
+- `tools.json`: Shared tool-name and input-field mapping table (`Bash` -> `run_command`, `Read` -> `view_file`).
+
+## Invariants
+- Generated Antigravity plugins must not depend on Node.js at runtime; `hook-shim.sh` requires only `bash` (>= 3.2) and `jq`.
+- On `PreToolUse` (`pre-tool:*`), `hook-shim.sh` must never output `{}` on non-blocking outcomes; it must output `{"decision":"allow"}` because Antigravity treats `{}` on `PreToolUse` as a denial.
+- Only hook exit code `2` blocks (`{"decision":"deny"}` on `pre-tool`, `{"decision":"continue"}` on `stop`); missing `jq`, missing scripts, timeouts, or other exit codes exit `0` with default non-blocking output.
+- Agent frontmatter in generated plugins retains only `name` and `description` (synthesizing a fallback `description` if absent and recording a `degraded` note) because Antigravity skips agents missing either field or carrying `tools: "*"`.
+
+## Side Effects
+- `generateRoot` and `generate` delete and write plugin trees under `<outRoot>/dist/antigravity/plugins/`.
+- `validate` creates and removes a temporary `HOME` directory (`agy-validate-*`) and spawns `agy plugin validate`.
+- `hook-shim.sh` creates and cleans up a temporary working directory (`${TMPDIR:-/tmp}/agy-hook.XXXXXX`), exports `ANTIGRAVITY_PLUGIN_ROOT`, spawns hook commands in the target workspace `cwd` with timeout supervision, and logs diagnostics to `stderr`.
+
+## Verification
+- Run: `npm test`
+- Run: `npm run validate`
 
 ## Install
 

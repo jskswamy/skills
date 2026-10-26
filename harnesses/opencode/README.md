@@ -1,4 +1,7 @@
-# OpenCode Harness Support
+# OpenCode Harness Support (`harnesses/opencode`)
+
+## Overview
+Build adapter, OpenCode V2 plugin runtime, and tool-mapping table that package each enabled registry plugin into a self-contained OpenCode V2 plugin under `dist/opencode/<name>/`. Registers skills, commands, and subagents through OpenCode's transform APIs and bridges canonical Claude Code hooks to OpenCode tool, session context, and session execution events.
 
 The release build (`npm run build:release`) writes one OpenCode (V2) plugin
 package per plugin with `harnesses.opencode.enabled` to
@@ -6,6 +9,35 @@ package per plugin with `harnesses.opencode.enabled` to
 package is self-contained: it runs without the rest of this repository. Do not
 edit the packages by hand. The packages target the OpenCode V2 plugin API and
 were tested with OpenCode 2.1.1; V1 is not supported.
+
+## Interface
+- `id` (`adapter.mjs`): Harness identifier `"opencode"`.
+- `pluginsDir` (`adapter.mjs`): Output directory `"dist/opencode"`.
+- `capabilities` (`adapter.mjs`): Declares `skills` (`native`), `commands` (`native`), `agents` (`native`), and `hooks` (`shim` for `session-start`, `subagent-start`, `pre-tool`, `post-tool`, `stop`).
+- `generateRoot({ outRoot, plugins })` (`adapter.mjs`): Removes `<outRoot>/dist/opencode` and returns `{ commandName }` collision resolver seeded with `BUILTIN_COMMANDS`.
+- `generate({ repoRoot, outRoot, model, state, report })` (`adapter.mjs`): Copies the canonical wrapper layout and shared runtime into `<outRoot>/dist/opencode/<plugin>/`, maps agents to `opencode-agents/`, validates payloads, rewrites hook commands to `"${OPENCODE_PLUGIN_ROOT}"`, and writes `resources.json`, `hooks.manifest.json`, `package.json`, and `index.js`.
+- `canCarry(entry)` (`adapter.mjs`): Verifies `pre-tool` and `post-tool` hook matchers can be rewritten via `OPENCODE_TOOLS`.
+- `validate({ repoRoot, outRoot = repoRoot, plugin })` (`adapter.mjs`): Verifies generated `package.json`, runtime files, `resources.json` payloads, and `hooks.manifest.json` script targets exist and are valid.
+- `BUILTIN_COMMANDS` (`runtime.mjs`): Reserved OpenCode built-in commands (`["init", "review"]`).
+- `payloadErrors(kind, payload)` (`runtime.mjs`): Validates required non-empty string fields for `skills`, `commands`, and `agents` payloads.
+- `stripFrontmatter(text)` (`runtime.mjs`): Strips leading YAML frontmatter from Markdown content.
+- `expandCommand(template, args = "")` (`runtime.mjs`): Substitutes `$ARGUMENTS` and positional `$1..$9` placeholders in command templates or appends `Arguments: <args>` when unplaced.
+- `createPlugin({ id, root, log })` (`runtime.mjs`): Loads `hooks.manifest.json` and `resources.json` from `root` and returns an OpenCode V2 plugin `{ id, setup(ctx) }`.
+- `OPENCODE_TOOLS` (`tools.mjs`): Maps Claude tool names and input parameters to OpenCode 2.1.1 tool names (`shell`, `read`, `edit`, `write`, `glob`, `grep`, `subagent`, `skill`, `webfetch`, `websearch`, `question`, `todowrite`), skips Code Mode's `"execute"` wrapper, and translates `<server>_<tool>` MCP tool names.
+
+## Invariants
+- Every skill, command, and agent payload is validated by `payloadErrors` both at build time (`adapter.mjs`) and load time (`runtime.mjs`) because a single invalid payload causes OpenCode to disable the entire plugin.
+- `execute.before` tool hooks in `runtime.mjs` catch all internal errors and throw an `Error(result.reason)` *only* when a hook script exits with code `2` (`result.blocked === true`).
+- Agent IDs are prefixed with `<plugin>-` unless already prefixed, and `ctx.agent.transform` never overwrites an existing user-defined agent with the same ID.
+- Code Mode's `execute` wrapper tool is always skipped in `toolCall` because individual MCP tool calls inside it trigger their own hooks.
+
+## Side Effects
+- `generateRoot` and `generate` delete and write plugin packages under `<outRoot>/dist/opencode/`.
+- At runtime, `createPlugin` reads `hooks.manifest.json`, `resources.json`, and Markdown resource files from disk, sets `OPENCODE_PLUGIN_ROOT` in hook environments, registers OpenCode tool/session/skill/command/agent hooks and transforms on `ctx`, subscribes to `ctx.event`, and spawns canonical hook scripts via [`../lib/hook-runner.mjs`](../lib/README.md).
+
+## Verification
+- Run: `npm test`
+- Run: `npm run validate`
 
 ## Install
 
