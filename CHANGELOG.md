@@ -2,6 +2,26 @@
 
 All notable changes to this skills/plugins collection will be documented in this file.
 
+## [2.4.0] - 2026-10-26
+
+### Other
+
+- Consolidate harness output into dist/plugins
+
+Emit Claude Code, Codex, Pi, OpenCode, and Antigravity plugin bundles
+into a shared dist/plugins/<plugin> directory so skillshare and native
+CLIs can discover and install every harness from one path per plugin.
+Isolate hook manifests under runtime/<harness>/hooks.manifest.json,
+place Codex command skills in codex-skills/, and merge OpenCode and Pi
+package.json fields.
+- Release v2.4.0
+
+Bump all 10 plugin versions in registry.json for the unified
+dist/plugins/<plugin> harness layout.
+
+Write every harness's output via npm run build:release and remove the
+superseded dist/claude-code, dist/codex, dist/opencode, and dist/pi
+directories.
 ## [2.3.0] - 2026-10-26
 
 ### Added
@@ -14,7 +34,14 @@ Convert plugin commands into <plugin>-cmd-<command> skills and report
 agents and lifecycle hooks as unsupported on Codex.
 
 Enable codex across all 10 plugins in registry.json, check the Codex
-marketplace in changed-plugins.mjs, and update release and user docs.
+marketplace in changed-plugins.mjs, and update release and user docs. by @jskswamy
+
+### Changed
+
+- Update CHANGELOG and README for v2.3.0
+
+Document all changes included in the v2.3.0 release and regenerate the
+plugins section in README from registry.json. by @jskswamy
 
 ### Documentation
 
@@ -25,7 +52,7 @@ adapter runner, and harness modules describing interfaces, invariants,
 side effects, and verification commands.
 
 Include the design specification for per-plugin Pi package emission and
-Codex harness support.
+Codex harness support. by @jskswamy
 
 ### Other
 
@@ -38,13 +65,13 @@ be installed and versioned independently on Pi.
 Only include prompts when a plugin defines commands, and only emit the
 hook extension runtime and hooks.manifest.json when a plugin defines
 carryable hooks. Remove the root aggregate pi block from package.json
-and its corresponding root-package check from validate.mjs.
+and its corresponding root-package check from validate.mjs. by @jskswamy
 - Release v2.3.0
 
 Bump all 10 plugin versions in registry.json for per-plugin Pi package
 emission and Codex harness support.
 
-Write every harness's output via npm run build:release.
+Write every harness's output via npm run build:release. by @jskswamy
 ## [2.2.1] - 2026-10-26
 
 ### Added
@@ -3554,6 +3581,7 @@ as a dependency.
 ### Removed
 
 - Remove welcome message from shell hook by @jskswamy
+[2.4.0]: https://github.com/jskswamy/skills/compare/v2.3.0..v2.4.0
 [2.3.0]: https://github.com/jskswamy/skills/compare/v2.2.1..v2.3.0
 [2.2.1]: https://github.com/jskswamy/skills/compare/v2.2.0..v2.2.1
 [2.2.0]: https://github.com/jskswamy/skills/compare/v2.1.25..v2.2.0
