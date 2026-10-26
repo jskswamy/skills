@@ -78,3 +78,14 @@ test("without jq the guard allows everything, and it never needs node", async ()
   assert.equal(blocked.status, 2, blocked.stderr);
   assert.match(blocked.stderr, /commit-action/);
 });
+
+test("a very long command is answered quickly instead of timing out into a pass", () => {
+  const prose = "This note explains how git commit works. ".repeat(2500);
+  const started = Date.now();
+  const long = check(`cat > notes.md <<'EOF'\n${prose}\nEOF`);
+  assert.equal(long.status, 2, long.stderr);
+  assert.match(long.stderr, /commit-action|\/commit/);
+  assert.ok(Date.now() - started < 3000, `took ${Date.now() - started}ms`);
+  // Long text that never names a commit is untouched.
+  assert.equal(check(`cat > notes.md <<'EOF'\n${"plain words. ".repeat(8000)}\nEOF`).status, 0);
+});
