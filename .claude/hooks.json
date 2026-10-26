@@ -4,13 +4,6 @@
       "type": "command",
       "event": "PostToolUse",
       "matcher": "Write|Edit",
-      "command": "bash .claude/hooks/scripts/sync-plugin-version.sh",
-      "timeout": 30000
-    },
-    {
-      "type": "command",
-      "event": "PostToolUse",
-      "matcher": "Write|Edit",
       "command": "bash .claude/hooks/scripts/update-changelog.sh",
       "timeout": 30000
     }

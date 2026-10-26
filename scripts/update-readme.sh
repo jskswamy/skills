@@ -12,7 +12,6 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 README="$REPO_ROOT/README.md"
 MARKETPLACE_JSON="$REPO_ROOT/registry.json"
 TEMPLATE="$REPO_ROOT/templates/readme-plugins.md.tmpl"
-PLUGINS_DIR="$REPO_ROOT/plugins"
 DRY_RUN=false
 
 # Parse arguments
@@ -57,7 +56,7 @@ if ! grep -q "<!-- PLUGINS:END -->" "$README"; then
 fi
 
 # Generate plugins content using gomplate
-PLUGINS_CONTENT=$(PLUGINS_DIR="$PLUGINS_DIR" gomplate \
+PLUGINS_CONTENT=$(gomplate \
     -d "marketplace=$MARKETPLACE_JSON" \
     -f "$TEMPLATE")
 

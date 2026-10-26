@@ -1,9 +1,14 @@
 # Releasing
 
 This repository is git-tree-first for harnesses that install directly from git.
-Generated Claude Code wrappers are committed because Claude Code installs from
-the repository tree and does not run this repository's build script during
-install.
+Generated output for every harness lives in `dist/` (plus the Claude
+marketplace at `.claude-plugin/marketplace.json`) and is committed, because
+Claude Code, Pi, Antigravity and OpenCode install from the repository tree and
+do not run this repository's build script during install.
+
+Only the release writes that output. Day-to-day work changes sources only;
+`npm run build` writes to a temp dir. So `main` always installs the last
+release on every harness, and a release is the moment users get changes.
 
 ## Preconditions
 
@@ -15,18 +20,16 @@ git pull --ff-only origin main
 git status --short
 ```
 
-Run the standard checks before release work:
+Run the standard checks before release work. Both build into a temp dir and
+check the current sources:
 
 ```bash
-npm run build
 npm run validate
 npm test
-git diff --exit-code -- .claude-plugin plugins
 ```
 
-A diff under `.claude-plugin` or `plugins` means the committed Claude install
-tree is stale. Either commit intentional generated changes before release or
-fix the canonical source that caused the drift.
+`dist/` is expected to differ from the sources at this point: it still holds
+the previous release.
 
 ## Decide the Version
 
@@ -46,42 +49,89 @@ Tags use `vX.Y.Z` format.
 Plugin versions live in `registry.json` and are emitted to:
 
 - `.claude-plugin/marketplace.json`
-- `plugins/<plugin-name>/.claude-plugin/plugin.json`
+- `dist/claude-code/<plugin-name>/.claude-plugin/plugin.json`
+- `dist/antigravity/plugins/<plugin-name>/.antigravity-plugin/plugin.json`
+- `dist/opencode/<plugin-name>/package.json`
 
-Identify changed plugins since the last tag:
+Pi uses the git tag, not plugin versions.
 
-```bash
-git diff --name-only <last-tag>..HEAD
-```
-
-Any changed path under `plugins/<plugin-name>/` means that plugin should be
-considered for a version bump. Canonical root changes should be mapped to the
-plugin that includes them through `registry.json`.
-
-Update the relevant plugin versions in `registry.json`.
-
-## Regenerate Wrappers
-
-After editing `registry.json`, regenerate Claude Code marketplace output:
+List the plugins whose built output changed since the last release:
 
 ```bash
-npm run build
+node scripts/changed-plugins.mjs
 ```
 
-Verify the versions are synced:
+It builds into a temp dir and compares each plugin's output with the committed
+`dist/`, ignoring version fields. That catches changes to a plugin's own
+resources and changes made only to adapters, runtimes or transforms. Claude
+Code caches plugins by version, so every listed plugin must be bumped or its
+users will not get the change. An empty list means there is nothing to
+release.
+
+Bump each listed plugin's version in `registry.json`.
+
+## Write the Release Output
+
+After editing `registry.json`, write every harness's output into the repo.
+This is the only command that does:
+
+```bash
+npm run build:release
+```
+
+Verify the versions are synced and nothing else is left to bump:
 
 ```bash
 jq -r '.plugins[] | [.name,.version] | @tsv' registry.json
 jq -r '.plugins[] | [.name,.version] | @tsv' .claude-plugin/marketplace.json
-jq -r .version plugins/<plugin-name>/.claude-plugin/plugin.json
+jq -r .version dist/claude-code/<plugin-name>/.claude-plugin/plugin.json
+node scripts/changed-plugins.mjs   # prints nothing now
 ```
+
+## Optional: Smoke-Test Every Harness
+
+Unit tests prove the build writes the right files, not that a harness loads
+them. Before tagging, you can install the release output into every harness
+and check it end to end. This changes your own harness setup, so do it on a
+disposable machine or back up first: `~/.config/skillshare/`,
+`~/.local/state/skillshare/`, `~/.claude/settings.json`,
+`~/.claude/plugins/*.json`, `~/.pi/agent/settings.json`,
+`~/.config/opencode/` and `~/.gemini/`.
+
+Install from a clean clone of the release commit; skillshare refuses a
+working tree whose files change while it copies:
+
+```bash
+git clone -q . /tmp/skills-release && cd /tmp/skills-release
+claude plugin marketplace add "$PWD"            # then: claude plugin install <plugin>@skills
+agy plugin install "$PWD/dist/antigravity"
+pi install "$PWD"                               # or: pi install "$PWD/dist/pi"
+# OpenCode: list "$PWD/dist/opencode/<plugin>" folders under "plugins" in opencode.json
+skillshare plugin add "$PWD" --plugin <plugin> --target claude -g
+skillshare plugin add "$PWD/dist/pi" --target pi -g
+```
+
+Then, in a throwaway git repository, ask each harness non-interactively
+(`claude -p`, `pi -p`, `opencode run`, `agy -p`) to run
+`git commit --allow-empty -m smoke-test` and to quote any session-start
+instruction about commits. The commit-tools guard must block the commit
+and the routing reminder must arrive. Known limits (skillshare 0.26.3,
+agy 1.4.1, OpenCode 2.1.1):
+
+- agy needs a signed-in Google account to run a prompt; without one, check
+  the plugins with `agy plugin list` and drive
+  `runtime/antigravity/hook-shim.sh` directly.
+- skillshare cannot install into Antigravity CLI ("unrecognized Antigravity
+  CLI plugin inventory") and writes OpenCode plugins as `file://…/index.js`,
+  which OpenCode rejects ("configured plugin path must be a directory"); use
+  the native commands above for those two.
 
 ## Commit Version Bumps
 
-Stage version metadata:
+Stage the registry and all generated output:
 
 ```bash
-git add registry.json .claude-plugin/marketplace.json plugins/*/.claude-plugin/plugin.json
+git add registry.json .claude-plugin dist
 ```
 
 Commit with the commit workflow used by this repo. Subject format:
@@ -170,7 +220,7 @@ pi install git:github.com/jskswamy/skills@vX.Y.Z
 If release fails before any commit, restore the modified files and retry:
 
 ```bash
-git restore registry.json .claude-plugin plugins CHANGELOG.md README.md
+git restore registry.json .claude-plugin dist CHANGELOG.md README.md
 ```
 
 If one or more release commits were created but should be abandoned:
