@@ -1,0 +1,38 @@
+{
+  "name": "@jskswamy/jot",
+  "version": "2.2.0",
+  "description": "Quick, low-friction capture of notes, tasks, ideas, session summaries, and tech radar blips with Obsidian-style auto-linking",
+  "type": "module",
+  "main": ".opencode/plugins/index.js",
+  "exports": {
+    ".": "./index.js"
+  },
+  "keywords": [
+    "opencode-plugin",
+    "capture",
+    "notes",
+    "tasks",
+    "ideas",
+    "radar",
+    "blips",
+    "knowledge-management",
+    "obsidian",
+    "wikilinks",
+    "gtd",
+    "productivity",
+    "learning",
+    "feynman",
+    "teach",
+    "teaching-notes",
+    "pi-package"
+  ],
+  "private": true,
+  "pi": {
+    "skills": [
+      "./skills"
+    ],
+    "prompts": [
+      "./prompts"
+    ]
+  }
+}

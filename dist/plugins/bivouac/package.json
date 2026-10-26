@@ -1,0 +1,30 @@
+{
+  "name": "@jskswamy/bivouac",
+  "version": "0.3.0",
+  "description": "Safe workflows for disposable remote coding-agent sessions with bivouac",
+  "type": "module",
+  "main": ".opencode/plugins/index.js",
+  "exports": {
+    ".": "./index.js"
+  },
+  "keywords": [
+    "opencode-plugin",
+    "bivouac",
+    "remote",
+    "agents",
+    "sessions",
+    "workflow",
+    "nix",
+    "cloud",
+    "pi-package"
+  ],
+  "private": true,
+  "pi": {
+    "skills": [
+      "./skills"
+    ],
+    "prompts": [
+      "./prompts"
+    ]
+  }
+}

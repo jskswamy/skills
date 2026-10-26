@@ -1,0 +1,6 @@
+{
+  "$schema": "https://antigravity.google/schemas/v1/plugin.json",
+  "name": "bivouac",
+  "version": "0.3.0",
+  "description": "Safe workflows for disposable remote coding-agent sessions with bivouac"
+}

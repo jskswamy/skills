@@ -1,0 +1,32 @@
+{
+  "name": "@jskswamy/sketch-note",
+  "version": "1.5.0",
+  "description": "Generate visual sketch notes in Excalidraw format from conversations, code architecture, or custom content",
+  "type": "module",
+  "main": ".opencode/plugins/index.js",
+  "exports": {
+    ".": "./index.js"
+  },
+  "keywords": [
+    "opencode-plugin",
+    "sketch",
+    "excalidraw",
+    "diagram",
+    "visualization",
+    "architecture",
+    "notes",
+    "hand-drawn",
+    "mind-map",
+    "flowchart",
+    "pi-package"
+  ],
+  "private": true,
+  "pi": {
+    "skills": [
+      "./skills"
+    ],
+    "prompts": [
+      "./prompts"
+    ]
+  }
+}

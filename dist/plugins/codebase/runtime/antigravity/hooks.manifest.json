@@ -1,0 +1,8 @@
+{
+  "entries": {
+    "session-start:session-reminder": {
+      "event": "session-start",
+      "command": "bash \"${ANTIGRAVITY_PLUGIN_ROOT}\"/hooks/session-reminder.sh"
+    }
+  }
+}

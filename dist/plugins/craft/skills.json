@@ -1,0 +1,17 @@
+{
+  "entries": [
+    {
+      "path": "codex-skills",
+      "include_only": [
+        "craft-cmd-backlog",
+        "craft-cmd-decompose",
+        "craft-cmd-deps",
+        "craft-cmd-epic",
+        "craft-cmd-execute",
+        "craft-cmd-park",
+        "craft-cmd-parked",
+        "craft-cmd-task"
+      ]
+    }
+  ]
+}

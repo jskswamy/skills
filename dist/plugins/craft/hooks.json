@@ -1,0 +1,11 @@
+{
+  "craft/stop:check-parked-ideas": {
+    "Stop": [
+      {
+        "type": "command",
+        "command": "bash runtime/antigravity/hook-shim.sh stop:check-parked-ideas",
+        "timeout": 10
+      }
+    ]
+  }
+}

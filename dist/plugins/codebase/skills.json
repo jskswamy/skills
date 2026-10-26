@@ -1,0 +1,13 @@
+{
+  "entries": [
+    {
+      "path": "codex-skills",
+      "include_only": [
+        "codebase-cmd-ask",
+        "codebase-cmd-graph",
+        "codebase-cmd-impact",
+        "codebase-cmd-index"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "entries": [
+    {
+      "path": "codex-skills",
+      "include_only": [
+        "study-cmd-coach",
+        "study-cmd-recall",
+        "study-cmd-setup"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "entries": [
+    {
+      "path": "codex-skills",
+      "include_only": [
+        "sketch-note-cmd-sketch"
+      ]
+    }
+  ]
+}

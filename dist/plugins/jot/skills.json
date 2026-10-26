@@ -1,0 +1,12 @@
+{
+  "entries": [
+    {
+      "path": "codex-skills",
+      "include_only": [
+        "jot-cmd-capture",
+        "jot-cmd-configure",
+        "jot-cmd-setup"
+      ]
+    }
+  ]
+}

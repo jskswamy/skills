@@ -1,0 +1,33 @@
+{
+  "name": "@jskswamy/devenv",
+  "version": "1.6.0",
+  "description": "Initialize and manage Nix flake development environments with auto-detection and security tooling",
+  "type": "module",
+  "main": ".opencode/plugins/index.js",
+  "exports": {
+    ".": "./index.js"
+  },
+  "keywords": [
+    "opencode-plugin",
+    "nix",
+    "flake",
+    "devenv",
+    "development",
+    "environment",
+    "pre-commit",
+    "gitleaks",
+    "security",
+    "direnv",
+    "direnv-instant",
+    "pi-package"
+  ],
+  "private": true,
+  "pi": {
+    "skills": [
+      "./skills"
+    ],
+    "extensions": [
+      "./runtime/pi/runtime.mjs"
+    ]
+  }
+}

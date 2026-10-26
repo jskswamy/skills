@@ -1,0 +1,11 @@
+{
+  "codebase/session-start:session-reminder": {
+    "SessionStart": [
+      {
+        "type": "command",
+        "command": "bash runtime/antigravity/hook-shim.sh session-start:session-reminder",
+        "timeout": 15
+      }
+    ]
+  }
+}

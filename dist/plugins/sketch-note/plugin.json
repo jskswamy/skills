@@ -1,0 +1,6 @@
+{
+  "$schema": "https://antigravity.google/schemas/v1/plugin.json",
+  "name": "sketch-note",
+  "version": "1.5.0",
+  "description": "Generate visual sketch notes in Excalidraw format from conversations, code architecture, or custom content"
+}

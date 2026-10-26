@@ -1,0 +1,31 @@
+{
+  "name": "@jskswamy/study",
+  "version": "1.2.0",
+  "description": "Adaptive study coach with multi-gear learning sessions (Socratic, Explain, Guide, Check, Help) and spaced recall tracking via Feynman loops. Saves coaching notes with gap tracking and a recall log that shows improvement over time.",
+  "type": "module",
+  "main": ".opencode/plugins/index.js",
+  "exports": {
+    ".": "./index.js"
+  },
+  "keywords": [
+    "opencode-plugin",
+    "learning",
+    "coaching",
+    "feynman",
+    "recall",
+    "spaced-repetition",
+    "study",
+    "knowledge",
+    "gaps",
+    "pi-package"
+  ],
+  "private": true,
+  "pi": {
+    "skills": [
+      "./skills"
+    ],
+    "prompts": [
+      "./prompts"
+    ]
+  }
+}

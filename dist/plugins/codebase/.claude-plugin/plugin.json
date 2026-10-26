@@ -1,0 +1,17 @@
+{
+  "name": "codebase",
+  "version": "0.4.0",
+  "description": "Intelligent codebase exploration powered by codebase-memory-mcp. Natural language queries, change impact analysis, symbol graph traversal, and automatic brainstorming/planning integration.",
+  "author": {
+    "name": "Krishnaswamy Subramanian"
+  },
+  "keywords": [
+    "codebase",
+    "exploration",
+    "semantic-search",
+    "impact-analysis",
+    "codebase-memory",
+    "graph",
+    "architecture"
+  ]
+}

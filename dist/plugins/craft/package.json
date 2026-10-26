@@ -1,0 +1,38 @@
+{
+  "name": "@jskswamy/craft",
+  "version": "1.2.0",
+  "description": "The craft of building software end-to-end: capture ideas, understand problems, decompose work into structured units, dispatch subagents to execute them, and commit with full task context",
+  "type": "module",
+  "main": ".opencode/plugins/index.js",
+  "exports": {
+    ".": "./index.js"
+  },
+  "keywords": [
+    "opencode-plugin",
+    "craft",
+    "work",
+    "build",
+    "planning",
+    "decomposition",
+    "execution",
+    "subagents",
+    "review",
+    "tasks",
+    "epics",
+    "parking",
+    "workflow",
+    "pi-package"
+  ],
+  "private": true,
+  "pi": {
+    "skills": [
+      "./skills"
+    ],
+    "prompts": [
+      "./prompts"
+    ],
+    "extensions": [
+      "./runtime/pi/runtime.mjs"
+    ]
+  }
+}
