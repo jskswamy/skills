@@ -2,6 +2,202 @@
 
 All notable changes to this skills/plugins collection will be documented in this file.
 
+## [2.2.0] - 2026-10-26
+
+### Added
+
+- Add design for multi-harness adapters
+
+Claude Code wrappers are the only generated output today, and Pi
+runs on a hand-written extension. Supporting Antigravity and
+OpenCode the same way would mean per-plugin code in each harness.
+
+Describe one adapter per harness, generated from registry.json,
+with a shared hook contract (Claude-shaped input, exit code 2 to
+block, additionalContext to inject). Hooks are required on every
+harness unless a plugin marks them optional with a reason.
+
+The design also lists the spikes to run first, covering OpenCode
+hook blocking, agy plugin install and Pi prompt templates.
+
+It targets the harness versions installed for testing: OpenCode 2.1.1,
+agy 1.4.1 and Pi 1.4.0.
+- Add a session-start hook that routes commits
+
+The Pi extension told the agent, before every run, to load and follow
+commit-action for any commit, including ones it starts on its own.
+That routing now lives in a canonical commit-tools SessionStart hook,
+so every harness gets it from the same source instead of Pi alone.
+
+The script finds the skill from its own location, in both the
+canonical tree and an installed Claude wrapper, as the commit guard
+already does. Claude Code adds its plain output to the session
+context, so Claude users now get the same reminder.
+
+Its timeout is 5, in seconds as Claude reads it.
+- Add shared transforms and a hook runner
+
+Each harness adapter needs the same conversions: reading a plugin's
+resources from registry.json, laying files out the way hook commands
+address them through ${CLAUDE_PLUGIN_ROOT}, mapping commands to skills,
+trimming agent frontmatter, translating tool names and matchers, and
+deciding which hooks a harness can carry. They live once under
+scripts/lib/ so the adapters stay thin.
+
+Hooks are written once, in Claude's format. Harnesses without native
+hooks run them through harnesses/lib/hook-runner.mjs under Claude's
+contract: Claude-shaped JSON on stdin, exit 2 blocks with stderr as the
+reason, additionalContext on stdout is injected, and a missing,
+crashing or slow script never blocks. A hook a harness cannot carry is
+an error unless the registry marks it optional with a reason.
+A hook command that quotes ${CLAUDE_PLUGIN_ROOT} is an error too: the
+runtimes substitute an already quoted root, which would unquote it.
+
+### Documentation
+
+- Document installing and adding harnesses
+
+The docs described Claude Code wrappers as the only generated output.
+They now describe the split: sources at the root and in
+harnesses/<id>/, everything generated in dist/ plus the Claude
+marketplace, written only by the release, so main always installs the
+last release on every harness.
+
+The README covers installing on each harness and what each one
+carries or degrades, tested with Claude Code, Pi 1.4.0, agy 1.4.1 and
+OpenCode 2.1.1. Each harness has a README with its install steps and
+how its hooks run. Contributors commit sources only and try changes
+from the temp dir npm run build prints. Adding a Harness walks through
+writing an adapter, a tool table and a hook runtime, and the hook
+policy. The command to skill map lists each command's name per
+harness.
+
+### Other
+
+- Generate every harness from one source into dist
+
+Claude Code wrappers were the only generated output and Pi ran on a
+hand-written extension. One adapter per harness now turns the canonical
+skills, commands, agents and hooks into that harness's install tree, so
+a plugin ships to Claude Code, Antigravity, OpenCode and Pi from the
+same source.
+
+Everything generated goes under dist/<harness>/, plus the Claude
+marketplace at .claude-plugin/, which Claude reads only there. Sources
+stay at the root and in harnesses/<id>/, which holds each harness's
+adapter, runtime or hook shim, and tool table:
+
+- Claude Code: dist/claude-code/<plugin>, native.
+- Antigravity: dist/antigravity/plugins/<plugin>; commands become
+  skills and hooks run through a bash and jq shim speaking agy's hook
+  contract.
+- OpenCode: a self-contained V2 package per plugin in
+  dist/opencode/<plugin>, whose runtime registers skills, commands and
+  agents and runs the hooks.
+- Pi: one self-contained package in dist/pi/, with the Pi plugins'
+  resources at their canonical paths, prompt templates, a hook manifest
+  and a copy of the runtime. The root package.json "pi" block is now
+  hand-written and points at it; dist/pi/package.json lets the folder
+  install on its own.
+
+Only the release writes dist/: npm run build writes into a temp dir and
+prints it, and npm run build:release writes the repository. validate,
+eval and the tests all build into temp dirs, so they check the current
+sources rather than the last release. Each adapter rebuilds its own
+tree from scratch, so a removed plugin or file stops shipping; the
+plugin READMEs move to templates/<plugin>/ and are copied through
+extra, since nothing hand-written may live in generated output.
+
+registry.json enables Antigravity and OpenCode for every plugin, and
+names the hooks agy cannot carry with the reason. The build reports,
+per plugin and harness, everything degraded or skipped.
+- Rewrite the commit guard and executor in bash
+
+Plugins should not need Node.js at runtime, but commit-tools did: the
+guard handed every Bash call to a Node module, so on a machine without
+node on PATH, such as a Nix-wrapped Claude Code, it blocked every
+command, and /commit ran its final checks through a Node script.
+
+intercept-git-commit.sh is now the whole guard, in bash and jq. It
+tokenizes the command as guard.mjs did, so it still catches commits in
+compound and nested commands, sh -c, command substitutions, quoted or
+option-prefixed git, and MCP commit tools, and honours the workflow
+token only when it prefixes the commit itself. A fast path skips
+parsing when the command cannot contain "commit". Without jq it does
+nothing, by decision: a missing optional tool should not block work.
+
+commit.sh replaces commit.mjs with bash, git and POSIX tools, keeping
+the same flags, checks and messages: the workflow token, a blank line
+after the subject, body lines of at most 72 characters counted as
+characters, no AI co-author, the style check and the amend guards. It
+commits the validated bytes rather than re-reading the file. The skill,
+its review-plan reference and the review-commits scripts call it, and
+the Skillshare audit exemption names the bash call. The tests run both
+with node removed from PATH.
+- Bump plugins whose built output changed
+
+A release decided which plugins to bump from the source paths each one
+lists, and checked that the committed install trees matched a fresh
+build. Now that generated output changes only at release, a change made
+only to an adapter, a runtime or a transform would land in the release
+commit with no version bump, and Claude's version-keyed plugin cache
+would never pick it up.
+
+scripts/changed-plugins.mjs builds into a temp dir and lists every
+plugin whose Claude, Antigravity or OpenCode output differs from the
+committed dist/, ignoring version fields. It takes each harness's
+folder from its adapter, so a moved output path cannot drop a harness
+from the comparison. Pi is left out: it takes its
+version from the git tag, and its files come from the same sources.
+
+The release doc and skill bump from that list, write output with npm run
+build:release, stage dist/, and drop the drift check, since dist/ is
+meant to lag the sources until the release. The doc gains an optional
+step that installs the release output into every harness, natively and
+through skillshare, and records the limits found doing so. The local
+hook that auto-bumped versions on edits under plugins/ goes, and
+update-readme.sh drops an unused plugins path.
+- Generate every harness into dist
+
+Run the release build once, without a version bump, so main has every
+harness's install tree the moment this lands: plugins/ becomes
+dist/claude-code/, and Antigravity, OpenCode and Pi gain
+dist/antigravity/, dist/opencode/ and dist/pi/. The marketplace sources
+point into dist/claude-code.
+
+The Claude plugins carry the changes made since v2.1.25 at their old
+versions; the release doc names the plugins to bump in the next
+release. changed-plugins reports nothing, so a fresh build of these
+sources matches what is committed.
+- Give hook timeouts in seconds
+
+Claude Code reads a hook's timeout in seconds, but the commit-tools
+guard and both codebase hooks said 5000 and the three devenv formatter
+hooks said 60000: about 83 minutes and 16.7 hours, so a hung hook was
+never cut off. The other harnesses inherited the same values; the agy
+guard waited 5005 seconds. They are now 5 and 60, as intended.
+
+A test keeps every canonical hook timeout at 600 seconds or less. The
+committed dist/ keeps the old values until the next release, which
+changed-plugins will flag codebase, commit-tools and devenv for.
+
+### Removed
+
+- Drop the npx export route from sketch-note
+
+Plugins should not depend on Node.js, and sketch-note fell back to
+npx to run the Mermaid and Excalidraw converters. PNG export now uses
+a globally installed CLI or, for mermaid-cli, nix. When neither is
+found, the prompts ask the user to install one and check again,
+instead of suggesting npm install -g.
+- Drop duplicate registry checks
+
+validateRegistryResources had its own cruder check that a listed skill's
+frontmatter has a name and description. validateSkills already checks
+every skill folder for both with the real parser, so the duplicate goes,
+along with its two tests; the empty block description case moves to the
+validateSkills tests. pathExists was copied in registry.mjs and
+pi-package.mjs and now lives once in fs-utils.mjs.
 ## [2.1.25] - 2026-10-25
 
 ### Other
