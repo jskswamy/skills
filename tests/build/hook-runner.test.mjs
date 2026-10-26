@@ -92,3 +92,18 @@ test("runEvent runs matching manifest entries and stops at the first block", asy
     context: ["plain reminder"],
   });
 });
+
+test("a spent time budget skips the remaining hooks and cuts the running one short", async () => {
+  const dir = await scripts();
+  const { lines, log } = logger();
+  const entries = [
+    { event: "session-start", command: `bash ${dir}/hang.sh`, timeoutMs: 30_000 },
+    { event: "session-start", command: `bash ${dir}/plain.sh` },
+  ];
+  const started = Date.now();
+  const result = await runEvent({ entries, event: "session-start", input: {}, log, budgetMs: 300 });
+  assert.deepEqual(result, { blocked: false, context: [] });
+  assert.ok(Date.now() - started < 5000, "returned promptly");
+  assert.match(lines.join("\n"), /timed out after \d+ms/);
+  assert.match(lines.join("\n"), /time budget spent/);
+});

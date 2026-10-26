@@ -9,7 +9,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { claudeHookInput, toClaudeToolName } from "../lib/hook-input.mjs";
-import { runEvent } from "../lib/hook-runner.mjs";
+import { START_BUDGET_MS, runEvent } from "../lib/hook-runner.mjs";
 import { PI_TOOLS } from "./tools.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -28,7 +28,7 @@ export function loadManifest(path = join(PACKAGE_ROOT, "hooks.manifest.json")) {
 
 export function createRuntime({ entries, root = PACKAGE_ROOT, log = (line) => console.error(`[hooks] ${line}`) }) {
   const env = { ...process.env, PI_PACKAGE_ROOT: root };
-  const run = (event, target, input, ctx) => runEvent({ entries, event, target, input, cwd: ctx?.cwd, env, log });
+  const run = (event, target, input, ctx, budgetMs) => runEvent({ entries, event, target, input, cwd: ctx?.cwd, env, log, budgetMs });
   const guarded = (handler) => async (event, ctx) => {
     try {
       return await handler(event, ctx);
@@ -46,7 +46,7 @@ export function createRuntime({ entries, root = PACKAGE_ROOT, log = (line) => co
       guarded(async (event, ctx) => {
         const source = SESSION_SOURCES[event?.reason] ?? "startup";
         const input = claudeHookInput({ event: "session-start", extra: { source, cwd: ctx?.cwd } });
-        const result = await run("session-start", source, input, ctx);
+        const result = await run("session-start", source, input, ctx, START_BUDGET_MS);
         if (result.context.length > 0) {
           pi.sendMessage({ customType: "hook-context", content: result.context.join("\n\n"), display: false });
         }
