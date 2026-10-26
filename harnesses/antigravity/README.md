@@ -48,9 +48,10 @@ ways:
 | `Stop` | `Stop` | exit 2 becomes `{"decision":"continue"}` |
 | `SubagentStart` | none | not applicable |
 
-Only exit 2 blocks. A missing script, crash or timeout prints `{}` and does
-not block. The shim never answers `allow`, which would skip agy's own
-permission prompt.
+Only exit 2 blocks. A missing script, crash or timeout does not block: it
+prints `{}`, except on `PreToolUse`, where agy treats `{}` as a denial and
+the shim prints `{"decision":"allow"}`. That `allow` skips agy's own
+permission prompt for the call.
 
 The shim needs only bash (3.2 or later, as macOS ships) and `jq`; generated
 plugins contain no JavaScript and do not need Node.js. Without `jq` on
@@ -70,7 +71,7 @@ are marked optional, each with its reason under
 - commit-tools `pre-tool:intercept-git-commit`: only the MCP half; the
   `run_command` guard is carried
 - codebase `pre-tool:discovery-augment`: agy has no Grep or Glob tool
-- devenv `post-tool:nixfmt`, `post-tool:statix`, `post-tool:deadnix`: agy's
+- devenv `post-tool:nix-tools`: agy's
   hook names for file edits are unverified
 
 codebase's `subagent-start:subagent-reminder` does not apply, since agy has
@@ -83,3 +84,17 @@ are unverified at runtime. The build reports this for every plugin with hooks.
 `npm run validate` runs `agy plugin validate --json --strict` on every
 generated plugin when agy is installed, and checks its skill, agent and hook
 counts, because agy drops a malformed `hooks.json` without a finding.
+
+## Smoke test before a release
+
+The tests above run the shim with synthetic input. agy itself is the only
+check of its hook contract, so before a release, with a signed-in agy:
+
+1. `agy plugin install dist/antigravity` (from a release build).
+2. Start a session and run any `run_command` such as `ls`. It must run, not
+   fail with `tool call denied by pre-tool hook`.
+3. Ask for `git commit -m test`. The commit guard must deny it.
+4. Check that the session-start reminder reaches the model.
+
+A hook that prints nothing, or `{}` on `PreToolUse`, blocks every call, so
+step 2 catches the failure that once broke `run_command`.

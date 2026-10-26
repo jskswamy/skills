@@ -184,8 +184,8 @@ test("blocking: a run_command git commit through the real commit guard is denied
   const denied = runShim(out("commit-tools"), "pre-tool:intercept-git-commit", call("git status; git commit -m test")).output;
   assert.equal(denied.decision, "deny");
   assert.match(denied.reason, /commit-action/);
-  // Anything else passes without auto-approving the tool.
-  assert.deepEqual(runShim(out("commit-tools"), "pre-tool:intercept-git-commit", call("git log -1")).output, {});
+  // agy treats a PreToolUse answer without a decision as a denial.
+  assert.deepEqual(runShim(out("commit-tools"), "pre-tool:intercept-git-commit", call("git log -1")).output, { decision: "allow" });
 });
 
 test("context: SessionStart output becomes injectSteps (codebase reminder and commit routing)", async (t) => {
@@ -208,17 +208,32 @@ test("failure handling: a missing or hung script does not block; stop exit 2 con
   await rm(out("one", "hooks/missing.sh"));
   const call = { workspacePaths: [tmpdir()], toolCall: { name: "run_command", args: { CommandLine: "ls" } } };
 
-  assert.deepEqual(runShim(out("one"), "pre-tool:missing", call).output, {});
+  assert.deepEqual(runShim(out("one"), "pre-tool:missing", call).output, { decision: "allow" });
   const started = Date.now();
   const hung = runShim(out("one"), "pre-tool:hang", call);
-  assert.deepEqual(hung.output, {});
+  assert.deepEqual(hung.output, { decision: "allow" });
   assert.ok(Date.now() - started < 10_000);
   assert.match(hung.stderr, /timed out/);
-  assert.deepEqual(runShim(out("one"), "pre-tool:nope", call).output, {});
+  assert.deepEqual(runShim(out("one"), "pre-tool:nope", call).output, { decision: "allow" });
   assert.deepEqual(runShim(out("one"), "stop:stop", { workspacePaths: [tmpdir()], terminationReason: "NO_TOOL_CALL" }).output, {
     decision: "continue",
     reason: "parked ideas remain",
   });
+});
+
+test("contract: every event's pass-through answer is one agy accepts", async (t) => {
+  const { out } = await fixture(t, [{ ...COMMIT_TOOLS, harnesses: { antigravity: { enabled: true, optional: { "pre-tool:intercept-git-commit": "x" } } } }]);
+  const workspace = await mkdtemp(join(tmpdir(), "agy-workspace-"));
+  t.after(() => rm(workspace, { recursive: true, force: true }));
+  const plugin = out("commit-tools");
+  // PreToolUse must carry a decision; a toolCall-less event must not trip the guard's input check.
+  for (const input of [{ workspacePaths: [workspace] }, { workspacePaths: [workspace], toolCall: { name: "run_command", args: { CommandLine: "ls", Cwd: workspace } } }]) {
+    assert.deepEqual(runShim(plugin, "pre-tool:intercept-git-commit", input).output, { decision: "allow" });
+  }
+  // Every other event answers a JSON object that is not a PreToolUse decision.
+  const start = runShim(plugin, "session-start:routing-reminder", { workspacePaths: [workspace] }).output;
+  assert.equal(typeof start, "object");
+  assert.ok(!("decision" in start));
 });
 
 test("without jq on PATH a hook does nothing", async (t) => {
@@ -233,6 +248,7 @@ test("without jq on PATH a hook does nothing", async (t) => {
   const env = { ...process.env, PATH: bin };
   assert.deepEqual(runShim(out("one"), "stop:stop", { workspacePaths: [tmpdir()] }, env).output, {});
   assert.deepEqual(runShim(out("one"), "session-start:context", { workspacePaths: [tmpdir()] }, env).output, {});
+  assert.deepEqual(runShim(out("one"), "pre-tool:missing", { workspacePaths: [tmpdir()] }, env).output, { decision: "allow" });
 });
 
 test("generated plugins ship no JavaScript, so they run without node", async (t) => {
