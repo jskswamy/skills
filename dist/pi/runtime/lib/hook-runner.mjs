@@ -9,6 +9,8 @@
 import { spawn } from "node:child_process";
 
 export const DEFAULT_TIMEOUT_MS = 10_000;
+// Most a harness waits on all session-start or subagent-start hooks together.
+export const START_BUDGET_MS = 20_000;
 
 // Events whose plain stdout Claude adds to the model context.
 const PLAIN_CONTEXT_EVENTS = new Set(["session-start", "subagent-start"]);
@@ -48,17 +50,25 @@ export async function runHook({
 
 // Runs every entry for the event whose matcher accepts target (the Claude
 // tool name, or the session source for session-start). Stops at the first
-// block; context from hooks that ran before it is kept.
-export async function runEvent({ entries, event, target = "", input, cwd, env, log }) {
+// block; context from hooks that ran before it is kept. budgetMs caps the
+// whole event: a hook gets at most what is left of it, and once it is spent
+// the rest are skipped, so a slow start cannot hold up a session.
+export async function runEvent({ entries, event, target = "", input, cwd, env, log, budgetMs = Infinity }) {
   const context = [];
+  const deadline = Date.now() + budgetMs;
   for (const entry of entries) {
     if (entry.event !== event || !safeMatches(entry.matcher, target, log)) continue;
+    const left = deadline - Date.now();
+    if (left <= 0) {
+      log?.(`${event} hook skipped, time budget spent: ${entry.command}`);
+      continue;
+    }
     const result = await runHook({
       command: entry.command,
       input,
       cwd,
       env,
-      timeoutMs: entry.timeoutMs,
+      timeoutMs: Math.min(entry.timeoutMs ?? DEFAULT_TIMEOUT_MS, left),
       plainStdoutIsContext: PLAIN_CONTEXT_EVENTS.has(event),
       log,
     });

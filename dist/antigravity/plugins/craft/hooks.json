@@ -4,7 +4,7 @@
       {
         "type": "command",
         "command": "bash runtime/antigravity/hook-shim.sh stop:check-parked-ideas",
-        "timeout": 15
+        "timeout": 10
       }
     ]
   }

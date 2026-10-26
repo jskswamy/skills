@@ -12,7 +12,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { claudeHookInput, toClaudeToolName } from "../lib/hook-input.mjs";
-import { runEvent } from "../lib/hook-runner.mjs";
+import { START_BUDGET_MS, runEvent } from "../lib/hook-runner.mjs";
 import { OPENCODE_TOOLS } from "./tools.mjs";
 
 // Commands OpenCode itself defines; a generated command must not shadow them.
@@ -63,7 +63,7 @@ async function setup(ctx, { root, entries, resources, log }) {
   };
   const has = (event) => entries.some((entry) => entry.event === event);
   const env = { ...process.env, OPENCODE_PLUGIN_ROOT: root };
-  const run = (event, target, input, cwd) => runEvent({ entries, event, target, input, cwd, env, log });
+  const run = (event, target, input, cwd, budgetMs) => runEvent({ entries, event, target, input, cwd, env, log, budgetMs });
 
   // sessionID -> { start: Promise<string[]>, notes: Set<string>, info, continued }
   const sessions = new Map();
@@ -124,7 +124,7 @@ async function setup(ctx, { root, entries, resources, log }) {
       ? ["subagent-start", ev.agent ?? "", { agent_type: ev.agent }]
       : ["session-start", "startup", { source: "startup" }];
     const input = claudeHookInput({ event, extra: { session_id: ev.sessionID, cwd, ...extra } });
-    return (await run(event, target, input, cwd)).context;
+    return (await run(event, target, input, cwd, START_BUDGET_MS)).context;
   };
   if (["session-start", "subagent-start", "pre-tool", "post-tool"].some(has)) {
     await attempt("context hook", () =>

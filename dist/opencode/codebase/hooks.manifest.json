@@ -17,13 +17,6 @@
       "matcher": "Grep|Glob",
       "command": "bash \"${OPENCODE_PLUGIN_ROOT}\"/hooks/discovery-augment.sh",
       "timeoutMs": 5000
-    },
-    {
-      "id": "pre-tool:pretooluse-grep",
-      "event": "pre-tool",
-      "matcher": "Bash",
-      "command": "bash \"${OPENCODE_PLUGIN_ROOT}\"/hooks/pretooluse-grep.sh",
-      "timeoutMs": 5000
     }
   ]
 }

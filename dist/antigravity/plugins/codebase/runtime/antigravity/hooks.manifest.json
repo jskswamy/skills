@@ -3,11 +3,6 @@
     "session-start:session-reminder": {
       "event": "session-start",
       "command": "bash \"${ANTIGRAVITY_PLUGIN_ROOT}\"/hooks/session-reminder.sh"
-    },
-    "pre-tool:pretooluse-grep": {
-      "event": "pre-tool",
-      "command": "bash \"${ANTIGRAVITY_PLUGIN_ROOT}\"/hooks/pretooluse-grep.sh",
-      "timeoutMs": 5000
     }
   }
 }

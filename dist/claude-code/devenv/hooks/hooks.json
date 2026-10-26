@@ -7,18 +7,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/nixfmt.sh",
-            "timeout": 60
-          },
-          {
-            "type": "command",
-            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/statix.sh",
-            "timeout": 60
-          },
-          {
-            "type": "command",
-            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/deadnix.sh",
-            "timeout": 60
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/nix-tools.sh",
+            "timeout": 180
           }
         ]
       }

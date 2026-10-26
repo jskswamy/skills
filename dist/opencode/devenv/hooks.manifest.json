@@ -1,25 +1,11 @@
 {
   "entries": [
     {
-      "id": "post-tool:nixfmt",
+      "id": "post-tool:nix-tools",
       "event": "post-tool",
       "matcher": "Write|Edit",
-      "command": "bash \"${OPENCODE_PLUGIN_ROOT}\"/hooks/scripts/nixfmt.sh",
-      "timeoutMs": 60000
-    },
-    {
-      "id": "post-tool:statix",
-      "event": "post-tool",
-      "matcher": "Write|Edit",
-      "command": "bash \"${OPENCODE_PLUGIN_ROOT}\"/hooks/scripts/statix.sh",
-      "timeoutMs": 60000
-    },
-    {
-      "id": "post-tool:deadnix",
-      "event": "post-tool",
-      "matcher": "Write|Edit",
-      "command": "bash \"${OPENCODE_PLUGIN_ROOT}\"/hooks/scripts/deadnix.sh",
-      "timeoutMs": 60000
+      "command": "bash \"${OPENCODE_PLUGIN_ROOT}\"/hooks/scripts/nix-tools.sh",
+      "timeoutMs": 180000
     }
   ]
 }

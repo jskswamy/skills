@@ -2,27 +2,11 @@
   "entries": [
     {
       "plugin": "devenv",
-      "id": "post-tool:nixfmt",
+      "id": "post-tool:nix-tools",
       "event": "post-tool",
       "matcher": "Write|Edit",
-      "command": "bash \"${PI_PACKAGE_ROOT}\"/hooks/devenv/scripts/nixfmt.sh",
-      "timeoutMs": 60000
-    },
-    {
-      "plugin": "devenv",
-      "id": "post-tool:statix",
-      "event": "post-tool",
-      "matcher": "Write|Edit",
-      "command": "bash \"${PI_PACKAGE_ROOT}\"/hooks/devenv/scripts/statix.sh",
-      "timeoutMs": 60000
-    },
-    {
-      "plugin": "devenv",
-      "id": "post-tool:deadnix",
-      "event": "post-tool",
-      "matcher": "Write|Edit",
-      "command": "bash \"${PI_PACKAGE_ROOT}\"/hooks/devenv/scripts/deadnix.sh",
-      "timeoutMs": 60000
+      "command": "bash \"${PI_PACKAGE_ROOT}\"/hooks/devenv/scripts/nix-tools.sh",
+      "timeoutMs": 180000
     },
     {
       "plugin": "commit-tools",
@@ -43,7 +27,8 @@
       "plugin": "craft",
       "id": "stop:check-parked-ideas",
       "event": "stop",
-      "command": "bash \"${PI_PACKAGE_ROOT}\"/hooks/craft/scripts/check-parked-ideas.sh"
+      "command": "bash \"${PI_PACKAGE_ROOT}\"/hooks/craft/scripts/check-parked-ideas.sh",
+      "timeoutMs": 5000
     },
     {
       "plugin": "codebase",
@@ -58,14 +43,6 @@
       "event": "pre-tool",
       "matcher": "Grep|Glob",
       "command": "bash \"${PI_PACKAGE_ROOT}\"/hooks/codebase/discovery-augment.sh",
-      "timeoutMs": 5000
-    },
-    {
-      "plugin": "codebase",
-      "id": "pre-tool:pretooluse-grep",
-      "event": "pre-tool",
-      "matcher": "Bash",
-      "command": "bash \"${PI_PACKAGE_ROOT}\"/hooks/codebase/pretooluse-grep.sh",
       "timeoutMs": 5000
     }
   ]

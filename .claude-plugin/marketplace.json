@@ -11,7 +11,7 @@
     {
       "name": "bivouac",
       "description": "Safe workflows for disposable remote coding-agent sessions with bivouac",
-      "version": "0.1.4",
+      "version": "0.1.5",
       "author": {
         "name": "Krishnaswamy Subramanian"
       },
@@ -30,7 +30,7 @@
     {
       "name": "devenv",
       "description": "Initialize and manage Nix flake development environments with auto-detection and security tooling",
-      "version": "1.4.0",
+      "version": "1.4.1",
       "author": {
         "name": "Krishnaswamy Subramanian"
       },
@@ -52,7 +52,7 @@
     {
       "name": "commit-tools",
       "description": "End-to-end commit hygiene: write atomic commits with style enforcement, review and consolidate them before push, validate the final history",
-      "version": "1.1.0",
+      "version": "1.1.1",
       "author": {
         "name": "Krishnaswamy Subramanian"
       },
@@ -76,7 +76,7 @@
     {
       "name": "jot",
       "description": "Quick, low-friction capture of notes, tasks, ideas, session summaries, and tech radar blips with Obsidian-style auto-linking",
-      "version": "2.0.3",
+      "version": "2.0.4",
       "author": {
         "name": "Krishnaswamy Subramanian"
       },
@@ -103,7 +103,7 @@
     {
       "name": "craft",
       "description": "The craft of building software end-to-end: capture ideas, understand problems, decompose work into structured units, dispatch subagents to execute them, and commit with full task context",
-      "version": "1.0.3",
+      "version": "1.0.4",
       "author": {
         "name": "Krishnaswamy Subramanian"
       },
@@ -127,7 +127,7 @@
     {
       "name": "sketch-note",
       "description": "Generate visual sketch notes in Excalidraw format from conversations, code architecture, or custom content",
-      "version": "1.3.0",
+      "version": "1.3.1",
       "author": {
         "name": "Krishnaswamy Subramanian"
       },
@@ -148,7 +148,7 @@
     {
       "name": "typst-notes",
       "description": "Generate beautiful PDF/HTML shareable notes using Typst with 7 professional templates, infographics, and modern typography",
-      "version": "1.1.0",
+      "version": "1.1.1",
       "author": {
         "name": "Krishnaswamy Subramanian"
       },
@@ -167,7 +167,7 @@
     {
       "name": "codebase",
       "description": "Intelligent codebase exploration powered by codebase-memory-mcp. Natural language queries, change impact analysis, symbol graph traversal, and automatic brainstorming/planning integration.",
-      "version": "0.2.0",
+      "version": "0.2.1",
       "author": {
         "name": "Krishnaswamy Subramanian"
       },
@@ -186,7 +186,7 @@
     {
       "name": "study",
       "description": "Adaptive study coach with multi-gear learning sessions (Socratic, Explain, Guide, Check, Help) and spaced recall tracking via Feynman loops. Saves coaching notes with gap tracking and a recall log that shows improvement over time.",
-      "version": "1.0.5",
+      "version": "1.0.6",
       "author": {
         "name": "Krishnaswamy Subramanian"
       },
@@ -206,7 +206,7 @@
     {
       "name": "refactor",
       "description": "Semantic refactoring opportunity detection. Scans committed code for structural duplication (Fowler catalog), code smells (Fowler/Beck), GoF design pattern opportunities, SOLID/DRY principle violations, and language-idiomatic anti-patterns (Go, Python, TypeScript). Creates beads issues with TDD-first refactoring plans. Run on demand with /refactor:scan.",
-      "version": "0.1.4",
+      "version": "0.1.5",
       "author": {
         "name": "Krishnaswamy Subramanian"
       },

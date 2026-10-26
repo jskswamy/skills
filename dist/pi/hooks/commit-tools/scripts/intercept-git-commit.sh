@@ -8,6 +8,7 @@
 command -v jq >/dev/null 2>&1 || exit 0
 export LC_ALL=C
 
+MAX_SCAN_BYTES=16384
 COMMIT_REQUIRED="Direct commit blocked. Load the commit-action skill (/commit), validate the message and get explicit confirmation before retrying. Leave commits local; do not push or sync."
 
 # Splits a command into shell-like words in TOKENS, with ";" for each command
@@ -81,6 +82,10 @@ blocks_direct_commit() {
   local plain=${1//[\\\"\']/} newline=$'\n'
   plain=${plain//$newline/}
   [[ $plain == *commit* ]] || return 1
+  # The tokenizer is quadratic in bash (46 KB takes about 4 s) and a hook that
+  # times out lets the command through, so past this size a command that
+  # mentions git and commit is refused unread. Write long text with a file tool.
+  ((${#1} > MAX_SCAN_BYTES)) && [[ $plain == *git*commit* ]] && return 0
 
   tokenize "$1"
   local -a toks nest

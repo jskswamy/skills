@@ -13,9 +13,9 @@
 #   Stop         exit 2 -> {"decision":"continue","reason":...}
 #   SessionStart context -> {"injectSteps":[{"systemMessage":{"systemMessage":...}}]}
 # Everything else, including any failure of the shim itself or a missing jq,
-# prints {} and exits 0, so a broken hook never blocks. It never prints
-# "allow", which would auto-approve the tool and skip agy's own permission
-# check.
+# exits 0 without blocking: PreToolUse prints {"decision":"allow"} and every
+# other event {}. agy requires a "decision" on PreToolUse and treats {} there
+# as a denial with an empty reason, so every tool call would fail.
 #
 # Needs only bash (3.2 or later, as macOS ships) and jq.
 
@@ -23,9 +23,17 @@ DEFAULT_TIMEOUT_MS=10000
 
 log() { printf '[hooks] %s\n' "$*" >&2; }
 
+# What a hook that does not block prints, by hook id (<event>:<name>).
+default_output() {
+  case "$1" in
+    pre-tool:*) printf '{"decision":"allow"}\n' ;;
+    *) printf '{}\n' ;;
+  esac
+}
+
 # Without jq the hook does nothing.
 if ! command -v jq >/dev/null 2>&1; then
-  printf '{}\n'
+  default_output "$1"
   exit 0
 fi
 
@@ -33,13 +41,14 @@ HERE=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 PLUGIN_ROOT=$(cd "$HERE/../.." && pwd)
 TMP=$(mktemp -d "${TMPDIR:-/tmp}/agy-hook.XXXXXX") || {
   log "hook shim failed: cannot create a temporary directory"
-  printf '{}\n'
+  default_output "$1"
   exit 0
 }
 trap 'rm -rf "$TMP"' EXIT
 
 # Claude-shaped stdin for the hook script, built from agy's input. Tool
 # names and argument fields map through tools.json; others pass through.
+# shellcheck disable=SC2016 # jq program: $names are jq variables
 CLAUDE_INPUT='
 def truthy: . != null and . != false and . != "" and . != 0;
 def first_truthy(f): [f | select(truthy)][0];
@@ -56,6 +65,7 @@ def first_truthy(f): [f | select(truthy)][0];
      | {tool_name: $name,
         tool_input: ($args | with_entries(.key as $k
           | .key = ([$fields | to_entries[] | select(.value == $k) | .key][0] // $k)))}
+   elif $event == "pre-tool" then {tool_input: {}}
    else {} end)
 + ({session_id: $agy.conversationId,
     cwd: first_truthy($args.Cwd, ($agy.workspacePaths | if type == "array" then .[0] else null end))}
@@ -70,6 +80,7 @@ def first_truthy(f): [f | select(truthy)][0];
 # Context a successful hook asks to inject, as a JSON string, or nothing:
 # hookSpecificOutput.additionalContext from JSON stdout, or plain stdout when
 # $plain is "1" (Claude adds a SessionStart hook's plain stdout to context).
+# shellcheck disable=SC2016 # jq program: $names are jq variables
 CONTEXT='
 (sub("^\\s+"; "") | sub("\\s+$"; "")) as $text
 | if $text == "" then empty
@@ -126,7 +137,7 @@ main() {
   timeout_ms=$(printf '%s' "$entry" | jq -r '.timeoutMs // empty | floor')
   case "$timeout_ms" in '' | *[!0-9]*) timeout_ms=$DEFAULT_TIMEOUT_MS ;; esac
 
-  # Unparseable input counts as {}.
+  # Unparsable input counts as {}.
   cat >"$TMP/agy"
   jq -c 'if type == "object" then . else {} end' "$TMP/agy" >"$TMP/event" 2>/dev/null || printf '{}' >"$TMP/event"
   if ! jq -c --arg event "$event" --slurpfile tools "$HERE/tools.json" "$CLAUDE_INPUT" "$TMP/event" >"$TMP/in" 2>"$TMP/err"; then
@@ -175,6 +186,5 @@ main() {
 }
 
 output=$(main "$1")
-[ -n "$output" ] || output={}
-printf '%s\n' "$output"
+if [ -n "$output" ]; then printf '%s\n' "$output"; else default_output "$1"; fi
 exit 0
