@@ -1,5 +1,6 @@
-import { access, readFile, stat } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 import { join } from "node:path";
+import { pathExists } from "./fs-utils.mjs";
 
 const RESOURCE_KEYS = ["skills", "commands", "agents", "hooks", "templates", "extra"];
 
@@ -18,15 +19,9 @@ export async function validateRegistryResources({ repoRoot, registry }) {
     await validatePathList({ repoRoot, plugin, type: "templates", base: "templates", values: resources.templates ?? [], errors });
 
     for (const skill of resources.skills ?? []) {
-      const skillDir = join(repoRoot, "skills", skill);
-      const skillPath = join(skillDir, "SKILL.md");
-      if (!(await pathExists(skillPath))) {
+      // Frontmatter is checked for every skill by validateSkills.
+      if (!(await pathExists(join(repoRoot, "skills", skill, "SKILL.md")))) {
         errors.push(`${plugin.name} skills missing SKILL.md: skills/${skill}`);
-        continue;
-      }
-      const content = await readFile(skillPath, "utf8");
-      if (!hasValidSkillFrontmatter(content)) {
-        errors.push(`${plugin.name} skill invalid frontmatter: skills/${skill}/SKILL.md`);
       }
     }
 
@@ -103,38 +98,6 @@ async function validatePathList({ repoRoot, plugin, type, base, values, errors }
       errors.push(`${plugin.name} ${type} missing: ${base}/${value}`);
     }
   }
-}
-
-async function pathExists(path) {
-  try {
-    await access(path);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-function hasValidSkillFrontmatter(content) {
-  const match = content.match(/^---\r?\n([\s\S]*?)\r?\n---/);
-  if (!match) return false;
-  const frontmatter = match[1];
-  return hasNonEmptyYamlField(frontmatter, "name") && hasNonEmptyYamlField(frontmatter, "description");
-}
-
-function hasNonEmptyYamlField(frontmatter, field) {
-  const lines = frontmatter.split(/\r?\n/);
-  const index = lines.findIndex((line) => line.startsWith(`${field}:`));
-  if (index === -1) return false;
-
-  const value = lines[index].slice(field.length + 1).trim();
-  if (value && value !== "|" && value !== ">") return true;
-  if (value !== "|" && value !== ">") return false;
-
-  for (const line of lines.slice(index + 1)) {
-    if (/^\S/.test(line)) break;
-    if (line.trim()) return true;
-  }
-  return false;
 }
 
 function requireNonEmptyString(value, field, errors) {

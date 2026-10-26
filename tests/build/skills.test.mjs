@@ -39,13 +39,14 @@ test("validateSkills fails on bad fixtures", async () => {
     "wrong-dir": "---\nname: other\ndescription: Use when testing.\n---\n",
     "Bad_Name": "---\nname: Bad_Name\ndescription: Use when testing.\n---\n",
     "no-desc": "---\nname: no-desc\n---\n",
+    "empty-block-desc": "---\nname: empty-block-desc\ndescription: |\n---\n",
     "long-desc": `---\nname: long-desc\ndescription: Use when ${"x".repeat(1025)}\n---\n`,
     "no-front": "# nothing\n",
     "no-trigger": "---\nname: no-trigger\ndescription: Does a thing.\n---\n",
   });
   const { errors } = await validateSkills({ repoRoot: root });
   const text = errors.join("\n");
-  for (const d of ["wrong-dir", "Bad_Name", "no-desc", "long-desc", "no-front", "no-trigger"]) {
+  for (const d of ["wrong-dir", "Bad_Name", "no-desc", "empty-block-desc", "long-desc", "no-front", "no-trigger"]) {
     assert.match(text, new RegExp(d), `expected error for ${d}`);
   }
   assert.doesNotMatch(text, /good-skill/);

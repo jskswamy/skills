@@ -1,5 +1,5 @@
-import { access } from "node:fs/promises";
 import { join } from "node:path";
+import { pathExists } from "./fs-utils.mjs";
 
 export async function validatePiPackage({ repoRoot, packageJson }) {
   const errors = [];
@@ -9,6 +9,7 @@ export async function validatePiPackage({ repoRoot, packageJson }) {
 
   await validatePathArray({ repoRoot, values: pi.skills, field: "pi.skills", errors });
   await validatePathArray({ repoRoot, values: pi.extensions, field: "pi.extensions", errors });
+  await validatePathArray({ repoRoot, values: pi.prompts, field: "pi.prompts", errors });
 
   return errors;
 }
@@ -28,14 +29,5 @@ async function validatePathArray({ repoRoot, values, field, errors }) {
     if (!(await pathExists(join(repoRoot, value)))) {
       errors.push(`${field} path does not exist: ${value}`);
     }
-  }
-}
-
-async function pathExists(path) {
-  try {
-    await access(path);
-    return true;
-  } catch {
-    return false;
   }
 }

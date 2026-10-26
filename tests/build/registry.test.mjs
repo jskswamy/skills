@@ -81,24 +81,6 @@ test("validateRegistryResources reports skill directories without SKILL.md", asy
   assert.match(errors.join("\n"), /codebase skills missing SKILL\.md: skills\/codebase-explore/);
 });
 
-test("validateRegistryResources reports skill frontmatter without description", async () => {
-  const repoRoot = await mkdtemp(join(tmpdir(), "registry-resources-"));
-  await mkdir(join(repoRoot, "skills/codebase-explore"), { recursive: true });
-  await writeFile(join(repoRoot, "skills/codebase-explore/SKILL.md"), "---\nname: codebase-explore\n---\n\n# Skill\n");
-  const registry = registryWithResources({ skills: ["codebase-explore"] });
-  const errors = await validateRegistryResources({ repoRoot, registry });
-  assert.match(errors.join("\n"), /codebase skill invalid frontmatter: skills\/codebase-explore\/SKILL\.md/);
-});
-
-test("validateRegistryResources reports skill frontmatter with empty block description", async () => {
-  const repoRoot = await mkdtemp(join(tmpdir(), "registry-resources-"));
-  await mkdir(join(repoRoot, "skills/codebase-explore"), { recursive: true });
-  await writeFile(join(repoRoot, "skills/codebase-explore/SKILL.md"), "---\nname: codebase-explore\ndescription: |\n---\n\n# Skill\n");
-  const registry = registryWithResources({ skills: ["codebase-explore"] });
-  const errors = await validateRegistryResources({ repoRoot, registry });
-  assert.match(errors.join("\n"), /codebase skill invalid frontmatter: skills\/codebase-explore\/SKILL\.md/);
-});
-
 function registryWithResources(resources) {
   return {
     marketplace: { name: "x", description: "x", owner: { name: "x" } },
