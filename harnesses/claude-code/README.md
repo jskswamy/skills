@@ -1,7 +1,7 @@
 # Claude Code Harness Support (`harnesses/claude-code`)
 
 ## Overview
-Build adapter for the native Claude Code plugin target (`dist/claude-code/<plugin>`) and root marketplace manifest (`.claude-plugin/marketplace.json`). Because canonical repository resources already follow Claude Code's native skills, commands, agents, and hooks conventions, this adapter copies each enabled plugin's wrapper layout directly without resource conversion.
+Build adapter for the native Claude Code plugin target (`dist/plugins/<plugin>`) and root marketplace manifest (`.claude-plugin/marketplace.json`). Because canonical repository resources already follow Claude Code's native skills, commands, agents, and hooks conventions, this adapter copies each enabled plugin's wrapper layout directly without resource conversion.
 
 `npm run build:release` writes one Claude Code plugin per plugin in
 `registry.json` (unless `harnesses.claude-code.enabled` is `false`) and the
@@ -12,20 +12,20 @@ Do not edit the generated plugins by hand.
 
 ## Interface
 - `id` (`adapter.mjs`): Harness identifier `"claude-code"`.
-- `pluginsDir` (`adapter.mjs`): Output directory `"dist/claude-code"`.
+- `pluginsDir` (`adapter.mjs`): Output directory `"dist/plugins"`.
 - `capabilities` (`adapter.mjs`): Declares native support for `skills`, `commands`, `agents`, and `hooks` (`session-start`, `subagent-start`, `pre-tool`, `post-tool`, `stop`).
-- `generateRoot({ outRoot, registry, plugins })` (`adapter.mjs`): Removes `<outRoot>/dist/claude-code` and writes `<outRoot>/.claude-plugin/marketplace.json` indexing all enabled plugins.
-- `generate({ repoRoot, outRoot, model })` (`adapter.mjs`): Writes `<outRoot>/dist/claude-code/<plugin>/.claude-plugin/plugin.json` and copies the plugin's canonical resources via `wrapperLayout(model)`.
+- `generateRoot({ outRoot, registry, plugins })` (`adapter.mjs`): Removes legacy `<outRoot>/dist/claude-code` and writes `<outRoot>/.claude-plugin/marketplace.json` indexing all enabled plugins.
+- `generate({ repoRoot, outRoot, model })` (`adapter.mjs`): Writes `<outRoot>/dist/plugins/<plugin>/.claude-plugin/plugin.json` and copies the plugin's canonical resources via `wrapperLayout(model)`.
 - `validate()` (`adapter.mjs`): No-op validator returning `[]`.
 
 ## Invariants
-- `generateRoot` always rebuilds `dist/claude-code` from scratch so removed plugins or resources never linger in the output tree.
-- Generated `.claude-plugin/marketplace.json` plugin `source` paths always resolve relative to the repository/output root as `./dist/claude-code/<plugin>`.
+- `runAdapters` always rebuilds `dist/plugins` from scratch so removed plugins or resources never linger in the output tree.
+- Generated `.claude-plugin/marketplace.json` plugin `source` paths always resolve relative to the repository/output root as `./dist/plugins/<plugin>`.
 - Canonical skills, commands, agents, hooks, templates, and extra files are copied without frontmatter or hook transformation.
 
 ## Side Effects
-- Deletes and recreates `<outRoot>/dist/claude-code/` and writes `<outRoot>/.claude-plugin/marketplace.json` and per-plugin `.claude-plugin/plugin.json` manifests.
-- Copies canonical resource trees from `repoRoot` into `<outRoot>/dist/claude-code/<plugin>/` (excluding skill `tests/` subdirectories).
+- Populates `<outRoot>/dist/plugins/` and writes `<outRoot>/.claude-plugin/marketplace.json` and per-plugin `.claude-plugin/plugin.json` manifests.
+- Copies canonical resource trees from `repoRoot` into `<outRoot>/dist/plugins/<plugin>/` (excluding skill `tests/` subdirectories).
 
 ## Verification
 - Run: `npm test`

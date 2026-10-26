@@ -18,7 +18,7 @@ const PACKAGE_ROOT = join(here, "..", "..");
 // Pi session_start reasons -> Claude SessionStart sources.
 const SESSION_SOURCES = { startup: "startup", reload: "startup", new: "clear", resume: "resume", fork: "resume" };
 
-export function loadManifest(path = join(PACKAGE_ROOT, "hooks.manifest.json")) {
+export function loadManifest(path = join(here, "hooks.manifest.json")) {
   try {
     return JSON.parse(readFileSync(path, "utf8")).entries ?? [];
   } catch {

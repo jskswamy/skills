@@ -6,6 +6,7 @@ import * as claudeCode from "../../../harnesses/claude-code/adapter.mjs";
 import * as codex from "../../../harnesses/codex/adapter.mjs";
 import * as opencode from "../../../harnesses/opencode/adapter.mjs";
 import * as pi from "../../../harnesses/pi/adapter.mjs";
+import { removeDir } from "../fs-utils.mjs";
 import { loadPluginModel } from "../model.mjs";
 
 export const ADAPTERS = [claudeCode, antigravity, opencode, pi, codex];
@@ -32,6 +33,9 @@ export function validateHarnessIds(registry, adapters = ADAPTERS) {
 // Sources are read from repoRoot; output is written under outRoot.
 export async function runAdapters({ repoRoot, outRoot = repoRoot, registry, adapters = ADAPTERS }) {
   const report = createReport(registry.plugins);
+  for (const dir of new Set(adapters.map((adapter) => adapter.pluginsDir).filter(Boolean))) {
+    await removeDir(join(outRoot, dir));
+  }
   for (const adapter of adapters) {
     const plugins = registry.plugins.filter((plugin) => isEnabled(plugin, adapter.id));
     // generateRoot may return state that generate and finish share, for

@@ -61,18 +61,19 @@ test("codex adapter writes .agents/plugins/marketplace.json, .codex-plugin/plugi
   assert.equal(marketplace.name, "skills");
   assert.equal(marketplace.plugins.length, 1);
   assert.equal(marketplace.plugins[0].name, "sample");
-  assert.equal(marketplace.plugins[0].source, "./dist/codex/sample");
+  assert.equal(marketplace.plugins[0].source, "./dist/plugins/sample");
 
-  const manifest = JSON.parse(await readFile(join(repoRoot, "dist/codex/sample/.codex-plugin/plugin.json"), "utf8"));
+  const manifest = JSON.parse(await readFile(join(repoRoot, "dist/plugins/sample/.codex-plugin/plugin.json"), "utf8"));
   assert.equal(manifest.name, "sample");
   assert.equal(manifest.version, "1.2.3");
+  assert.equal(manifest.skills, "./codex-skills");
 
-  await access(join(repoRoot, "dist/codex/sample/skills/sample-skill/SKILL.md"));
-  await access(join(repoRoot, "dist/codex/sample/skills/sample-cmd-do/SKILL.md"));
-  await access(join(repoRoot, "dist/codex/sample/.mcp.json"));
-  await assert.rejects(access(join(repoRoot, "dist/codex/sample/commands")), "commands are converted to skills");
-  await assert.rejects(access(join(repoRoot, "dist/codex/sample/agents")), "agents are excluded");
-  await assert.rejects(access(join(repoRoot, "dist/codex/sample/hooks")), "hooks are excluded");
+  await access(join(repoRoot, "dist/plugins/sample/codex-skills/sample-skill/SKILL.md"));
+  await access(join(repoRoot, "dist/plugins/sample/codex-skills/sample-cmd-do/SKILL.md"));
+  await access(join(repoRoot, "dist/plugins/sample/.mcp.json"));
+  await assert.rejects(access(join(repoRoot, "dist/plugins/sample/commands")), "commands are converted to skills");
+  await assert.rejects(access(join(repoRoot, "dist/plugins/sample/agents")), "agents are excluded");
+  await assert.rejects(access(join(repoRoot, "dist/plugins/sample/hooks")), "hooks are excluded");
 
   assert.deepEqual(await codex.validate({ repoRoot, outRoot: repoRoot, plugin: PLUGIN }), []);
 });

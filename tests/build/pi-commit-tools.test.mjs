@@ -14,7 +14,7 @@ import { readJson } from "../../scripts/lib/fs-utils.mjs";
 const outRoot = await mkdtemp(join(tmpdir(), "pi-commit-tools-"));
 test.after(() => rm(outRoot, { recursive: true, force: true }));
 await runAdapters({ repoRoot: ".", outRoot, registry: await readJson("registry.json"), adapters: [piAdapter] });
-const PI = join(outRoot, "dist/pi/commit-tools");
+const PI = join(outRoot, "dist/plugins/commit-tools");
 const { createRuntime, loadManifest } = await import(pathToFileURL(join(PI, "runtime/pi/runtime.mjs")).href);
 
 async function load(t, entries = loadManifest()) {

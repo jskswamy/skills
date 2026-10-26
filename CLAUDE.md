@@ -19,14 +19,13 @@ scripts/build.mjs, scripts/validate.mjs, scripts/changed-plugins.mjs
 scripts/lib/transforms/               # Conversions shared by adapters (frontmatter, commands, agents, hooks, tools, policy)
 harnesses/lib/                        # Hook runner and tool translation copied into generated packages
 harnesses/<id>/                       # One folder per harness: adapter.mjs, runtime or shim, tool table, README
-package.json                          # The "pi" block is hand-written and points at dist/pi
+package.json                          # Repository dev/test script runner
 
 # Generated (written only by the release: npm run build:release)
-.claude-plugin/marketplace.json       # Claude Code marketplace; sources point into dist/claude-code
-dist/claude-code/<plugin>/            # Claude Code plugins
-dist/antigravity/plugins/<plugin>/    # Antigravity plugins
-dist/opencode/<plugin>/               # OpenCode packages
-dist/pi/                              # Self-contained Pi package: skills, hooks, prompts, hook manifest, runtime
+.claude-plugin/marketplace.json       # Claude Code marketplace; sources point into dist/plugins
+.agents/plugins/marketplace.json      # Codex marketplace; sources point into dist/plugins
+dist/plugins/<plugin>/                # Unified per-plugin bundles (Claude Code, Codex, Pi, OpenCode, Antigravity)
+dist/antigravity/plugins/<plugin>/    # Standalone Antigravity bulk-install plugins
 ```
 
 ## Source-of-Truth Rules
@@ -64,13 +63,13 @@ dist/pi/                              # Self-contained Pi package: skills, hooks
 Claude Code plugin:
 
 ```bash
-claude --plugin-dir <dir>/dist/claude-code/<plugin-name>
+claude --plugin-dir <dir>/dist/plugins/<plugin-name>
 ```
 
 Pi package:
 
 ```bash
-pi -e <dir>
+pi -e <dir>/dist/plugins/<plugin-name>
 ```
 
 Antigravity and OpenCode: see `harnesses/antigravity/README.md` and `harnesses/opencode/README.md`. To add a harness, see `docs/authoring-skills.md#adding-a-harness`.

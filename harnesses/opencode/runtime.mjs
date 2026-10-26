@@ -47,7 +47,7 @@ export function expandCommand(template, args = "") {
 
 export function createPlugin({ id, root, log = (line) => console.error(`[${id}] ${line}`) }) {
   root = typeof root === "string" ? root : fileURLToPath(root);
-  const entries = readJson(join(root, "hooks.manifest.json"), log)?.entries ?? [];
+  const entries = readJson(join(root, "runtime/opencode/hooks.manifest.json"), log)?.entries ?? [];
   const resources = readJson(join(root, "resources.json"), log) ?? {};
   return { id, setup: (ctx) => setup(ctx, { root, entries, resources, log }) };
 }

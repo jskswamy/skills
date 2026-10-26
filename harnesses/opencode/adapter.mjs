@@ -24,9 +24,10 @@ export const capabilities = {
 };
 
 // One folder per plugin under this; changed-plugins and eval read it.
-export const pluginsDir = "dist/opencode";
+export const pluginsDir = "dist/plugins";
 // Mapped agents; agents/ keeps the canonical copies.
 const AGENTS = "opencode-agents";
+const MANIFEST = "runtime/opencode/hooks.manifest.json";
 const ROOT_TOKEN = '"${OPENCODE_PLUGIN_ROOT}"';
 // Package paths keep the runtime's relative imports intact.
 const RUNTIME = {
@@ -37,7 +38,7 @@ const RUNTIME = {
 };
 
 export async function generateRoot({ outRoot, plugins }) {
-  await removeDir(join(outRoot, pluginsDir));
+  await removeDir(join(outRoot, "dist/opencode"));
 
   // OpenCode command names are global, including its built-in ones.
   return { commandName: commandNames(plugins, BUILTIN_COMMANDS) };
@@ -48,7 +49,9 @@ export async function generate({ repoRoot, outRoot, model, state, report }) {
   const layout = wrapperLayout(model);
 
   // Canonical agents are copied too: a skill may read one as a spec file.
-  await copyLayout({ repoRoot, layout, to: out });
+  if (!(await pathExists(join(out, ".claude-plugin/plugin.json")))) {
+    await copyLayout({ repoRoot, layout, to: out });
+  }
   for (const { to } of layout.filter(({ to }) => to.endsWith(".mcp.json"))) {
     report.add({ kind: "extra", resource: to, status: "degraded", reason: "OpenCode does not read .mcp.json; add the server to opencode.json" });
   }
@@ -107,15 +110,19 @@ export async function generate({ repoRoot, outRoot, model, state, report }) {
   }
 
   await writeJson(join(out, "resources.json"), resources);
-  await writeJson(join(out, "hooks.manifest.json"), { entries: hooks });
-  await writeJson(join(out, "package.json"), {
-    name: `@jskswamy/opencode-${model.name}`,
+  await writeJson(join(out, MANIFEST), { entries: hooks });
+  const pkgPath = join(out, "package.json");
+  const existing = await readJson(pkgPath).catch(() => ({}));
+  const keywords = [...new Set([...(existing.keywords ?? []), "opencode-plugin", ...(model.tags ?? [])])];
+  await writeJson(pkgPath, {
+    ...existing,
+    name: `@jskswamy/${model.name}`,
     version: model.version,
     description: model.description,
     type: "module",
-    main: "./index.js",
+    main: ".opencode/plugins/index.js",
     exports: { ".": "./index.js" },
-    keywords: ["opencode-plugin", ...model.tags],
+    keywords,
   });
   await writeFile(
     join(out, "index.js"),
@@ -123,6 +130,8 @@ export async function generate({ repoRoot, outRoot, model, state, report }) {
       `import { createPlugin } from "./runtime/opencode/runtime.mjs";\n\n` +
       `export default createPlugin({ id: ${JSON.stringify(model.name)}, root: new URL(".", import.meta.url) });\n`,
   );
+  await ensureDir(join(out, ".opencode/plugins"));
+  await writeFile(join(out, ".opencode/plugins/index.js"), 'export { default } from "../../index.js";\n');
 }
 
 export function canCarry(entry) {
@@ -163,7 +172,7 @@ export async function validate({ repoRoot, outRoot = repoRoot, plugin }) {
     }
   }
 
-  for (const entry of (await json("hooks.manifest.json"))?.entries ?? []) {
+  for (const entry of (await json(MANIFEST))?.entries ?? []) {
     for (const [, path] of entry.command.matchAll(/"\$\{OPENCODE_PLUGIN_ROOT\}"\/([^\s"';|&]+)/g)) {
       if (!(await exists(path))) errors.push(`${label}: hook ${entry.id} runs missing ${path}`);
     }

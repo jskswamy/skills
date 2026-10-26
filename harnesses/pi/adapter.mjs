@@ -24,8 +24,9 @@ export const capabilities = {
 };
 
 // One folder per plugin under this; changed-plugins and eval read it.
-export const pluginsDir = "dist/pi";
-// The runtime sets this to dist/pi/<plugin>, its own package root.
+export const pluginsDir = "dist/plugins";
+const MANIFEST = "runtime/pi/hooks.manifest.json";
+// The runtime sets this to dist/plugins/<plugin>, its own package root.
 const ROOT_TOKEN = '"${PI_PACKAGE_ROOT}"';
 // Package paths keep the runtime's relative imports intact.
 const RUNTIME = {
@@ -36,8 +37,7 @@ const RUNTIME = {
 };
 
 export async function generateRoot({ outRoot, plugins }) {
-  // Rebuilt whole, so a plugin that loses the harness loses its files.
-  await removeDir(join(outRoot, pluginsDir));
+  await removeDir(join(outRoot, "dist/pi"));
 
   // Pi names a prompt by file name alone, so collisions across plugins are prefixed.
   return { promptName: commandNames(plugins) };
@@ -46,10 +46,12 @@ export async function generateRoot({ outRoot, plugins }) {
 export async function generate({ repoRoot, outRoot, model, state, report }) {
   const out = join(outRoot, pluginsDir, model.name);
   const fullLayout = wrapperLayout(model);
-  const layout = fullLayout.filter(
-    ({ kind, from }) => !["commands", "agents"].includes(kind) && !(kind === "hooks" && from.endsWith("hooks.json")),
-  );
-  await copyLayout({ repoRoot, layout, to: out });
+  if (!(await pathExists(join(out, ".claude-plugin/plugin.json")))) {
+    const layout = fullLayout.filter(
+      ({ kind, from }) => !["commands", "agents"].includes(kind) && !(kind === "hooks" && from.endsWith("hooks.json")),
+    );
+    await copyLayout({ repoRoot, layout, to: out });
+  }
 
   if (model.commands.length > 0) {
     await ensureDir(join(out, "prompts"));
@@ -82,7 +84,7 @@ export async function generate({ repoRoot, outRoot, model, state, report }) {
 
   if (hooks.length > 0) {
     await copyRuntime({ files: RUNTIME, to: out });
-    await writeJson(join(out, "hooks.manifest.json"), { entries: hooks });
+    await writeJson(join(out, MANIFEST), { entries: hooks });
   }
 
   const pi = {};
@@ -90,13 +92,17 @@ export async function generate({ repoRoot, outRoot, model, state, report }) {
   if (model.commands.length > 0) pi.prompts = ["./prompts"];
   if (hooks.length > 0) pi.extensions = ["./runtime/pi/runtime.mjs"];
 
-  await writeJson(join(out, "package.json"), {
-    name: `@jskswamy/pi-${model.name}`,
+  const pkgPath = join(out, "package.json");
+  const existing = await readJson(pkgPath).catch(() => ({}));
+  const keywords = [...new Set([...(existing.keywords ?? []), "pi-package", ...(model.tags ?? [])])];
+  await writeJson(pkgPath, {
+    ...existing,
+    name: `@jskswamy/${model.name}`,
     version: model.version,
     private: true,
     type: "module",
     description: model.description,
-    keywords: ["pi-package", ...(model.tags ?? [])],
+    keywords,
     pi,
   });
 }
@@ -115,7 +121,7 @@ export async function validate({ repoRoot, outRoot = repoRoot, plugin }) {
   const packageJson = await readJson(join(out, "package.json")).catch(() => undefined);
   if (!packageJson) return [`${label}: missing package.json; run npm run build`];
   const errors = (await validatePiPackage({ repoRoot: out, packageJson })).map((error) => `${label}: ${error}`);
-  const manifest = await readJson(join(out, "hooks.manifest.json")).catch(() => undefined);
+  const manifest = await readJson(join(out, MANIFEST)).catch(() => undefined);
   for (const entry of manifest?.entries ?? []) {
     for (const [, path] of entry.command.matchAll(/"\$\{PI_PACKAGE_ROOT\}"\/([^\s"';|&]+)/g)) {
       if (!(await pathExists(join(out, path)))) errors.push(`${label}: hook ${entry.id} runs missing ${path}`);

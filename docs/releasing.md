@@ -51,11 +51,11 @@ Plugin versions live in `registry.json` and are emitted to:
 
 - `.claude-plugin/marketplace.json`
 - `.agents/plugins/marketplace.json`
-- `dist/claude-code/<plugin-name>/.claude-plugin/plugin.json`
+- `dist/plugins/<plugin-name>/.claude-plugin/plugin.json`
+- `dist/plugins/<plugin-name>/.codex-plugin/plugin.json`
+- `dist/plugins/<plugin-name>/plugin.json`
+- `dist/plugins/<plugin-name>/package.json`
 - `dist/antigravity/plugins/<plugin-name>/.antigravity-plugin/plugin.json`
-- `dist/opencode/<plugin-name>/package.json`
-- `dist/pi/<plugin-name>/package.json`
-- `dist/codex/<plugin-name>/.codex-plugin/plugin.json`
 
 List the plugins whose built output changed since the last release:
 
@@ -86,7 +86,7 @@ Verify the versions are synced and nothing else is left to bump:
 ```bash
 jq -r '.plugins[] | [.name,.version] | @tsv' registry.json
 jq -r '.plugins[] | [.name,.version] | @tsv' .claude-plugin/marketplace.json
-jq -r .version dist/claude-code/<plugin-name>/.claude-plugin/plugin.json
+jq -r .version dist/plugins/<plugin-name>/.claude-plugin/plugin.json
 node scripts/changed-plugins.mjs   # prints nothing now
 ```
 
@@ -107,10 +107,10 @@ working tree whose files change while it copies:
 git clone -q . /tmp/skills-release && cd /tmp/skills-release
 claude plugin marketplace add "$PWD"            # then: claude plugin install <plugin>@skills
 agy plugin install "$PWD/dist/antigravity"
-pi install "$PWD/dist/pi/<plugin>"
-# OpenCode: list "$PWD/dist/opencode/<plugin>" folders under "plugins" in opencode.json
+pi install "$PWD/dist/plugins/<plugin>"
+# OpenCode: list "$PWD/dist/plugins/<plugin>" folders under "plugins" in opencode.json
 skillshare plugin add "$PWD" --plugin <plugin> --target claude -g
-skillshare plugin add "$PWD/dist/pi/<plugin>" --target pi -g
+skillshare plugin add "$PWD" --plugin <plugin> --target pi -g
 ```
 
 Then, in a throwaway git repository, ask each harness non-interactively

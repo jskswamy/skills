@@ -25,7 +25,6 @@ description: |
   </example>
 model: inherit
 color: cyan
-tools: "*"
 ---
 
 You are the refactor-scanner agent. Your job is to analyze a git diff and find cross-package refactoring opportunities that per-file code review misses.

@@ -18,7 +18,7 @@ const MARKETPLACES = [".claude-plugin/marketplace.json", ".agents/plugins/market
 // Compares every adapter that keeps one folder per plugin (pluginsDir).
 export async function changedPlugins({ repoRoot, outRoot, adapters = ADAPTERS }) {
   const changed = new Set();
-  for (const base of adapters.map((adapter) => adapter.pluginsDir).filter(Boolean)) {
+  for (const base of new Set(adapters.map((adapter) => adapter.pluginsDir).filter(Boolean))) {
     const names = new Set([...(await subdirs(join(repoRoot, base))), ...(await subdirs(join(outRoot, base)))]);
     for (const name of names) {
       if (!(await sameTree(join(repoRoot, base, name), join(outRoot, base, name)))) changed.add(name);

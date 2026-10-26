@@ -4,7 +4,7 @@ import { mkdtemp, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { delimiter, join } from "node:path";
 import { DEFAULT_TIMEOUT_MS } from "../lib/hook-runner.mjs";
-import { ensureDir, readJson, removeDir, writeJson } from "../../scripts/lib/fs-utils.mjs";
+import { copyResourceTree, ensureDir, readJson, removeDir, writeJson } from "../../scripts/lib/fs-utils.mjs";
 import { mapAgent } from "../../scripts/lib/transforms/agents.mjs";
 import { commandToSkill } from "../../scripts/lib/transforms/command-to-skill.mjs";
 import { parseDocument } from "../../scripts/lib/transforms/frontmatter.mjs";
@@ -91,6 +91,29 @@ export async function generate({ repoRoot, outRoot, model, report }) {
   }
 
   await generateHooks({ repoRoot, model, pluginRoot, report });
+
+  const sharedRoot = join(outRoot, "dist/plugins", model.name);
+  if (existsSync(sharedRoot)) {
+    await writeJson(join(sharedRoot, "plugin.json"), {
+      $schema: "https://antigravity.google/schemas/v1/plugin.json",
+      name: model.name,
+      version: model.version,
+      description: model.description,
+    });
+    if (model.commands.length > 0) {
+      await writeJson(join(sharedRoot, "skills.json"), {
+        entries: [{ path: "codex-skills", include_only: model.commands.map((c) => commandSkillName(model.name, c.name)) }],
+      });
+    }
+    if (model.agents.length > 0) {
+      await copyResourceTree({ from: join(pluginRoot, "agents"), to: join(sharedRoot, "agy-agents") });
+      await writeJson(join(sharedRoot, "agents.json"), { entries: [{ path: "agy-agents" }] });
+    }
+    if (existsSync(join(pluginRoot, "hooks.json"))) {
+      await copyResourceTree({ from: join(pluginRoot, "hooks.json"), to: join(sharedRoot, "hooks.json") });
+      await copyResourceTree({ from: join(pluginRoot, "runtime/antigravity"), to: join(sharedRoot, "runtime/antigravity") });
+    }
+  }
 }
 
 // agy's own conversion of a Claude plugin uses this scheme, so a plugin

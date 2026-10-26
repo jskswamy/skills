@@ -8,7 +8,7 @@ import * as opencode from "../../harnesses/opencode/adapter.mjs";
 import { runAdapters } from "../../scripts/lib/adapters/index.mjs";
 import { expandCommand } from "../../harnesses/opencode/runtime.mjs";
 
-const PLUGINS = "dist/opencode";
+const PLUGINS = "dist/plugins";
 
 async function write(path, content) {
   await mkdir(join(path, ".."), { recursive: true });
@@ -161,9 +161,11 @@ test("each plugin becomes a self-contained package that OpenCode can load by pat
   await run();
   const out = join(repoRoot, PLUGINS, "one");
   const pkg = JSON.parse(await readFile(join(out, "package.json"), "utf8"));
-  assert.equal(pkg.main, "./index.js");
+  assert.equal(pkg.main, ".opencode/plugins/index.js");
+  assert.deepEqual(pkg.exports, { ".": "./index.js" });
   assert.equal(pkg.type, "module");
   assert.match(await readFile(join(out, "index.js"), "utf8"), /createPlugin\(\{ id: "one"/);
+  assert.match(await readFile(join(out, ".opencode/plugins/index.js"), "utf8"), /export \{ default \} from "\.\.\/\.\.\/index\.js"/);
   assert.deepEqual((await readdir(join(out, "runtime/lib"))).sort(), ["hook-input.mjs", "hook-runner.mjs"]);
   assert.deepEqual((await readdir(join(out, "skills/one-skill"))), ["SKILL.md"]);
   assert.deepEqual(await opencode.validate({ repoRoot, plugin: ONE }), []);
@@ -218,7 +220,7 @@ test("a payload OpenCode would reject fails the build instead of disabling the p
 test("hooks go to a manifest with package-relative scripts, and the policy applies", async (t) => {
   const { repoRoot, run } = await fixture(t, [ONE]);
   const report = await run();
-  const { entries } = JSON.parse(await readFile(join(repoRoot, PLUGINS, "one/hooks.manifest.json"), "utf8"));
+  const { entries } = JSON.parse(await readFile(join(repoRoot, PLUGINS, "one/runtime/opencode/hooks.manifest.json"), "utf8"));
   assert.deepEqual(
     entries.map(({ id, command }) => `${id} ${command}`),
     [
@@ -321,7 +323,7 @@ test("tool hook context and post-tool blocks reach later model requests", async 
     { event: "post-tool", matcher: "Write", command: `grep -q '"file_path":"f"' && echo '{"hookSpecificOutput":{"additionalContext":"formatted f"}}'` },
     { event: "post-tool", matcher: "Edit", command: "echo 'lint failed' >&2; exit 2" },
   ];
-  await writeFile(join(out, "hooks.manifest.json"), JSON.stringify({ entries }));
+  await writeFile(join(out, "runtime/opencode/hooks.manifest.json"), JSON.stringify({ entries }));
   const ctx = fakeCtx();
   await load(out, ctx);
   await ctx.hooks["tool.execute.after"]({ tool: "write", input: { path: "f", content: "x" }, sessionID: "s1", id: "w1" });

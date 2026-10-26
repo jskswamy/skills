@@ -3,7 +3,7 @@ import { removeDir, writeJson } from "../../scripts/lib/fs-utils.mjs";
 import { copyLayout, wrapperLayout } from "../../scripts/lib/layout.mjs";
 
 // One folder per plugin under this; changed-plugins and eval read it.
-export const pluginsDir = "dist/claude-code";
+export const pluginsDir = "dist/plugins";
 
 export const id = "claude-code";
 
@@ -17,8 +17,7 @@ export const capabilities = {
 // The marketplace lists every plugin with claude-code enabled. Claude reads
 // it only from .claude-plugin/ at the root; its sources point into dist/.
 export async function generateRoot({ outRoot, registry, plugins }) {
-  // Rebuilt whole, so a removed plugin or extra stops shipping.
-  await removeDir(join(outRoot, pluginsDir));
+  await removeDir(join(outRoot, "dist/claude-code"));
   await writeJson(join(outRoot, ".claude-plugin", "marketplace.json"), {
     name: registry.marketplace.name,
     owner: registry.marketplace.owner,

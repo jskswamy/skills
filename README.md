@@ -68,17 +68,17 @@ Installed plugins expose slash commands such as `/commit`, `/capture`,
 
 ### Pi
 
-Each plugin is a self-contained Pi package under `dist/pi/<name>/`. From a
+Each plugin is a self-contained Pi package under `dist/plugins/<name>/`. From a
 checkout, install the packages you want:
 
 ```bash
-pi install <checkout>/dist/pi/<plugin-name>
+pi install <checkout>/dist/plugins/<plugin-name>
 ```
 
 or via skillshare:
 
 ```bash
-skillshare plugin add <checkout>/dist/pi/<plugin-name> --target pi -g
+skillshare plugin add <checkout> --plugin <plugin-name> --target pi -g
 ```
 
 Skills are invoked with `/skill:<skill-name>`, and commands are prompts such as
@@ -94,18 +94,18 @@ git clone https://github.com/jskswamy/skills.git
 agy plugin install <checkout>/dist/antigravity
 ```
 
-Point `agy` at `dist/antigravity`, not the repository root. Commands
+Point `agy` at `dist/antigravity` (or `dist/plugins/<plugin-name>` for a single plugin), not the repository root. Commands
 become skills named `<plugin>-cmd-<command>`. See
 [harnesses/antigravity](harnesses/antigravity/README.md).
 
 ### OpenCode
 
 Each plugin is a self-contained OpenCode V2 package under
-`dist/opencode/<name>/`. From a checkout, list the packages you want in
+`dist/plugins/<name>/`. From a checkout, list the packages you want in
 `opencode.json`:
 
 ```json
-{ "plugins": ["/path/to/skills/dist/opencode/commit-tools"] }
+{ "plugins": ["/path/to/skills/dist/plugins/commit-tools"] }
 ```
 
 or copy a package directory to `.opencode/plugins/<name>/` in your project.
@@ -114,7 +114,7 @@ Loading by path is the tested route. See
 
 ### Codex
 
-Each plugin is packaged under `dist/codex/<name>/` and indexed by
+Each plugin is packaged under `dist/plugins/<name>/` and indexed by
 `.agents/plugins/marketplace.json`. Install via skillshare:
 
 ```bash
@@ -179,9 +179,10 @@ harnesses/lib/       # Hook runner and tool translation shared by harness runtim
 harnesses/<id>/      # One folder per harness: adapter, runtime or shim, tool table, docs
 
 # Generated at release
-dist/<harness>/      # Install trees for claude-code, antigravity, opencode, pi and codex
-.claude-plugin/      # Claude Code marketplace, pointing into dist/claude-code
-.agents/plugins/     # Codex marketplace, pointing into dist/codex
+dist/plugins/        # Unified per-plugin bundles for claude-code, codex, pi, opencode and antigravity
+dist/antigravity/    # Standalone Antigravity bulk-install tree (agy plugin install dist/antigravity)
+.claude-plugin/      # Claude Code marketplace, pointing into dist/plugins
+.agents/plugins/     # Codex marketplace, pointing into dist/plugins
 ```
 
 Edit canonical root resources, then run `npm run build`, which writes every

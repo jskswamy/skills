@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { access, mkdtemp, mkdir, readFile, writeFile } from "node:fs/promises";
+import { access, mkdtemp, mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { ADAPTERS, enabledAdapters, runAdapters, validateHarnessIds, withTempBuild } from "../../scripts/lib/adapters/index.mjs";
@@ -152,9 +152,9 @@ test("claude-code adapter writes the marketplace and plugin wrapper", async () =
     adapters: ADAPTERS.filter((a) => a.id === "claude-code"),
   });
   const marketplace = JSON.parse(await readFile(join(repoRoot, ".claude-plugin/marketplace.json"), "utf8"));
-  assert.equal(marketplace.plugins[0].source, "./dist/claude-code/codebase");
+  assert.equal(marketplace.plugins[0].source, "./dist/plugins/codebase");
   assert.equal(
-    await readFile(join(repoRoot, "dist/claude-code/codebase/agents/explorer.md"), "utf8"),
+    await readFile(join(repoRoot, "dist/plugins/codebase/agents/explorer.md"), "utf8"),
     await readFile(join(repoRoot, "agents/codebase/explorer.md"), "utf8"),
   );
 });
@@ -179,11 +179,62 @@ test("withTempBuild builds into a temp dir, hands it over, then removes it", asy
     async ({ outRoot, report }) => {
       seen = outRoot;
       assert.notEqual(outRoot, repoRoot);
-      await access(join(outRoot, "dist/claude-code/codebase/.claude-plugin/plugin.json"));
+      await access(join(outRoot, "dist/plugins/codebase/.claude-plugin/plugin.json"));
       assert.deepEqual(report.errors(), []);
       return "used";
     },
   );
   assert.equal(result, "used");
   await assert.rejects(access(seen), "the temp dir is removed afterwards");
+});
+
+test("all adapters co-exist in dist/plugins/<plugin> without manifest or skill collisions", async () => {
+  const repoRoot = await fixtureRepo();
+  await write(
+    join(repoRoot, "hooks/codebase/hooks.json"),
+    JSON.stringify({ hooks: { SessionStart: [{ hooks: [{ type: "command", command: "bash ${CLAUDE_PLUGIN_ROOT}/hooks/remind.sh" }] }] } }),
+  );
+  await write(join(repoRoot, "hooks/codebase/remind.sh"), "echo hi\n");
+  const allEnabled = plugin({
+    resources: {
+      skills: ["codebase-explore"],
+      commands: ["codebase/ask.md"],
+      agents: ["codebase/explorer.md"],
+      hooks: ["codebase/hooks.json", "codebase/remind.sh"],
+      templates: [],
+      extra: [],
+    },
+    harnesses: {
+      "claude-code": { enabled: true },
+      antigravity: { enabled: true },
+      opencode: { enabled: true },
+      pi: { enabled: true },
+      codex: { enabled: true },
+    },
+  });
+
+  const report = await runAdapters({ repoRoot, registry: registry([allEnabled]) });
+  assert.deepEqual(report.errors(), []);
+
+  const root = join(repoRoot, "dist/plugins/codebase");
+  const pkg = JSON.parse(await readFile(join(root, "package.json"), "utf8"));
+  assert.equal(pkg.main, ".opencode/plugins/index.js");
+  assert.deepEqual(pkg.exports, { ".": "./index.js" });
+  assert.deepEqual(pkg.pi, {
+    skills: ["./skills"],
+    prompts: ["./prompts"],
+    extensions: ["./runtime/pi/runtime.mjs"],
+  });
+  assert.ok(pkg.keywords.includes("opencode-plugin") && pkg.keywords.includes("pi-package"));
+
+  await access(join(root, ".claude-plugin/plugin.json"));
+  await access(join(root, ".codex-plugin/plugin.json"));
+  await access(join(root, "plugin.json"));
+  await access(join(root, ".opencode/plugins/index.js"));
+  await access(join(root, "runtime/opencode/hooks.manifest.json"));
+  await access(join(root, "runtime/pi/hooks.manifest.json"));
+  await access(join(root, "runtime/antigravity/hooks.manifest.json"));
+
+  assert.deepEqual(await readdir(join(root, "skills")), ["codebase-explore"]);
+  assert.deepEqual((await readdir(join(root, "codex-skills"))).sort(), ["codebase-cmd-ask", "codebase-explore"]);
 });

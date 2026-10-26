@@ -48,7 +48,6 @@ fi
 compile_typst() {
   local typst_cmd="$1"
   local fmt="$2"
-  local out_ext=""
   local out_file=""
 
   case "$fmt" in
@@ -97,6 +96,7 @@ compile_with_nix() {
   local fmt="$1"
   local out_file="${OUTPUT}.${fmt}"
 
+  # shellcheck disable=SC2086
   nix shell nixpkgs#typst -c typst compile --root / "$INPUT" "$out_file" $FONT_ARG
   echo "$out_file"
 }

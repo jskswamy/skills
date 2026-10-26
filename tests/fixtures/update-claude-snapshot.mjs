@@ -24,7 +24,7 @@ async function listFiles(root, dir) {
 }
 
 export async function snapshotClaudeOutput(outRoot) {
-  const files = [...(await listFiles(outRoot, "dist/claude-code")), ".claude-plugin/marketplace.json"].sort();
+  const files = [...(await listFiles(outRoot, claudeCode.pluginsDir)), ".claude-plugin/marketplace.json"].sort();
   const snapshot = {};
   for (const path of files) {
     const content = await readFile(join(outRoot, path));

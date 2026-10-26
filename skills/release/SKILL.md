@@ -316,7 +316,7 @@ Tag that would be created:
 
 - **registry.json is the source of truth:** Each plugin's version lives there. There is no marketplace-wide version field — the git tag is the only repo-wide version marker.
 - **Generated files, never hand-edited:** `.claude-plugin/marketplace.json`, `.agents/plugins/marketplace.json`, and everything under `dist/` are produced by `npm run build:release` from `registry.json` and the sources. Editing them directly will be overwritten by the next release.
-- **Harness-agnostic:** `npm run build:release` writes the output of every harness under `dist/`: Claude Code plugins in `dist/claude-code/`, Antigravity plugins in `dist/antigravity/plugins/`, OpenCode packages in `dist/opencode/`, Pi packages in `dist/pi/`, and Codex plugins in `dist/codex/`. Every harness manifest carries each plugin's version, so stage `dist/` with the bump.
+- **Harness-agnostic:** `npm run build:release` writes the output of every harness under `dist/`: unified per-plugin bundles for Claude Code, Codex, Pi, OpenCode, and Antigravity in `dist/plugins/<plugin>/`, and standalone Antigravity plugins in `dist/antigravity/plugins/`. Every harness manifest carries each plugin's version, so stage `dist/` with the bump.
 - **Auto-bump:** Plugins listed by `node scripts/changed-plugins.mjs` (built output differs from the committed `dist/`, version fields ignored) get their `registry.json` version bumped (same bump type as `--bump`), except brand-new plugins.
 - **Two-commit workflow:** version bumps and changelog are always in separate commits.
 - **git-cliff required:** changelog generation requires git-cliff (available via `nix develop`).

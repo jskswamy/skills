@@ -7,7 +7,8 @@ import { commandToSkill } from "../../scripts/lib/transforms/command-to-skill.mj
 import { carryHooks } from "../../scripts/lib/transforms/policy.mjs";
 
 // One folder per plugin under this; changed-plugins and eval read it.
-export const pluginsDir = "dist/codex";
+export const pluginsDir = "dist/plugins";
+const SKILLS_DIR = "codex-skills";
 
 export const id = "codex";
 
@@ -21,7 +22,7 @@ export const capabilities = {
 // The marketplace lists every plugin with codex enabled. Codex CLI and
 // Skillshare read .agents/plugins/marketplace.json at the root.
 export async function generateRoot({ outRoot, registry, plugins }) {
-  await removeDir(join(outRoot, pluginsDir));
+  await removeDir(join(outRoot, "dist/codex"));
   await writeJson(join(outRoot, ".agents", "plugins", "marketplace.json"), {
     name: registry.marketplace.name,
     owner: registry.marketplace.owner,
@@ -48,11 +49,15 @@ export async function generate({ repoRoot, outRoot, model, report }) {
     description: model.description,
     author: model.author,
     keywords: model.tags,
+    skills: `./${SKILLS_DIR}`,
   });
 
-  // Codex reads skills/ and optional .mcp.json/.app.json; commands are
+  // Codex reads codex-skills/ and optional .mcp.json/.app.json; commands are
   // converted into skills below, while agents and hooks are not supported.
-  const layout = wrapperLayout(model).filter(({ kind }) => !["commands", "agents", "hooks"].includes(kind));
+  const hasShared = await pathExists(join(pluginRoot, ".claude-plugin/plugin.json"));
+  const layout = wrapperLayout(model)
+    .filter(({ kind }) => (hasShared ? kind === "skills" : !["commands", "agents", "hooks"].includes(kind)))
+    .map((entry) => (entry.kind === "skills" ? { ...entry, to: entry.to.replace(/^skills\//, `${SKILLS_DIR}/`) } : entry));
   await copyLayout({ repoRoot, layout, to: pluginRoot });
 
   for (const command of model.commands) {
@@ -60,8 +65,8 @@ export async function generate({ repoRoot, outRoot, model, report }) {
       { name: command.name, text: await readFile(join(repoRoot, command.path), "utf8") },
       { name: commandSkillName(model.name, command.name) },
     );
-    await ensureDir(join(pluginRoot, "skills", skill.name));
-    await writeFile(join(pluginRoot, "skills", skill.name, "SKILL.md"), skill.content);
+    await ensureDir(join(pluginRoot, SKILLS_DIR, skill.name));
+    await writeFile(join(pluginRoot, SKILLS_DIR, skill.name, "SKILL.md"), skill.content);
   }
 
   for (const agent of model.agents) {
@@ -88,8 +93,8 @@ export async function validate({ repoRoot, outRoot = repoRoot, plugin }) {
     }
   }
   for (const skill of plugin.resources?.skills ?? []) {
-    if (!(await pathExists(join(out, "skills", skill, "SKILL.md")))) {
-      errors.push(`${label}: missing skills/${skill}/SKILL.md`);
+    if (!(await pathExists(join(out, SKILLS_DIR, skill, "SKILL.md")))) {
+      errors.push(`${label}: missing ${SKILLS_DIR}/${skill}/SKILL.md`);
     }
   }
   return errors;

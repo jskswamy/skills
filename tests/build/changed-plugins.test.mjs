@@ -58,7 +58,7 @@ test("adapter-only change is reported", async (t) => {
   const { repoRoot, outRoot } = await fixture(t);
   const reg = registry([plugin("a"), plugin("b")]);
   await runAdapters({ repoRoot, outRoot, registry: reg });
-  await write(join(outRoot, "dist/opencode/b/index.js"), "// changed by an adapter\n");
+  await write(join(outRoot, "dist/plugins/b/index.js"), "// changed by an adapter\n");
   assert.deepEqual(await changedPlugins({ repoRoot, outRoot }), ["b"]);
 });
 
