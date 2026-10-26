@@ -27,7 +27,7 @@ if [[ $drift -eq 1 ]]; then
     echo 'Load commit-action and obtain plan confirmation before revalidation amendments.' >&2
     exit 1
   fi
-  commit_script="$(cd -- "$LIB_DIR/../../commit-action/lib" && pwd)/commit.mjs"
+  commit_script="$(cd -- "$LIB_DIR/../../commit-action/lib" && pwd)/commit.sh"
   style=$(awk '/^name:/{print $2; exit}' "$style_file")
   tmp_todo=$(mktemp)
   trap 'rm -f "$tmp_todo"' EXIT
@@ -37,7 +37,7 @@ if [[ $drift -eq 1 ]]; then
     subj=$(git log -1 --format=%s "$h")
     if [[ -f "$msgdir/$short" ]] \
        && ! bash "$LIB_DIR/style-check.sh" "$subj" "$style_file" >/dev/null 2>&1; then
-      printf 'pick %s\nexec node %q --amend --message-file %q --style %q\n' \
+      printf 'pick %s\nexec bash %q --amend --message-file %q --style %q\n' \
              "$short" "$commit_script" "$msgdir/$short" "$style" >> "$tmp_todo"
     else
       printf 'pick %s\n' "$short" >> "$tmp_todo"

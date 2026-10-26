@@ -8,7 +8,7 @@ if [[ "${__GIT_COMMIT_PLUGIN__:-}" != 1 ]]; then
   echo 'Load commit-action and obtain plan confirmation before splitting.' >&2
   exit 1
 fi
-commit_script="$(cd -- "$(dirname -- "$0")/../../commit-action/lib" && pwd)/commit.mjs"
+commit_script="$(cd -- "$(dirname -- "$0")/../../commit-action/lib" && pwd)/commit.sh"
 
 python3 - "$hash" "$plan" "$commit_script" <<'PY'
 import sys, re, subprocess, os, tempfile
@@ -58,6 +58,6 @@ for files, msg in splits:
     with tempfile.NamedTemporaryFile(mode='w+', suffix='.message') as message_file:
         message_file.write(msg)
         message_file.flush()
-        subprocess.run(['node', commit_script, '--message-file', message_file.name,
+        subprocess.run(['bash', commit_script, '--message-file', message_file.name,
                         '--style', style], check=True)
 PY

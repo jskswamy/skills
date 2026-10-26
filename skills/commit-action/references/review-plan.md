@@ -19,7 +19,7 @@ replay plan. Load this skill before accepting or executing that plan.
    this approval: if no explicit approval of this exact plan is available,
    return a `confirmation-required` blocker without rewriting history.
 4. After approval, hand control back to `review-commits`. Its helpers use
-   this skill's `lib/commit.mjs` for each explicit commit/amend. Set
+   this skill's `lib/commit.sh` for each explicit commit/amend. Set
    `__GIT_COMMIT_PLUGIN__=1` and `COMMIT_ACTION_STYLE` to the validated style
    only for the approved replay and revalidation. The token is a convention,
    not a security boundary. A conflict or an unplanned change stops replay;

@@ -9,7 +9,7 @@ import re
 import os
 import shlex
 
-commit_script = os.path.abspath(os.path.join(sys.argv[3], '../../commit-action/lib/commit.mjs'))
+commit_script = os.path.abspath(os.path.join(sys.argv[3], '../../commit-action/lib/commit.sh'))
 split_script = os.path.join(sys.argv[3], 'apply-split.sh')
 style = os.environ.get('COMMIT_ACTION_STYLE', 'classic')
 
@@ -71,7 +71,7 @@ for blk in blocks:
         if msg is not None:
             with open(os.path.join(msgdir, h), 'w') as f:
                 f.write(msg)
-            lines.append('exec ' + shlex.join(['node', commit_script, '--amend', '--message-file', os.path.join(msgdir, h), '--style', style]))
+            lines.append('exec ' + shlex.join(['bash', commit_script, '--amend', '--message-file', os.path.join(msgdir, h), '--style', style]))
         groups.append(lines)
         by_hash[h] = lines
         prev_pick = h
@@ -90,7 +90,7 @@ for blk in blocks:
             with open(os.path.join(msgdir, target), 'w') as f:
                 f.write(msg)
             target_lines.append(
-                'exec ' + shlex.join(['node', commit_script, '--amend', '--message-file', os.path.join(msgdir, target), '--style', style])
+                'exec ' + shlex.join(['bash', commit_script, '--amend', '--message-file', os.path.join(msgdir, target), '--style', style])
             )
         # Do NOT update prev_pick
     elif a == 'drop':
@@ -103,7 +103,7 @@ for blk in blocks:
             with open(os.path.join(msgdir, h), 'w') as f:
                 f.write(msg)
             lines.append(
-                'exec ' + shlex.join(['node', commit_script, '--amend', '--message-file', os.path.join(msgdir, h), '--style', style])
+                'exec ' + shlex.join(['bash', commit_script, '--amend', '--message-file', os.path.join(msgdir, h), '--style', style])
             )
         groups.append(lines)
         by_hash[h] = lines

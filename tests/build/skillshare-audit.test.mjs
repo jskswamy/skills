@@ -34,6 +34,7 @@ test("Skillshare still blocks arbitrary Python subprocess calls", { skip: !avail
   for (const source of [
     "subprocess.run(['node', external_script])",
     "subprocess.run(['node', commit_script, '--eval', payload])",
+    "subprocess.run(['bash', commit_script, '-c', payload])",
     "subprocess.run(command, shell=True)",
   ]) {
     await writeFile(path, source + "\n");

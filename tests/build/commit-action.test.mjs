@@ -1,9 +1,14 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { existsSync } from "node:fs";
 import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join, resolve } from "node:path";
+import { delimiter, join, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
+
+// Plugin runtime must not need node: drop every PATH entry that provides it.
+const PATH_WITHOUT_NODE = (process.env.PATH || "").split(delimiter)
+  .filter((dir) => dir && !existsSync(join(dir, "node"))).join(delimiter);
 
 // Copy only this skill: no plugin root, sibling skills, or project instructions.
 async function fixture(t) {
@@ -13,7 +18,7 @@ async function fixture(t) {
   const cwd = join(root, "repo");
   await cp(resolve("skills/commit-action"), skill, { recursive: true });
   await mkdir(cwd);
-  const env = { ...process.env, GIT_CONFIG_GLOBAL: "/dev/null", GIT_CONFIG_NOSYSTEM: "1", __GIT_COMMIT_PLUGIN__: "1" };
+  const env = { ...process.env, GIT_CONFIG_GLOBAL: "/dev/null", GIT_CONFIG_NOSYSTEM: "1", __GIT_COMMIT_PLUGIN__: "1", PATH: PATH_WITHOUT_NODE };
   const run = (cmd, args, overrides = {}) => spawnSync(cmd, args, { cwd, env: { ...env, ...overrides }, encoding: "utf8" });
   const git = (...args) => {
     const result = run("git", args);
@@ -27,7 +32,7 @@ async function fixture(t) {
   const message = join(root, "message.txt");
   const commit = async (text, flags = [], overrides = {}) => {
     await writeFile(message, text);
-    return run(process.execPath, [join(skill, "lib/commit.mjs"), "--message-file", message, ...flags], overrides);
+    return run("bash", [join(skill, "lib/commit.sh"), "--message-file", message, ...flags], overrides);
   };
   await writeFile(join(cwd, "file.txt"), "initial\n");
   git("add", "file.txt");
@@ -41,6 +46,22 @@ test("standalone commit skill creates a validated local commit without project c
   assert.equal(git("log", "-1", "--format=%s"), "Add initial file");
   assert.equal(git("status", "--porcelain"), "");
   assert.equal(git("remote"), "");
+});
+
+test("the executor runs without node on PATH", async (t) => {
+  const { run } = await fixture(t);
+  assert.notEqual(run("bash", ["-c", "command -v node"]).status, 0, "node must be absent from the test PATH");
+});
+
+test("body width counts characters, not bytes", async (t) => {
+  const { git, commit } = await fixture(t);
+  const wide = "é".repeat(72);
+  const accepted = await commit(`Add initial file\n\n${wide}\n`);
+  assert.equal(accepted.status, 0, accepted.stderr);
+  assert.equal(git("log", "-1", "--format=%b"), wide);
+  const rejected = await commit(`Add initial file\n\n${wide}é\n`, ["--amend"]);
+  assert.notEqual(rejected.status, 0);
+  assert.match(rejected.stderr, /72/);
 });
 
 test("message-only amend keeps the tree and leaves unrelated unstaged files alone", async (t) => {

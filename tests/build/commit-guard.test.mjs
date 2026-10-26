@@ -52,3 +52,29 @@ test("malformed hook input fails closed with a useful error", () => {
   assert.equal(result.status, 2);
   assert.match(result.stderr, /input|JSON/i);
 });
+
+// The guard needs only bash and jq; without jq it does nothing.
+test("without jq the guard allows everything, and it never needs node", async () => {
+  const { mkdtemp, symlink } = await import("node:fs/promises");
+  const { tmpdir } = await import("node:os");
+  const { join } = await import("node:path");
+  const toolDir = async (tools) => {
+    const bin = await mkdtemp(join(tmpdir(), "guard-bin-"));
+    for (const tool of tools) {
+      const found = spawnSync("bash", ["-c", `type -P ${tool}`], { encoding: "utf8" }).stdout.trim();
+      await symlink(found, join(bin, tool));
+    }
+    return bin;
+  };
+  const run = (bin, command) =>
+    spawnSync(join(bin, "bash"), [hook], { input: JSON.stringify({ tool_input: { command } }), encoding: "utf8", env: { PATH: bin } });
+
+  const noJq = await toolDir(["bash", "cat", "tr"]);
+  assert.equal(run(noJq, "git commit -m test").status, 0);
+
+  const noNode = await toolDir(["bash", "cat", "tr", "jq"]);
+  assert.equal(run(noNode, "ls -la").status, 0);
+  const blocked = run(noNode, "git status; git commit -m test");
+  assert.equal(blocked.status, 2, blocked.stderr);
+  assert.match(blocked.stderr, /commit-action/);
+});

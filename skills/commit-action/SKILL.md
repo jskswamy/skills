@@ -323,7 +323,7 @@ Based on user selection:
 Write the exact confirmed message to a temporary file (`MESSAGE_FILE`) using the file-write tool. Then use this skill's executor:
 
 ```bash
-__GIT_COMMIT_PLUGIN__=1 node "$COMMIT_SKILL_DIR/lib/commit.mjs" \
+__GIT_COMMIT_PLUGIN__=1 bash "$COMMIT_SKILL_DIR/lib/commit.sh" \
   --message-file "$MESSAGE_FILE" --style "$selected_style"
 ```
 

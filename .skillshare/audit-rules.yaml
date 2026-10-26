@@ -12,13 +12,13 @@ rules:
     exclude: '(?i)host contains'
 
   # apply-split.sh drives Git and its fixed sibling commit-action executor.
-  # Exempt only that Node call signature, not arbitrary Node subprocesses.
+  # Exempt only that bash call signature, not arbitrary subprocesses.
   - id: shell-execution-0
     severity: HIGH
     pattern: shell-execution
     message: "Python shell execution detected"
     regex: '(?i)\b(os\.system|subprocess\.(run|call|Popen|check_output|check_call))\s*\('
-    exclude: "subprocess\\.\\w+\\(\\['git'|^\\s*subprocess\\.run\\(\\['node', commit_script, '--message-file', message_file\\.name,\\s*$"
+    exclude: "subprocess\\.\\w+\\(\\['git'|^\\s*subprocess\\.run\\(\\['bash', commit_script, '--message-file', message_file\\.name,\\s*$"
 
   # Pinned versions (pkg@1.2.3) are reproducible; only flag unpinned npx -y.
   - id: untrusted-install-0
