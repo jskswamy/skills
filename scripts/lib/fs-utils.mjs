@@ -1,4 +1,4 @@
-import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { access, cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 
 export async function removeDir(path) {
@@ -21,4 +21,11 @@ export async function readJson(path) {
 export async function writeJson(path, value) {
   await ensureDir(dirname(path));
   await writeFile(path, `${JSON.stringify(value, null, 2)}\n`);
+}
+
+export async function pathExists(path) {
+  return access(path).then(
+    () => true,
+    () => false,
+  );
 }
