@@ -1,0 +1,36 @@
+{
+  "skills": [
+    {
+      "id": "capture-for-sketch",
+      "name": "capture-for-sketch",
+      "description": "Use when the user wants to sketch content from a URL, YouTube video, or external source (\"sketch this YouTube video\", \"visualize https://...\", \"draw a diagram of this URL\", \"sketch the architecture from this GitHub repo\"). Enables fetching and extracting content before creating a visual sketch.",
+      "path": "skills/capture-for-sketch/SKILL.md"
+    },
+    {
+      "id": "excalidraw-format",
+      "name": "excalidraw-format",
+      "description": "Use when generating Excalidraw JSON files, creating visual diagrams in Excalidraw format, or needing to understand Excalidraw element structure. Provides comprehensive knowledge of Excalidraw JSON schema, element types, styling properties, and valid configurations.",
+      "path": "skills/excalidraw-format/SKILL.md"
+    },
+    {
+      "id": "sketch-note",
+      "name": "sketch-note",
+      "description": "Use when the user wants a visual diagram or sketch note: 'sketch this', 'draw the architecture', 'visualize this conversation', 'make an Excalidraw diagram', 'sketch note of the code', 'export a diagram as PNG'. Generates Excalidraw files (optionally PNG) from conversation, code, or custom content.",
+      "path": "skills/sketch-note/SKILL.md"
+    }
+  ],
+  "commands": [
+    {
+      "name": "sketch",
+      "description": "Generate visual sketch notes in Excalidraw format from conversations, code architecture, or custom content",
+      "path": "commands/sketch.md"
+    }
+  ],
+  "agents": [
+    {
+      "id": "sketch-note-sketch",
+      "description": "Use this agent proactively when users want to visualize, diagram, or create visual representations of conversations, code architecture, or concepts. Generates Excalidraw sketch notes with customizable hand-drawn styling.",
+      "path": "opencode-agents/sketch-note-sketch.md"
+    }
+  ]
+}

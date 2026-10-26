@@ -1,0 +1,12 @@
+{
+  "skills": [
+    {
+      "id": "devenv",
+      "name": "devenv",
+      "description": "Use when setting up or changing a Nix flake development environment: 'set up devenv', 'init a nix flake', 'create a dev shell', 'add package X to the flake', 'upgrade flake inputs', 'remove package from devenv', 'add pre-commit/security hooks'. Auto-detects project stack and manages flake.nix.",
+      "path": "skills/devenv/SKILL.md"
+    }
+  ],
+  "commands": [],
+  "agents": []
+}

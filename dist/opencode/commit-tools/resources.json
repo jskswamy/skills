@@ -1,0 +1,36 @@
+{
+  "skills": [
+    {
+      "id": "commit-action",
+      "name": "commit-action",
+      "description": "Use when any agent is about to create or amend a Git commit: explicit commit requests, automatic task-completion commits, message-only amendments, task-context commits, and history-review replay. Applies even without a user request to commit. Not for questions about commit style; see commit-style.",
+      "path": "skills/commit-action/SKILL.md"
+    },
+    {
+      "id": "commit-style",
+      "name": "commit-style",
+      "description": "Provides educational guidance on writing good git commit messages. Activates when users ASK QUESTIONS about commit message formats, styles, conventional commits, classic commits, atomic commit principles, or git best practices. Does NOT activate when users want to PERFORM a commit (use the commit-action skill instead).",
+      "path": "skills/commit-style/SKILL.md"
+    },
+    {
+      "id": "review-commits",
+      "name": "review-commits",
+      "description": "Use when reviewing or cleaning up commits before pushing, squashing related commits, preparing a branch for main, or checking commit hygiene; includes unattended review requests.",
+      "path": "skills/review-commits/SKILL.md"
+    },
+    {
+      "id": "validate-commits",
+      "name": "validate-commits",
+      "description": "Use when checking commits before pushing, validating commit style or hygiene, checking for AI attribution or tracker leaks, or running unattended commit validation.",
+      "path": "skills/validate-commits/SKILL.md"
+    }
+  ],
+  "commands": [
+    {
+      "name": "commit",
+      "description": "Generate and create git commit messages with classic or conventional commit style and strict atomic commit validation",
+      "path": "commands/commit.md"
+    }
+  ],
+  "agents": []
+}

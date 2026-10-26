@@ -1,0 +1,52 @@
+{
+  "skills": [
+    {
+      "id": "sketch-from-capture",
+      "name": "sketch-from-capture",
+      "description": "Use when the user wants to create a visual sketch, diagram, or mind map from captured content like articles, videos, or blips (\"visualize this article\", \"mind map this capture\", \"draw what I just captured\", \"make a visual summary\", \"sketch the architecture from this repo\"). Enables creating Excalidraw visualizations from jot captures.",
+      "path": "skills/sketch-from-capture/SKILL.md"
+    },
+    {
+      "id": "jot-capture",
+      "name": "jot-capture",
+      "description": "Use when the user wants to save or capture something: 'jot this down', 'capture this', 'save this article/video/book/meeting/idea', 'note this URL', or to capture the current conversation. Classifies, extracts, drafts, reviews, and saves to workbench or Capacities. Not for backend choice (use jot-setup) or editing a type agent (use jot-configure).",
+      "path": "skills/jot-capture/SKILL.md"
+    },
+    {
+      "id": "jot-configure",
+      "name": "jot-configure",
+      "description": "Use when editing an already-configured jot type agent: 'change the questions for my article type', 'edit the output template', 'update triggers', 'reset setup for a type'. Not for first-run backend choice (use jot-setup) or saving content (use jot-capture).",
+      "path": "skills/jot-configure/SKILL.md"
+    },
+    {
+      "id": "jot-setup",
+      "name": "jot-setup",
+      "description": "Use when configuring where jot saves captures for the first time or changing it: 'set up jot', 'configure jot backend', 'switch jot to Capacities', 'use workbench for jot'. Run once to choose workbench or Capacities. Not for editing an existing type agent's questions or template (use jot-configure) or saving content (use jot-capture).",
+      "path": "skills/jot-setup/SKILL.md"
+    }
+  ],
+  "commands": [
+    {
+      "name": "capture",
+      "description": "Capture anything — from your current conversation or by starting a guided session. Classifies, extracts, studies, drafts, reviews, and saves.",
+      "path": "commands/capture.md"
+    },
+    {
+      "name": "configure",
+      "description": "Reconfigure or edit an existing jot type agent — change questions, output template, triggers, or reset setup entirely.",
+      "path": "commands/configure.md"
+    },
+    {
+      "name": "jot-setup",
+      "description": "Configure jot's capture backend. Run once to choose workbench or Capacities. Types are configured automatically on first capture — no upfront type mapping needed.",
+      "path": "commands/setup.md"
+    }
+  ],
+  "agents": [
+    {
+      "id": "jot-content-extractor",
+      "description": "Use this agent to extract content from research papers (PDFs), YouTube videos, and web articles for the Feynman learning process. Handles PDF downloads, video transcripts, and web content fetching.",
+      "path": "opencode-agents/jot-content-extractor.md"
+    }
+  ]
+}

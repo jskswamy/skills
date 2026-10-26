@@ -1,0 +1,34 @@
+{
+  "skills": [
+    {
+      "id": "refactor-scan",
+      "name": "refactor-scan",
+      "description": "Use when the user asks to scan for refactoring opportunities, e.g. \"refactor scan\", \"find duplication or code smells in my recent commits\", \"scan this package for refactors\", \"audit the whole codebase for refactoring\", or \"resume the refactor scan\"; scans a diff, package, or full codebase and files reviewable findings as beads issues.",
+      "path": "skills/refactor-scan/SKILL.md"
+    }
+  ],
+  "commands": [
+    {
+      "name": "scan",
+      "description": "Scan committed code or the entire codebase for refactoring opportunities",
+      "path": "commands/scan.md"
+    }
+  ],
+  "agents": [
+    {
+      "id": "refactor-scanner",
+      "description": "Scans committed code diffs for refactoring opportunities across the codebase.\nRuns three passes: semantic similarity (Fowler structural patterns + GoF),\nstructural analysis (code smells + SOLID/DRY violations), and language idiom\nchecks. Returns a candidate list for the validator agent to confirm.",
+      "path": "opencode-agents/refactor-scanner.md"
+    },
+    {
+      "id": "refactor-synthesizer",
+      "description": "Correlates raw refactoring candidates from scanner shards into\narchitectural root-cause findings. Reads candidates/*.yaml from a\nrefactor-scan working directory and writes a human-reviewable\nfindings.md. Does not file beads issues; that is the validator's job.",
+      "path": "opencode-agents/refactor-synthesizer.md"
+    },
+    {
+      "id": "refactor-validator",
+      "description": "Validates refactoring candidates from the scanner agent. Reads actual source\nfiles to confirm similarity, checks test coverage, deduplicates against\nexisting beads issues, and creates new issues with TDD-first refactoring plans.",
+      "path": "opencode-agents/refactor-validator.md"
+    }
+  ]
+}

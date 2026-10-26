@@ -1,0 +1,56 @@
+{
+  "skills": [
+    {
+      "id": "study-coach",
+      "name": "study-coach",
+      "description": "Use when the user wants to learn or deeply understand something via a guided coaching session: 'coach me on X', 'teach me X', 'help me study this article/URL/file', 'I want to learn X'. Accepts a topic, URL, or local path, saves a coaching note, then flows into recall unless --no-recall. For re-testing a topic already coached use study-recall; for config use study-setup.",
+      "path": "skills/study-coach/SKILL.md"
+    },
+    {
+      "id": "study-recall",
+      "name": "study-recall",
+      "description": "Use when the user wants to test or reinforce what they learned on a topic already coached or studied: 'quiz me on X', 'recall session for X', 'Feynman test on X', 'explain X back to you', 'review what I learned about X'. Targets gaps in the existing coaching note and logs the result. For first-time learning use study-coach.",
+      "path": "skills/study-recall/SKILL.md"
+    },
+    {
+      "id": "study-setup",
+      "name": "study-setup",
+      "description": "Use when configuring the study plugin or it reports missing config: 'set up study', 'configure study notes folder', 'change study notes path', 'add a content vault'. Writes study.md with notes_path and content_vaults. Run before first study-coach or study-recall use.",
+      "path": "skills/study-setup/SKILL.md"
+    }
+  ],
+  "commands": [
+    {
+      "name": "coach",
+      "description": "Start a coaching session on any topic, URL, or local file",
+      "path": "commands/coach.md"
+    },
+    {
+      "name": "recall",
+      "description": "Run a Feynman recall session on a previously coached topic",
+      "path": "commands/recall.md"
+    },
+    {
+      "name": "study-setup",
+      "description": "Configure the study plugin - set notes folder and content vault paths",
+      "path": "commands/setup.md"
+    }
+  ],
+  "agents": [
+    {
+      "id": "study-coach-agent",
+      "description": "Use this agent to run an adaptive coaching session on any topic or content. Supports multiple learning gears (Socratic, Explain, Guide, Check, Help) and saves a structured coaching note with identified gaps for use in future recall sessions.",
+      "path": "opencode-agents/study-coach-agent.md"
+    },
+    {
+      "id": "study-content-extractor",
+      "description": "Use this agent to extract content from URLs (research papers, YouTube videos, web articles) or local files (PDF, markdown, text) for use in a coaching session.",
+      "path": "opencode-agents/study-content-extractor.md"
+    },
+    {
+      "id": "study-recall-agent",
+      "description": "Use this agent to run a Feynman recall session. Reads an existing coaching note to target known gaps, runs iterative explanation cycles, and appends results to the Recall Log.",
+      "path": "opencode-agents/study-recall-agent.md"
+    }
+  ]
+}

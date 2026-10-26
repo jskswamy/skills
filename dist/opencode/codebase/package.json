@@ -1,0 +1,20 @@
+{
+  "name": "@jskswamy/opencode-codebase",
+  "version": "0.1.8",
+  "description": "Intelligent codebase exploration powered by codebase-memory-mcp. Natural language queries, change impact analysis, symbol graph traversal, and automatic brainstorming/planning integration.",
+  "type": "module",
+  "main": "./index.js",
+  "exports": {
+    ".": "./index.js"
+  },
+  "keywords": [
+    "opencode-plugin",
+    "codebase",
+    "exploration",
+    "semantic-search",
+    "impact-analysis",
+    "codebase-memory",
+    "graph",
+    "architecture"
+  ]
+}

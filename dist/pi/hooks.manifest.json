@@ -1,0 +1,72 @@
+{
+  "entries": [
+    {
+      "plugin": "devenv",
+      "id": "post-tool:nixfmt",
+      "event": "post-tool",
+      "matcher": "Write|Edit",
+      "command": "bash \"${PI_PACKAGE_ROOT}\"/hooks/devenv/scripts/nixfmt.sh",
+      "timeoutMs": 60000000
+    },
+    {
+      "plugin": "devenv",
+      "id": "post-tool:statix",
+      "event": "post-tool",
+      "matcher": "Write|Edit",
+      "command": "bash \"${PI_PACKAGE_ROOT}\"/hooks/devenv/scripts/statix.sh",
+      "timeoutMs": 60000000
+    },
+    {
+      "plugin": "devenv",
+      "id": "post-tool:deadnix",
+      "event": "post-tool",
+      "matcher": "Write|Edit",
+      "command": "bash \"${PI_PACKAGE_ROOT}\"/hooks/devenv/scripts/deadnix.sh",
+      "timeoutMs": 60000000
+    },
+    {
+      "plugin": "commit-tools",
+      "id": "session-start:routing-reminder",
+      "event": "session-start",
+      "command": "bash \"${PI_PACKAGE_ROOT}\"/hooks/commit-tools/scripts/routing-reminder.sh",
+      "timeoutMs": 5000
+    },
+    {
+      "plugin": "commit-tools",
+      "id": "pre-tool:intercept-git-commit",
+      "event": "pre-tool",
+      "matcher": "Bash|mcp__.*git.*commit",
+      "command": "bash \"${PI_PACKAGE_ROOT}\"/hooks/commit-tools/scripts/intercept-git-commit.sh",
+      "timeoutMs": 5000000
+    },
+    {
+      "plugin": "craft",
+      "id": "stop:check-parked-ideas",
+      "event": "stop",
+      "command": "bash \"${PI_PACKAGE_ROOT}\"/hooks/craft/scripts/check-parked-ideas.sh"
+    },
+    {
+      "plugin": "codebase",
+      "id": "session-start:session-reminder",
+      "event": "session-start",
+      "matcher": "startup|resume|clear|compact",
+      "command": "bash \"${PI_PACKAGE_ROOT}\"/hooks/codebase/session-reminder.sh"
+    },
+    {
+      "plugin": "codebase",
+      "id": "pre-tool:discovery-augment",
+      "event": "pre-tool",
+      "matcher": "Grep|Glob",
+      "command": "bash \"${PI_PACKAGE_ROOT}\"/hooks/codebase/discovery-augment.sh",
+      "timeoutMs": 5000000
+    },
+    {
+      "plugin": "codebase",
+      "id": "pre-tool:pretooluse-grep",
+      "event": "pre-tool",
+      "matcher": "Bash",
+      "command": "bash \"${PI_PACKAGE_ROOT}\"/hooks/codebase/pretooluse-grep.sh",
+      "timeoutMs": 5000000
+    }
+  ]
+}

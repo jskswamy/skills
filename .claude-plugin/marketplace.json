@@ -15,7 +15,7 @@
       "author": {
         "name": "Krishnaswamy Subramanian"
       },
-      "source": "./plugins/bivouac",
+      "source": "./dist/claude-code/bivouac",
       "category": "workflow",
       "tags": [
         "bivouac",
@@ -34,7 +34,7 @@
       "author": {
         "name": "Krishnaswamy Subramanian"
       },
-      "source": "./plugins/devenv",
+      "source": "./dist/claude-code/devenv",
       "category": "development",
       "tags": [
         "nix",
@@ -56,7 +56,7 @@
       "author": {
         "name": "Krishnaswamy Subramanian"
       },
-      "source": "./plugins/commit-tools",
+      "source": "./dist/claude-code/commit-tools",
       "category": "git",
       "tags": [
         "git",
@@ -80,7 +80,7 @@
       "author": {
         "name": "Krishnaswamy Subramanian"
       },
-      "source": "./plugins/jot",
+      "source": "./dist/claude-code/jot",
       "category": "productivity",
       "tags": [
         "capture",
@@ -107,7 +107,7 @@
       "author": {
         "name": "Krishnaswamy Subramanian"
       },
-      "source": "./plugins/craft",
+      "source": "./dist/claude-code/craft",
       "category": "workflow",
       "tags": [
         "craft",
@@ -131,7 +131,7 @@
       "author": {
         "name": "Krishnaswamy Subramanian"
       },
-      "source": "./plugins/sketch-note",
+      "source": "./dist/claude-code/sketch-note",
       "category": "visualization",
       "tags": [
         "sketch",
@@ -152,7 +152,7 @@
       "author": {
         "name": "Krishnaswamy Subramanian"
       },
-      "source": "./plugins/typst-notes",
+      "source": "./dist/claude-code/typst-notes",
       "category": "productivity",
       "tags": [
         "typst",
@@ -171,7 +171,7 @@
       "author": {
         "name": "Krishnaswamy Subramanian"
       },
-      "source": "./plugins/codebase",
+      "source": "./dist/claude-code/codebase",
       "category": "code-intelligence",
       "tags": [
         "codebase",
@@ -190,7 +190,7 @@
       "author": {
         "name": "Krishnaswamy Subramanian"
       },
-      "source": "./plugins/study",
+      "source": "./dist/claude-code/study",
       "category": "productivity",
       "tags": [
         "learning",
@@ -210,7 +210,7 @@
       "author": {
         "name": "Krishnaswamy Subramanian"
       },
-      "source": "./plugins/refactor",
+      "source": "./dist/claude-code/refactor",
       "category": "code-quality",
       "tags": [
         "refactoring",

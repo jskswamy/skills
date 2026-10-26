@@ -1,0 +1,47 @@
+{
+  "skills": [
+    {
+      "id": "infographics",
+      "name": "infographics",
+      "description": "Use when deciding whether to add charts, diagrams, flowcharts, or other data visualizations to a Typst document. Provides guidance on when and how to use CeTZ-Plot, Fletcher, Pintorita, and custom CeTZ drawings for infographic generation.",
+      "path": "skills/infographics/SKILL.md"
+    },
+    {
+      "id": "jot-to-publish",
+      "name": "jot-to-publish",
+      "description": "Use when the user wants to publish or convert a jot capture into a formatted document. Handles reading jot notes and feeding them through the publish pipeline to generate PDF/HTML output.",
+      "path": "skills/jot-to-publish/SKILL.md"
+    },
+    {
+      "id": "typst-format",
+      "name": "typst-format",
+      "description": "Use when generating Typst source code, formatting documents with Typst syntax, or needing to understand Typst markup, functions, packages (CeTZ, Fletcher, Pintorita), and document structure. Provides comprehensive Typst language reference and package API knowledge.",
+      "path": "skills/typst-format/SKILL.md"
+    },
+    {
+      "id": "typst-publish",
+      "name": "typst-publish",
+      "description": "Use when the user wants a polished, shareable PDF or HTML document from notes or content: 'publish this as a PDF', 'make a shareable document', 'generate a Typst document', 'turn these notes into a PDF/HTML', 'export notes with a nice template'. Requires Typst (or Nix) installed and applies professional templates.",
+      "path": "skills/typst-publish/SKILL.md"
+    }
+  ],
+  "commands": [
+    {
+      "name": "publish",
+      "description": "Generate beautiful PDF/HTML shareable notes using Typst with professional templates",
+      "path": "commands/publish.md"
+    }
+  ],
+  "agents": [
+    {
+      "id": "typst-notes-content-analyzer",
+      "description": "Analyzes input content, selects appropriate structure for the chosen template,\nand organizes content with infographic suggestions.",
+      "path": "opencode-agents/typst-notes-content-analyzer.md"
+    },
+    {
+      "id": "typst-notes-typst-generator",
+      "description": "Generates complete Typst source files from structured content using\ntemplates and themes.",
+      "path": "opencode-agents/typst-notes-typst-generator.md"
+    }
+  ]
+}

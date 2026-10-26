@@ -1,0 +1,57 @@
+{
+  "skills": [
+    {
+      "id": "codebase-explore",
+      "name": "codebase-explore",
+      "description": "Use when gathering background codebase context as part of a larger workflow, such as the brainstorming or planning explore step, or before modifying unfamiliar code to understand architecture and structure. Not for a direct one-off question (use codebase-ask), a named symbol's callers/callees (use codebase-graph), or the effect of a diff (use codebase-impact).",
+      "path": "skills/codebase-explore/SKILL.md"
+    },
+    {
+      "id": "codebase-ask",
+      "name": "codebase-ask",
+      "description": "Use when the user asks a direct natural-language question about the codebase: 'where does X happen', 'how does X work', 'anything similar to X', 'what should I know before adding X'. Not for ambient context during brainstorming/planning (use codebase-explore), call graphs of a named symbol (use codebase-graph), or what a diff affects (use codebase-impact).",
+      "path": "skills/codebase-ask/SKILL.md"
+    },
+    {
+      "id": "codebase-index",
+      "name": "codebase-index",
+      "description": "Use when the codebase index must be built or refreshed: 'index this repo', 'reindex', 'index is stale', or when other codebase skills report no index. This only builds the index; to answer questions use codebase-ask, codebase-graph, or codebase-impact.",
+      "path": "skills/codebase-index/SKILL.md"
+    },
+    {
+      "id": "codebase-impact",
+      "name": "codebase-impact",
+      "description": "Use when the user asks what recent code changes affect: 'what did my changes break', 'blast radius of this diff', 'what might break', 'which tests are affected'. Works from a git diff or base SHA. Not for questions about code that has not changed (use codebase-ask) or one symbol's callers (use codebase-graph).",
+      "path": "skills/codebase-impact/SKILL.md"
+    },
+    {
+      "id": "codebase-graph",
+      "name": "codebase-graph",
+      "description": "Use when the user names a specific symbol and wants its relationships: 'who calls X', 'what does X call', 'call graph for X', 'dependencies of X'. Supports depth and direction. Not for general how/where questions (use codebase-ask) or diff-based impact (use codebase-impact).",
+      "path": "skills/codebase-graph/SKILL.md"
+    }
+  ],
+  "commands": [
+    {
+      "name": "ask",
+      "description": "Ask a natural language question about the codebase",
+      "path": "commands/ask.md"
+    },
+    {
+      "name": "graph",
+      "description": "Explore a symbol's callers, callees, and relationships in the codebase graph",
+      "path": "commands/graph.md"
+    },
+    {
+      "name": "impact",
+      "description": "Analyze the impact of recent code changes — blast radius, risk levels, affected tests",
+      "path": "commands/impact.md"
+    },
+    {
+      "name": "index",
+      "description": "Index or re-index the codebase using codebase-memory-mcp",
+      "path": "commands/index.md"
+    }
+  ],
+  "agents": []
+}

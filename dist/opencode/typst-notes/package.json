@@ -1,0 +1,20 @@
+{
+  "name": "@jskswamy/opencode-typst-notes",
+  "version": "1.0.5",
+  "description": "Generate beautiful PDF/HTML shareable notes using Typst with 7 professional templates, infographics, and modern typography",
+  "type": "module",
+  "main": "./index.js",
+  "exports": {
+    ".": "./index.js"
+  },
+  "keywords": [
+    "opencode-plugin",
+    "typst",
+    "pdf",
+    "html",
+    "notes",
+    "templates",
+    "publish",
+    "infographics"
+  ]
+}

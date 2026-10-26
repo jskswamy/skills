@@ -1,0 +1,27 @@
+{
+  "description": "Lint and format flake.nix after modifications using nix tools",
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/nixfmt.sh",
+            "timeout": 60000
+          },
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/statix.sh",
+            "timeout": 60000
+          },
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/deadnix.sh",
+            "timeout": 60000
+          }
+        ]
+      }
+    ]
+  }
+}

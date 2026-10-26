@@ -1,0 +1,123 @@
+{
+  "skills": [
+    {
+      "id": "craft-decompose",
+      "name": "craft-decompose",
+      "description": "Use when breaking a complex task or plan into a set of structured beads issues with dependencies: 'decompose this', 'break this down into tasks', 'plan implementation tasks'. Not for creating one task (craft-task), managing an existing epic (craft-epic), or clarifying a vague task first (craft-understand).",
+      "path": "skills/craft-decompose/SKILL.md"
+    },
+    {
+      "id": "execute-tasks",
+      "name": "execute-tasks",
+      "description": "Use when running already-decomposed beads tasks: 'execute the tasks', 'run the ready tasks', 'implement the epic'. Dispatches isolated subagents with review checkpoints and atomic commits. Not for creating tasks (craft-decompose) or hand-operating a single task (craft-task).",
+      "path": "skills/execute-tasks/SKILL.md"
+    },
+    {
+      "id": "park-idea",
+      "name": "park-idea",
+      "description": "Use when the user wants to set an idea aside mid-task without losing focus: 'park this idea', 'park: X', 'remember to do X later', 'note for later', 'come back to this'. Creates a deferred parked-idea beads issue with context and returns to work. For listing or triaging parked ideas use review-parked.",
+      "path": "skills/park-idea/SKILL.md"
+    },
+    {
+      "id": "review-parked",
+      "name": "review-parked",
+      "description": "Use when the user wants to see or triage parked ideas: 'show parked ideas', 'list parked', 'what did I park', 'promote parked idea X', 'discard parked idea X', 'review parked ideas', 'ideas parked from task X'. For parking a new idea use park-idea.",
+      "path": "skills/review-parked/SKILL.md"
+    },
+    {
+      "id": "task-commit",
+      "name": "task-commit",
+      "description": "Use when committing work for a beads task: 'commit this task', 'task commit', 'commit with beads context', or 'now commit' after closing a task. Gathers task context for commit-action; never creates a separate commit workflow.",
+      "path": "skills/task-commit/SKILL.md"
+    },
+    {
+      "id": "craft-understand",
+      "name": "craft-understand",
+      "description": "Use when a task is unclear and needs structured questioning before planning: 'help me understand this task', 'what am I missing', 'clarify this task', 'interview me about this', 'before we plan, let's understand'. Produces understanding, not issues; once clear, use craft-decompose.",
+      "path": "skills/craft-understand/SKILL.md"
+    },
+    {
+      "id": "craft-backlog",
+      "name": "craft-backlog",
+      "description": "Use when the user wants a dashboard or overview of all beads work: 'show the backlog', 'what's ready to work on', 'what's blocked', 'group tasks by priority', 'epic overview', 'project status/statistics'. Read-only views (overview, ready, blocked, priorities, epics) with status/priority/epic filters. Not for changing a single task (craft-task) or dependencies (craft-deps).",
+      "path": "skills/craft-backlog/SKILL.md"
+    },
+    {
+      "id": "craft-deps",
+      "name": "craft-deps",
+      "description": "Use when managing blocking relationships between beads tasks: 'task A depends on B', 'B blocks A', 'add/remove dependency', 'what blocks task X', 'show dependency graph', 'visualize dependencies', 'check for circular dependencies'. Not for creating/closing tasks (craft-task) or grouping into epics (craft-epic).",
+      "path": "skills/craft-deps/SKILL.md"
+    },
+    {
+      "id": "craft-epic",
+      "name": "craft-epic",
+      "description": "Use when managing a beads epic, a group of related tasks: 'create epic X', 'add task Y to epic X', 'remove task from epic', 'epic progress', 'how far along is epic X', 'close epic X'. Not for single-task actions (craft-task), blocking relationships (craft-deps), or cross-project dashboards (craft-backlog).",
+      "path": "skills/craft-epic/SKILL.md"
+    },
+    {
+      "id": "craft-task",
+      "name": "craft-task",
+      "description": "Use when operating on one beads task: 'create task X', 'start task X', 'mark X done', 'close task X', 'show task X', 'what task is next', '/task next'. Handles create, start (in-progress + context), done (optional commit), show, and next-recommendation for a single task. Not for epics (craft-epic), dependencies (craft-deps), or whole-project dashboards (craft-backlog).",
+      "path": "skills/craft-task/SKILL.md"
+    }
+  ],
+  "commands": [
+    {
+      "name": "backlog",
+      "description": "Dashboard views of all work with filtering and statistics",
+      "path": "commands/backlog.md"
+    },
+    {
+      "name": "decompose",
+      "description": "Decompose complex tasks into structured beads issues with direct argument control",
+      "path": "commands/decompose.md"
+    },
+    {
+      "name": "deps",
+      "description": "Manage and visualize task dependencies",
+      "path": "commands/deps.md"
+    },
+    {
+      "name": "epic",
+      "description": "Create and manage epics, add/remove tasks, track progress",
+      "path": "commands/epic.md"
+    },
+    {
+      "name": "execute",
+      "description": "Execute decomposed beads tasks using isolated subagents with batch processing, dual-stage review, and atomic commits",
+      "path": "commands/execute.md"
+    },
+    {
+      "name": "park",
+      "description": "Quick idea parking with optional metadata - capture thoughts without breaking flow",
+      "path": "commands/park.md"
+    },
+    {
+      "name": "parked",
+      "description": "List, filter, and manage parked ideas",
+      "path": "commands/parked.md"
+    },
+    {
+      "name": "task",
+      "description": "Single task operations - create, start, complete, and view individual tasks",
+      "path": "commands/task.md"
+    }
+  ],
+  "agents": [
+    {
+      "id": "craft-issue-writer",
+      "description": "Executes beads CLI commands to create issues from a decomposition plan.\nUse this agent when you have an approved decomposition and need to create\nthe actual beads issues with proper ordering and dependencies.",
+      "path": "opencode-agents/craft-issue-writer.md"
+    },
+    {
+      "id": "craft-quality-reviewer",
+      "description": "Reviews code quality after spec compliance passes. Checks for style,\nsecurity, error handling, and maintainability issues.",
+      "path": "opencode-agents/craft-quality-reviewer.md"
+    },
+    {
+      "id": "craft-spec-reviewer",
+      "description": "Reviews task implementations for spec compliance. Use after a subagent\ncompletes a task to verify all requirements were met.",
+      "path": "opencode-agents/craft-spec-reviewer.md"
+    }
+  ]
+}
