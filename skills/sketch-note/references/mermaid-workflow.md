@@ -102,15 +102,6 @@ sequenceDiagram
         -b transparent"
    ```
 
-   **If `mermaid_runner: npx`:**
-   ```bash
-   npx -y @mermaid-js/mermaid-cli@12.0.0 -i /tmp/sketch-{timestamp}.mmd \
-        -o "${workbench_path}/sketches/{filename}.png" \
-        -c /tmp/mermaid-config.json \
-        -s {png_scale} \
-        -b transparent
-   ```
-
    **Scale mapping:**
    - `png_scale: 1` → `-s 1`
    - `png_scale: 2` → `-s 2`

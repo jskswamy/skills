@@ -54,5 +54,5 @@ Style: hand-drawn, medium stroke, white background
 
 PNG export skipped. To export manually:
 - Open at excalidraw.com and use Export menu
-- Or install: npm install -g excalidraw-brute-export-cli
+- Or install excalidraw-brute-export-cli and rerun with --format png
 ```

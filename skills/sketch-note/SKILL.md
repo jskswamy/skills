@@ -230,7 +230,7 @@ This step handles the interactive workflow for choosing output format and PNG ge
 
 #### 6a. Detect Available Tools and Runners
 
-Read `references/export-tools.md` (section 6a) for the detection commands. Detect `has_nix`, `has_npx`, `has_mermaid`, `has_brute_export`, `has_excalidraw_cli`; a tool is "available" if globally installed, or nix or npx is available.
+Read `references/export-tools.md` (section 6a) for the detection commands. Detect `has_nix`, `has_mermaid`, `has_brute_export`, `has_excalidraw_cli`; a tool is "available" if globally installed, or (mermaid-cli only) nix is available.
 
 #### 6b. Determine Output Format
 
@@ -252,7 +252,7 @@ What output format would you like?
 
 **If format is `png` or `both`:** Go to 6c-convert
 
-Read `references/export-tools.md` (sections 6c-direct and 6c-convert) for runner selection (global, nix, npx), the AskUserQuestion prompts when no runner or tool is available, install commands, and the Skip/Cancel handling. It sets `generation_method` (`mermaid` | `excalidraw-convert`), `mermaid_runner` (`global` | `nix` | `npx`), `excalidraw_runner` (`global` | `npx`), and `selected_tool`.
+Read `references/export-tools.md` (sections 6c-direct and 6c-convert) for runner selection (global, nix), the AskUserQuestion prompts when no runner or tool is available, install commands, and the Skip/Cancel handling. It sets `generation_method` (`mermaid` | `excalidraw-convert`), `mermaid_runner` (`global` | `nix`), `excalidraw_runner` (`global`), and `selected_tool`.
 
 #### 6d. Determine PNG Scale (if PNG requested)
 
@@ -329,25 +329,11 @@ excalidraw-brute-export-cli -i "${workbench_path}/sketches/{filename}.excalidraw
   -o "${workbench_path}/sketches/{filename}.png"
 ```
 
-*If via npx (`excalidraw_runner: npx`):*
-```bash
-npx -y excalidraw-brute-export-cli@0.4.0 -i "${workbench_path}/sketches/{filename}.excalidraw" \
-  --format png \
-  --scale {png_scale} \
-  --background 1 \
-  -o "${workbench_path}/sketches/{filename}.png"
-```
-
 **For excalidraw-cli:**
 
 *If globally installed (`excalidraw_runner: global`):*
 ```bash
 excalidraw-cli "${workbench_path}/sketches/{filename}.excalidraw" "${workbench_path}/sketches/"
-```
-
-*If via npx (`excalidraw_runner: npx`):*
-```bash
-npx -y @tommywalkie/excalidraw-cli@0.5.0 "${workbench_path}/sketches/{filename}.excalidraw" "${workbench_path}/sketches/"
 ```
 
 **If export fails:**

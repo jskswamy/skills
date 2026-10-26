@@ -4,16 +4,12 @@
 
 **First, detect available tool runners:**
 ```bash
-# Check for nix (preferred - isolated environments)
+# Check for nix (isolated environments)
 command -v nix-shell >/dev/null 2>&1 && echo "has_nix"
-
-# Check for npx (fallback - runs without global install)
-command -v npx >/dev/null 2>&1 && echo "has_npx"
 ```
 
 Store:
 - `has_nix`: true/false
-- `has_npx`: true/false
 
 **Then, check for globally installed tools:**
 ```bash
@@ -33,10 +29,9 @@ Store results:
 **Tool availability logic:**
 A tool is "available" if ANY of these are true:
 1. Globally installed (`command -v {tool}` succeeds)
-2. Nix is available (can run via `nix-shell -p`)
-3. npx is available (can run via `npx`)
+2. Nix is available and the tool is in nixpkgs (can run via `nix-shell -p`)
 
-If `has_nix` or `has_npx` is true, all tools are considered available (will run on-demand).
+If `has_nix` is true, mermaid-cli is considered available (will run on-demand). The Excalidraw converters are not in nixpkgs, so they are available only when globally installed.
 
 ## 6c-direct and 6c-convert: PNG generation method selection
 
@@ -48,35 +43,33 @@ This workflow generates PNG directly without creating an intermediate Excalidraw
 
 1. **If globally installed:** Use `mmdc` directly
 2. **If nix available:** Use `nix-shell -p mermaid-cli --run "mmdc ..."`
-3. **If npx available:** Use `npx -y @mermaid-js/mermaid-cli@12.0.0 ...`
-4. **None available:** Prompt user
+3. **None available:** Prompt user
 
-**If mermaid-cli is available (globally, via nix, or via npx):**
+**If mermaid-cli is available (globally or via nix):**
 ```
 Using Mermaid CLI for direct PNG generation with hand-drawn style.
-{via nix-shell | via npx | globally installed}
+{via nix-shell | globally installed}
 ```
 - Set `generation_method: mermaid`
-- Set `mermaid_runner`: `global` | `nix` | `npx`
+- Set `mermaid_runner`: `global` | `nix`
 - Skip Excalidraw generation entirely (go to Step 7-direct)
 
-**If NO runner is available (no nix, no npx, not installed):**
+**If NO runner is available (no nix, not installed):**
 Use AskUserQuestion:
 ```
 Direct PNG requires Mermaid CLI and no runner is available. How would you like to proceed?
-○ Install mermaid-cli globally - npm install -g @mermaid-js/mermaid-cli
+○ Install mermaid-cli - Install Nix (runs it via nix-shell) or install mmdc by other means
 ○ Use Excalidraw conversion - Create Excalidraw first, then convert to PNG
 ○ Excalidraw only - Create editable file, export PNG manually later
 ○ Cancel - Stop and install tools first
 ```
 
 **If user chooses to install mermaid-cli:**
-```bash
-npm install -g @mermaid-js/mermaid-cli
-```
+Ask the user to install Nix (https://nixos.org/download) or put `mmdc` on their PATH by other means, then wait for them to confirm.
 
 After installation, verify:
 ```bash
+command -v nix-shell >/dev/null 2>&1 && echo "has_nix"
 command -v mmdc >/dev/null 2>&1 && echo "installed"
 ```
 
@@ -84,21 +77,14 @@ command -v mmdc >/dev/null 2>&1 && echo "installed"
 
 **Determine how to run each tool:**
 
-| Tool | Nix Package | NPM Package |
-|------|-------------|-------------|
-| excalidraw-brute-export-cli | N/A (use npx) | excalidraw-brute-export-cli |
-| excalidraw-cli | N/A (use npx) | @tommywalkie/excalidraw-cli |
+| Tool | Nix Package |
+|------|-------------|
+| excalidraw-brute-export-cli | N/A (not in nixpkgs) |
+| excalidraw-cli | N/A (not in nixpkgs) |
 
-**Runner priority:**
-1. Global install (if available)
-2. nix-shell (if nix available) - Note: These packages may not be in nixpkgs, fall back to npx
-3. npx (if available)
+**Runner:** Global install only. Set `excalidraw_runner: global`.
 
-**If nix or npx is available:**
-All tools are considered available. Determine which runner to use:
-- Set `excalidraw_runner`: `global` | `npx`
-
-**Case 1: Multiple tools available (or runners available)**
+**Case 1: Multiple tools globally installed**
 Use AskUserQuestion:
 ```
 Which export tool would you like to use?
@@ -106,16 +92,16 @@ Which export tool would you like to use?
 ○ excalidraw-cli - Faster export, uses node-canvas (may differ slightly)
 ```
 
-**Case 2: Only one tool globally installed (and no npx)**
+**Case 2: Only one tool globally installed**
 Auto-select the available tool:
 ```
 Using {tool-name} for PNG export.
 ```
 
-**Case 3: No tools available AND no npx**
+**Case 3: No tools globally installed**
 Use AskUserQuestion:
 ```
-PNG conversion requires a CLI tool. None detected and npx unavailable. How would you like to proceed?
+PNG conversion requires a CLI tool. None detected. How would you like to proceed?
 ○ Install excalidraw-brute-export-cli (Recommended) - Highest fidelity
 ○ Install excalidraw-cli - Faster, no browser dependency
 ○ Try direct PNG - Use Mermaid for direct generation instead
@@ -124,16 +110,7 @@ PNG conversion requires a CLI tool. None detected and npx unavailable. How would
 ```
 
 **If user chooses to install:**
-
-For `excalidraw-brute-export-cli`:
-```bash
-npm install -g excalidraw-brute-export-cli && npx playwright install firefox
-```
-
-For `excalidraw-cli`:
-```bash
-npm install -g @tommywalkie/excalidraw-cli
-```
+Ask the user to put the chosen CLI (`excalidraw-brute-export-cli`, which also needs Firefox for its headless export, or `excalidraw-cli`) on their PATH by other means, then wait for them to confirm.
 
 After installation, verify:
 ```bash
