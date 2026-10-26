@@ -6,15 +6,15 @@ differently:
 - **Claude Code**: plugin slash commands, `/<command>` or `/<plugin>:<command>`.
 - **Pi**: prompt templates named after the command. Pi names a prompt by file
   name alone, so a name two plugins share gets the plugin as a prefix.
-- **Antigravity**: agy does not load commands, so each becomes a skill named
-  `<plugin>-cmd-<command>`.
+- **Antigravity and Codex**: neither loads commands directly, so each becomes a
+  skill named `<plugin>-cmd-<command>`.
 - **OpenCode**: commands with the same names, prefixed with the plugin when
   another plugin or OpenCode itself uses the name.
 
 The skill in the last column is invocable by name on every harness, for
 example `/skill:<name>` on Pi.
 
-| Claude Code | Pi | Antigravity skill | OpenCode | Canonical skill |
+| Claude Code | Pi | Antigravity / Codex skill | OpenCode | Canonical skill |
 | --- | --- | --- | --- | --- |
 | `/bivouac` | `/bivouac` | `bivouac-cmd-bivouac` | `/bivouac` | `bivouac` |
 | `/commit` | `/commit` | `commit-tools-cmd-commit` | `/commit` | `commit-action` |

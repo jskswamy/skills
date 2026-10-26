@@ -54,6 +54,9 @@
         },
         "pi": {
           "enabled": true
+        },
+        "codex": {
+          "enabled": true
         }
       }
     },
@@ -113,6 +116,9 @@
           "enabled": true
         },
         "pi": {
+          "enabled": true
+        },
+        "codex": {
           "enabled": true
         }
       }
@@ -181,6 +187,9 @@
           "enabled": true
         },
         "pi": {
+          "enabled": true
+        },
+        "codex": {
           "enabled": true
         }
       }
@@ -260,6 +269,9 @@
         },
         "pi": {
           "enabled": true
+        },
+        "codex": {
+          "enabled": true
         }
       }
     },
@@ -337,6 +349,9 @@
         },
         "pi": {
           "enabled": true
+        },
+        "codex": {
+          "enabled": true
         }
       }
     },
@@ -403,6 +418,9 @@
           "enabled": true
         },
         "pi": {
+          "enabled": true
+        },
+        "codex": {
           "enabled": true
         }
       }
@@ -480,6 +498,9 @@
         },
         "pi": {
           "enabled": true
+        },
+        "codex": {
+          "enabled": true
         }
       }
     },
@@ -544,6 +565,9 @@
         },
         "pi": {
           "enabled": true
+        },
+        "codex": {
+          "enabled": true
         }
       }
     },
@@ -604,6 +628,9 @@
         },
         "pi": {
           "enabled": true
+        },
+        "codex": {
+          "enabled": true
         }
       }
     },
@@ -660,6 +687,9 @@
           "enabled": true
         },
         "pi": {
+          "enabled": true
+        },
+        "codex": {
           "enabled": true
         }
       }

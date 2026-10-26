@@ -3,11 +3,12 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import * as antigravity from "../../../harnesses/antigravity/adapter.mjs";
 import * as claudeCode from "../../../harnesses/claude-code/adapter.mjs";
+import * as codex from "../../../harnesses/codex/adapter.mjs";
 import * as opencode from "../../../harnesses/opencode/adapter.mjs";
 import * as pi from "../../../harnesses/pi/adapter.mjs";
 import { loadPluginModel } from "../model.mjs";
 
-export const ADAPTERS = [claudeCode, antigravity, opencode, pi];
+export const ADAPTERS = [claudeCode, antigravity, opencode, pi, codex];
 
 // Claude Code stays on unless disabled; every other harness is opt-in.
 export function isEnabled(plugin, id) {

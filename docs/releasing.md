@@ -1,10 +1,11 @@
 # Releasing
 
 This repository is git-tree-first for harnesses that install directly from git.
-Generated output for every harness lives in `dist/` (plus the Claude
-marketplace at `.claude-plugin/marketplace.json`) and is committed, because
-Claude Code, Pi, Antigravity and OpenCode install from the repository tree and
-do not run this repository's build script during install.
+Generated output for every harness lives in `dist/` (plus the Claude and Codex
+marketplaces at `.claude-plugin/marketplace.json` and
+`.agents/plugins/marketplace.json`) and is committed, because Claude Code, Pi,
+Antigravity, OpenCode and Codex install from the repository tree and do not run
+this repository's build script during install.
 
 Only the release writes that output. Day-to-day work changes sources only;
 `npm run build` writes to a temp dir. So `main` always installs the last
@@ -49,11 +50,12 @@ Tags use `vX.Y.Z` format.
 Plugin versions live in `registry.json` and are emitted to:
 
 - `.claude-plugin/marketplace.json`
+- `.agents/plugins/marketplace.json`
 - `dist/claude-code/<plugin-name>/.claude-plugin/plugin.json`
 - `dist/antigravity/plugins/<plugin-name>/.antigravity-plugin/plugin.json`
 - `dist/opencode/<plugin-name>/package.json`
-
-Pi uses the git tag, not plugin versions.
+- `dist/pi/<plugin-name>/package.json`
+- `dist/codex/<plugin-name>/.codex-plugin/plugin.json`
 
 List the plugins whose built output changed since the last release:
 
@@ -105,10 +107,10 @@ working tree whose files change while it copies:
 git clone -q . /tmp/skills-release && cd /tmp/skills-release
 claude plugin marketplace add "$PWD"            # then: claude plugin install <plugin>@skills
 agy plugin install "$PWD/dist/antigravity"
-pi install "$PWD"                               # or: pi install "$PWD/dist/pi"
+pi install "$PWD/dist/pi/<plugin>"
 # OpenCode: list "$PWD/dist/opencode/<plugin>" folders under "plugins" in opencode.json
 skillshare plugin add "$PWD" --plugin <plugin> --target claude -g
-skillshare plugin add "$PWD/dist/pi" --target pi -g
+skillshare plugin add "$PWD/dist/pi/<plugin>" --target pi -g
 ```
 
 Then, in a throwaway git repository, ask each harness non-interactively
@@ -131,7 +133,7 @@ agy 1.4.1, OpenCode 2.1.1):
 Stage the registry and all generated output:
 
 ```bash
-git add registry.json .claude-plugin dist
+git add registry.json .claude-plugin .agents dist
 ```
 
 Commit with the commit workflow used by this repo. Subject format:

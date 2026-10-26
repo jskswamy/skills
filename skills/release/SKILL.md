@@ -7,7 +7,7 @@ description: Release this repo with per-plugin version bumping (registry.json), 
 
 Release this repo with version bumping, changelog generation via git-cliff, and git tagging. Harness-neutral: works the same whether invoked from Claude Code, Pi, or any other agent operating in this repository — it only relies on `git`, `node`, `jq`, and this repo's own `npm run` scripts, never on a harness-specific tool.
 
-**Philosophy:** One tag = one snapshot of all plugins, across every harness. `registry.json` is the single source of truth for plugin metadata and versions; `.claude-plugin/marketplace.json` and everything under `dist/` are generated from it by `npm run build:release` and must never be hand-edited. There is no marketplace-wide version field — the git tag (`vX.Y.Z`) is the only repo-wide version marker, read from tag history, not from a file.
+**Philosophy:** One tag = one snapshot of all plugins, across every harness. `registry.json` is the single source of truth for plugin metadata and versions; `.claude-plugin/marketplace.json`, `.agents/plugins/marketplace.json`, and everything under `dist/` are generated from it by `npm run build:release` and must never be hand-edited. There is no marketplace-wide version field — the git tag (`vX.Y.Z`) is the only repo-wide version marker, read from tag history, not from a file.
 
 ## Argument Parsing
 
@@ -133,6 +133,7 @@ Plugin versions to bump (registry.json):
 Files to be modified:
   - registry.json
   - .claude-plugin/marketplace.json (generated)
+  - .agents/plugins/marketplace.json (generated)
   - dist/ (generated, every harness)
   - CHANGELOG.md
   - README.md
@@ -168,17 +169,16 @@ here) before the final go/no-go.
    ```bash
    npm run build:release
    ```
-   The release is the only step that writes `dist/` and
-   `.claude-plugin/marketplace.json`; everyday `npm run build` writes to a
-   temp dir. Never hand-edit the generated files. Afterwards
-   `node scripts/changed-plugins.mjs` prints nothing.
+   The release is the only step that writes `dist/`,
+   `.claude-plugin/marketplace.json`, and `.agents/plugins/marketplace.json`;
+   everyday `npm run build` writes to a temp dir. Never hand-edit the generated
+   files. Afterwards `node scripts/changed-plugins.mjs` prints nothing.
 
 3. **Validate:**
    ```bash
    npm run validate
    ```
-   Confirms registry shape, resource paths, and the Pi package config are
-   still consistent after the bump.
+   Confirms registry shape and resource paths are still consistent after the bump.
 
 4. **Write changelog:**
    ```bash
@@ -202,10 +202,11 @@ below.
 
 1. **Stage version files:**
    ```bash
-   git add registry.json .claude-plugin dist
+   git add registry.json .claude-plugin .agents dist
    ```
    Stage `registry.json` (the actual edit) together with the generated
-   `.claude-plugin/marketplace.json` and `dist/` from `npm run build:release`.
+   `.claude-plugin/marketplace.json`, `.agents/plugins/marketplace.json`, and
+   `dist/` from `npm run build:release`.
 
 2. **Commit**, message (classic style):
    ```
@@ -282,7 +283,7 @@ Plugin versions to bump (registry.json):
 
 Files that would be modified:
   - registry.json: bump changed plugins' versions
-  - .claude-plugin/marketplace.json, dist/: written via npm run build:release
+  - .claude-plugin/marketplace.json, .agents/plugins/marketplace.json, dist/: written via npm run build:release
   - CHANGELOG.md: prepend v1.1.8 section
   - README.md: regenerate plugins section
 
@@ -314,8 +315,8 @@ Tag that would be created:
 ## Important Notes
 
 - **registry.json is the source of truth:** Each plugin's version lives there. There is no marketplace-wide version field — the git tag is the only repo-wide version marker.
-- **Generated files, never hand-edited:** `.claude-plugin/marketplace.json` and everything under `dist/` are produced by `npm run build:release` from `registry.json` and the sources. Editing them directly will be overwritten by the next release.
-- **Harness-agnostic:** `npm run build:release` writes the output of every harness under `dist/`: Claude Code plugins in `dist/claude-code/`, Antigravity plugins in `dist/antigravity/plugins/`, OpenCode packages in `dist/opencode/`, and the self-contained Pi package in `dist/pi/` (named by the hand-written `pi` block in `package.json`). The Claude, Antigravity and OpenCode manifests carry each plugin's version, so stage `dist/` with the bump. Pi has no per-plugin version; the git tag is its version.
+- **Generated files, never hand-edited:** `.claude-plugin/marketplace.json`, `.agents/plugins/marketplace.json`, and everything under `dist/` are produced by `npm run build:release` from `registry.json` and the sources. Editing them directly will be overwritten by the next release.
+- **Harness-agnostic:** `npm run build:release` writes the output of every harness under `dist/`: Claude Code plugins in `dist/claude-code/`, Antigravity plugins in `dist/antigravity/plugins/`, OpenCode packages in `dist/opencode/`, Pi packages in `dist/pi/`, and Codex plugins in `dist/codex/`. Every harness manifest carries each plugin's version, so stage `dist/` with the bump.
 - **Auto-bump:** Plugins listed by `node scripts/changed-plugins.mjs` (built output differs from the committed `dist/`, version fields ignored) get their `registry.json` version bumped (same bump type as `--bump`), except brand-new plugins.
 - **Two-commit workflow:** version bumps and changelog are always in separate commits.
 - **git-cliff required:** changelog generation requires git-cliff (available via `nix develop`).

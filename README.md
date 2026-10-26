@@ -6,7 +6,7 @@ capturing knowledge, publishing notes, and setting up development
 environments.
 
 The same canonical skills, commands, agents and hooks work in Claude Code, Pi,
-Antigravity and OpenCode. Each harness's install tree is generated into
+Antigravity, OpenCode and Codex. Each harness's install tree is generated into
 `dist/` from one source, at release.
 
 ## What this is
@@ -68,24 +68,21 @@ Installed plugins expose slash commands such as `/commit`, `/capture`,
 
 ### Pi
 
-Pi installs the whole repository as one package. Use a release tag for a
-stable snapshot:
+Each plugin is a self-contained Pi package under `dist/pi/<name>/`. From a
+checkout, install the packages you want:
 
 ```bash
-pi install git:github.com/jskswamy/skills@vX.Y.Z
+pi install <checkout>/dist/pi/<plugin-name>
 ```
 
-or `main`, which always holds the last release:
+or via skillshare:
 
 ```bash
-pi install git:github.com/jskswamy/skills@main
+skillshare plugin add <checkout>/dist/pi/<plugin-name> --target pi -g
 ```
 
-The package is `dist/pi/`, self-contained. To try unreleased sources from a
-checkout, run `npm run build` and then `pi -e <dir>` with the directory it
-prints. Skills are invoked with
-`/skill:<skill-name>`, and commands are prompts such as `/commit`. See
-[harnesses/pi](harnesses/pi/README.md).
+Skills are invoked with `/skill:<skill-name>`, and commands are prompts such as
+`/commit`. See [harnesses/pi](harnesses/pi/README.md).
 
 ### Antigravity
 
@@ -115,18 +112,30 @@ or copy a package directory to `.opencode/plugins/<name>/` in your project.
 Loading by path is the tested route. See
 [harnesses/opencode](harnesses/opencode/README.md).
 
+### Codex
+
+Each plugin is packaged under `dist/codex/<name>/` and indexed by
+`.agents/plugins/marketplace.json`. Install via skillshare:
+
+```bash
+skillshare plugin add <checkout> --plugin <plugin-name> --target codex -g
+```
+
+Commands become skills named `<plugin>-cmd-<command>`. See
+[harnesses/codex](harnesses/codex/README.md).
+
 ## Harness support
 
 Each harness has an adapter at `harnesses/<id>/adapter.mjs` that declares what
 it can carry:
 
-| | Claude Code | Pi | Antigravity | OpenCode |
-| --- | --- | --- | --- | --- |
-| Skills | native | native | native | native, registered by the plugin runtime |
-| Commands | native | prompt templates | skills named `<plugin>-cmd-<command>` | native |
-| Agents | native | not available | native, name and description only | native, with plugin-prefixed ids |
-| Hooks | native | runtime shim | `hooks.json` plus a shim | runtime shim |
-| Hook events | all five | session-start, pre-tool, post-tool, stop | session-start, pre-tool, post-tool, stop | all five |
+| | Claude Code | Pi | Antigravity | OpenCode | Codex |
+| --- | --- | --- | --- | --- | --- |
+| Skills | native | native | native | native, registered by the plugin runtime | native |
+| Commands | native | prompt templates | skills named `<plugin>-cmd-<command>` | native | skills named `<plugin>-cmd-<command>` |
+| Agents | native | not available | native, name and description only | native, with plugin-prefixed ids | not available |
+| Hooks | native | runtime shim | `hooks.json` plus a shim | runtime shim | not available |
+| Hook events | all five | session-start, pre-tool, post-tool, stop | session-start, pre-tool, post-tool, stop | all five | none |
 
 The five hook events are session-start, subagent-start, pre-tool, post-tool
 and stop. Every shim runs the canonical hook scripts under Claude Code's
@@ -148,8 +157,11 @@ What `npm run build` reports as degraded or skipped:
 - **OpenCode**: devenv's `.mcp.json` is not read; add the server to
   `opencode.json`. The jot `capture` agent has no frontmatter, so it is not
   registered (Antigravity gives it a generic description).
+- **Codex**: plugin agents and hooks are not available in Codex's
+  `.codex-plugin` format; canonical skills and `<plugin>-cmd-<command>`
+  command skills are carried natively.
 
-Tested with Claude Code, Pi 1.4.0, agy 1.4.1 and OpenCode 2.1.1.
+Tested with Claude Code, Pi 1.4.0, agy 1.4.1, OpenCode 2.1.1 and Codex.
 
 ## How this repo is organized
 
@@ -167,8 +179,9 @@ harnesses/lib/       # Hook runner and tool translation shared by harness runtim
 harnesses/<id>/      # One folder per harness: adapter, runtime or shim, tool table, docs
 
 # Generated at release
-dist/<harness>/      # Install trees for claude-code, antigravity, opencode and pi
+dist/<harness>/      # Install trees for claude-code, antigravity, opencode, pi and codex
 .claude-plugin/      # Claude Code marketplace, pointing into dist/claude-code
+.agents/plugins/     # Codex marketplace, pointing into dist/codex
 ```
 
 Edit canonical root resources, then run `npm run build`, which writes every
@@ -181,7 +194,7 @@ harness into a temp dir and reports what each one degrades. For details, see
 
 <!-- PLUGINS:START -->
 
-Every plugin below ships to Claude Code, Pi, Antigravity and OpenCode. See
+Every plugin below ships to Claude Code, Pi, Antigravity, OpenCode and Codex. See
 [Install](#install) for each harness and [Harness support](#harness-support)
 for what each one carries. Skills keep their canonical names everywhere; the
 Pi lines show the `/skill:<name>` form. Command names differ per harness; see
