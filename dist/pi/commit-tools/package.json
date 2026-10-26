@@ -1,0 +1,33 @@
+{
+  "name": "@jskswamy/pi-commit-tools",
+  "version": "1.2.0",
+  "private": true,
+  "type": "module",
+  "description": "End-to-end commit hygiene: write atomic commits with style enforcement, review and consolidate them before push, validate the final history",
+  "keywords": [
+    "pi-package",
+    "git",
+    "commit",
+    "atomic",
+    "classic",
+    "conventional",
+    "review",
+    "squash",
+    "merge",
+    "validate",
+    "hooks",
+    "history",
+    "hygiene"
+  ],
+  "pi": {
+    "skills": [
+      "./skills"
+    ],
+    "prompts": [
+      "./prompts"
+    ],
+    "extensions": [
+      "./runtime/pi/runtime.mjs"
+    ]
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "entries": [
+    {
+      "plugin": "codebase",
+      "id": "session-start:session-reminder",
+      "event": "session-start",
+      "matcher": "startup|resume|clear|compact",
+      "command": "bash \"${PI_PACKAGE_ROOT}\"/hooks/session-reminder.sh"
+    },
+    {
+      "plugin": "codebase",
+      "id": "pre-tool:discovery-augment",
+      "event": "pre-tool",
+      "matcher": "Grep|Glob",
+      "command": "bash \"${PI_PACKAGE_ROOT}\"/hooks/discovery-augment.sh",
+      "timeoutMs": 5000
+    }
+  ]
+}

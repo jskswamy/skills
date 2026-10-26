@@ -1,0 +1,11 @@
+{
+  "entries": [
+    {
+      "plugin": "craft",
+      "id": "stop:check-parked-ideas",
+      "event": "stop",
+      "command": "bash \"${PI_PACKAGE_ROOT}\"/hooks/scripts/check-parked-ideas.sh",
+      "timeoutMs": 5000
+    }
+  ]
+}

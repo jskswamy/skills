@@ -1,0 +1,12 @@
+{
+  "entries": [
+    {
+      "plugin": "devenv",
+      "id": "post-tool:nix-tools",
+      "event": "post-tool",
+      "matcher": "Write|Edit",
+      "command": "bash \"${PI_PACKAGE_ROOT}\"/hooks/scripts/nix-tools.sh",
+      "timeoutMs": 180000
+    }
+  ]
+}

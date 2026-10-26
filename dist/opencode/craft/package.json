@@ -1,6 +1,6 @@
 {
   "name": "@jskswamy/opencode-craft",
-  "version": "1.0.4",
+  "version": "1.1.0",
   "description": "The craft of building software end-to-end: capture ideas, understand problems, decompose work into structured units, dispatch subagents to execute them, and commit with full task context",
   "type": "module",
   "main": "./index.js",

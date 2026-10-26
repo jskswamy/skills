@@ -1,5 +1,5 @@
 {
   "name": "bivouac",
-  "version": "0.1.5",
+  "version": "0.2.0",
   "description": "Safe workflows for disposable remote coding-agent sessions with bivouac"
 }

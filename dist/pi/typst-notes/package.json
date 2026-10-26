@@ -1,0 +1,25 @@
+{
+  "name": "@jskswamy/pi-typst-notes",
+  "version": "1.2.0",
+  "private": true,
+  "type": "module",
+  "description": "Generate beautiful PDF/HTML shareable notes using Typst with 7 professional templates, infographics, and modern typography",
+  "keywords": [
+    "pi-package",
+    "typst",
+    "pdf",
+    "html",
+    "notes",
+    "templates",
+    "publish",
+    "infographics"
+  ],
+  "pi": {
+    "skills": [
+      "./skills"
+    ],
+    "prompts": [
+      "./prompts"
+    ]
+  }
+}

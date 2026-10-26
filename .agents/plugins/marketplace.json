@@ -1,0 +1,226 @@
+{
+  "name": "skills",
+  "owner": {
+    "name": "Krishnaswamy Subramanian",
+    "email": "jskswamy@gmail.com"
+  },
+  "metadata": {
+    "description": "Reusable agent skills and plugins for coding workflows"
+  },
+  "plugins": [
+    {
+      "name": "bivouac",
+      "description": "Safe workflows for disposable remote coding-agent sessions with bivouac",
+      "version": "0.2.0",
+      "author": {
+        "name": "Krishnaswamy Subramanian"
+      },
+      "source": "./dist/codex/bivouac",
+      "category": "workflow",
+      "tags": [
+        "bivouac",
+        "remote",
+        "agents",
+        "sessions",
+        "workflow",
+        "nix",
+        "cloud"
+      ]
+    },
+    {
+      "name": "devenv",
+      "description": "Initialize and manage Nix flake development environments with auto-detection and security tooling",
+      "version": "1.5.0",
+      "author": {
+        "name": "Krishnaswamy Subramanian"
+      },
+      "source": "./dist/codex/devenv",
+      "category": "development",
+      "tags": [
+        "nix",
+        "flake",
+        "devenv",
+        "development",
+        "environment",
+        "pre-commit",
+        "gitleaks",
+        "security",
+        "direnv",
+        "direnv-instant"
+      ]
+    },
+    {
+      "name": "commit-tools",
+      "description": "End-to-end commit hygiene: write atomic commits with style enforcement, review and consolidate them before push, validate the final history",
+      "version": "1.2.0",
+      "author": {
+        "name": "Krishnaswamy Subramanian"
+      },
+      "source": "./dist/codex/commit-tools",
+      "category": "git",
+      "tags": [
+        "git",
+        "commit",
+        "atomic",
+        "classic",
+        "conventional",
+        "review",
+        "squash",
+        "merge",
+        "validate",
+        "hooks",
+        "history",
+        "hygiene"
+      ]
+    },
+    {
+      "name": "jot",
+      "description": "Quick, low-friction capture of notes, tasks, ideas, session summaries, and tech radar blips with Obsidian-style auto-linking",
+      "version": "2.1.0",
+      "author": {
+        "name": "Krishnaswamy Subramanian"
+      },
+      "source": "./dist/codex/jot",
+      "category": "productivity",
+      "tags": [
+        "capture",
+        "notes",
+        "tasks",
+        "ideas",
+        "radar",
+        "blips",
+        "knowledge-management",
+        "obsidian",
+        "wikilinks",
+        "gtd",
+        "productivity",
+        "learning",
+        "feynman",
+        "teach",
+        "teaching-notes"
+      ]
+    },
+    {
+      "name": "craft",
+      "description": "The craft of building software end-to-end: capture ideas, understand problems, decompose work into structured units, dispatch subagents to execute them, and commit with full task context",
+      "version": "1.1.0",
+      "author": {
+        "name": "Krishnaswamy Subramanian"
+      },
+      "source": "./dist/codex/craft",
+      "category": "workflow",
+      "tags": [
+        "craft",
+        "work",
+        "build",
+        "planning",
+        "decomposition",
+        "execution",
+        "subagents",
+        "review",
+        "tasks",
+        "epics",
+        "parking",
+        "workflow"
+      ]
+    },
+    {
+      "name": "sketch-note",
+      "description": "Generate visual sketch notes in Excalidraw format from conversations, code architecture, or custom content",
+      "version": "1.4.0",
+      "author": {
+        "name": "Krishnaswamy Subramanian"
+      },
+      "source": "./dist/codex/sketch-note",
+      "category": "visualization",
+      "tags": [
+        "sketch",
+        "excalidraw",
+        "diagram",
+        "visualization",
+        "architecture",
+        "notes",
+        "hand-drawn",
+        "mind-map",
+        "flowchart"
+      ]
+    },
+    {
+      "name": "typst-notes",
+      "description": "Generate beautiful PDF/HTML shareable notes using Typst with 7 professional templates, infographics, and modern typography",
+      "version": "1.2.0",
+      "author": {
+        "name": "Krishnaswamy Subramanian"
+      },
+      "source": "./dist/codex/typst-notes",
+      "category": "productivity",
+      "tags": [
+        "typst",
+        "pdf",
+        "html",
+        "notes",
+        "templates",
+        "publish",
+        "infographics"
+      ]
+    },
+    {
+      "name": "codebase",
+      "description": "Intelligent codebase exploration powered by codebase-memory-mcp. Natural language queries, change impact analysis, symbol graph traversal, and automatic brainstorming/planning integration.",
+      "version": "0.3.0",
+      "author": {
+        "name": "Krishnaswamy Subramanian"
+      },
+      "source": "./dist/codex/codebase",
+      "category": "code-intelligence",
+      "tags": [
+        "codebase",
+        "exploration",
+        "semantic-search",
+        "impact-analysis",
+        "codebase-memory",
+        "graph",
+        "architecture"
+      ]
+    },
+    {
+      "name": "study",
+      "description": "Adaptive study coach with multi-gear learning sessions (Socratic, Explain, Guide, Check, Help) and spaced recall tracking via Feynman loops. Saves coaching notes with gap tracking and a recall log that shows improvement over time.",
+      "version": "1.1.0",
+      "author": {
+        "name": "Krishnaswamy Subramanian"
+      },
+      "source": "./dist/codex/study",
+      "category": "productivity",
+      "tags": [
+        "learning",
+        "coaching",
+        "feynman",
+        "recall",
+        "spaced-repetition",
+        "study",
+        "knowledge",
+        "gaps"
+      ]
+    },
+    {
+      "name": "refactor",
+      "description": "Semantic refactoring opportunity detection. Scans committed code for structural duplication (Fowler catalog), code smells (Fowler/Beck), GoF design pattern opportunities, SOLID/DRY principle violations, and language-idiomatic anti-patterns (Go, Python, TypeScript). Creates beads issues with TDD-first refactoring plans. Run on demand with /refactor:scan.",
+      "version": "0.2.0",
+      "author": {
+        "name": "Krishnaswamy Subramanian"
+      },
+      "source": "./dist/codex/refactor",
+      "category": "code-quality",
+      "tags": [
+        "refactoring",
+        "duplication",
+        "fowler",
+        "beads",
+        "codebase-memory",
+        "tdd",
+        "semantic-search"
+      ]
+    }
+  ]
+}

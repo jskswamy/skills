@@ -1,0 +1,19 @@
+{
+  "entries": [
+    {
+      "plugin": "commit-tools",
+      "id": "session-start:routing-reminder",
+      "event": "session-start",
+      "command": "bash \"${PI_PACKAGE_ROOT}\"/hooks/scripts/routing-reminder.sh",
+      "timeoutMs": 5000
+    },
+    {
+      "plugin": "commit-tools",
+      "id": "pre-tool:intercept-git-commit",
+      "event": "pre-tool",
+      "matcher": "Bash|mcp__.*git.*commit",
+      "command": "bash \"${PI_PACKAGE_ROOT}\"/hooks/scripts/intercept-git-commit.sh",
+      "timeoutMs": 5000
+    }
+  ]
+}

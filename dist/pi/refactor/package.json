@@ -1,0 +1,25 @@
+{
+  "name": "@jskswamy/pi-refactor",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "description": "Semantic refactoring opportunity detection. Scans committed code for structural duplication (Fowler catalog), code smells (Fowler/Beck), GoF design pattern opportunities, SOLID/DRY principle violations, and language-idiomatic anti-patterns (Go, Python, TypeScript). Creates beads issues with TDD-first refactoring plans. Run on demand with /refactor:scan.",
+  "keywords": [
+    "pi-package",
+    "refactoring",
+    "duplication",
+    "fowler",
+    "beads",
+    "codebase-memory",
+    "tdd",
+    "semantic-search"
+  ],
+  "pi": {
+    "skills": [
+      "./skills"
+    ],
+    "prompts": [
+      "./prompts"
+    ]
+  }
+}
