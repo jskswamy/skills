@@ -1,13 +1,16 @@
 # Contributing
 
-This repository publishes canonical agent skills to multiple harnesses. Pi loads
-root skills directly; Claude Code installs generated plugin wrappers from
-`plugins/`.
+This repository publishes canonical agent skills to Claude Code, Pi,
+Antigravity and OpenCode. Each harness's install tree is generated into
+`dist/` from the canonical resources and `registry.json`; only a release
+writes it.
 
-For the source-of-truth model, read
-[`docs/authoring-skills.md`](docs/authoring-skills.md). For release steps, read
-[`docs/releasing.md`](docs/releasing.md). For Claude command to Pi skill
-mapping, read [`docs/command-skill-map.md`](docs/command-skill-map.md).
+For the source-of-truth model and generated output, read
+[`docs/authoring-skills.md`](docs/authoring-skills.md). To support another
+harness, read [Adding a Harness](docs/authoring-skills.md#adding-a-harness).
+For release steps, read [`docs/releasing.md`](docs/releasing.md). For command
+names on each harness, read
+[`docs/command-skill-map.md`](docs/command-skill-map.md).
 
 ## Prerequisites
 
@@ -46,7 +49,8 @@ root directories.
 5. Add templates/assets under `templates/<plugin-name>/` or
    `shared-scripts/<plugin-name>/`.
 6. Register plugin metadata and resource membership in `registry.json`.
-7. Generate Claude Code wrappers:
+7. Build every harness into a temp dir and read the report of what each
+   harness degrades:
 
    ```bash
    npm run build
@@ -57,25 +61,31 @@ root directories.
    ```bash
    npm run validate
    npm test
-   git diff --exit-code -- .claude-plugin plugins
+   git status --short
    ```
 
-If generated wrapper changes are intentional, include them in the same pull
-request as the canonical resource changes.
+Commit sources only. `dist/` and `.claude-plugin/` change only in a release
+commit, so a pull request never includes them.
 
 ## Testing Locally
 
-Claude Code wrapper:
+`npm run build` ends with `Output: <dir>`, the temp dir it wrote.
+
+Claude Code plugin:
 
 ```bash
-claude --plugin-dir ./plugins/<plugin-name>
+claude --plugin-dir <dir>/dist/claude-code/<plugin-name>
 ```
 
 Pi package:
 
 ```bash
-pi -e .
+pi -e <dir>
 ```
+
+Antigravity and OpenCode load the trees under `<dir>/dist/`; see
+[`harnesses/antigravity/README.md`](harnesses/antigravity/README.md) and
+[`harnesses/opencode/README.md`](harnesses/opencode/README.md).
 
 ## Submitting a Change
 
@@ -83,8 +93,7 @@ pi -e .
 2. Add canonical resources and update `registry.json` when resource membership
    or plugin metadata changes.
 3. Run `npm run build`, `npm run validate`, and `npm test`.
-4. Include generated `plugins/<plugin-name>/` and `.claude-plugin/` changes
-   when build output changed intentionally.
+4. Leave `dist/` and `.claude-plugin/` out; the next release writes them.
 5. Submit a pull request describing the user-facing workflow change.
 
 ## Plugin Entry Format
@@ -109,6 +118,8 @@ Add to the `plugins` array in `registry.json`:
   },
   "harnesses": {
     "claude-code": { "enabled": true },
+    "antigravity": { "enabled": true },
+    "opencode": { "enabled": true },
     "pi": { "enabled": true }
   }
 }
@@ -118,7 +129,7 @@ Add to the `plugins` array in `registry.json`:
 
 - Skills must have valid `SKILL.md` frontmatter with `name` and `description`.
 - Plugin metadata and resource membership must be declared in `registry.json`.
-- Generated Claude wrappers must be current after `npm run build`.
+- `npm run build` must report no errors.
 - `npm run validate` and `npm test` must pass.
 - User-facing workflows need usage documentation.
 - Plugin changes should be tested locally before submission.

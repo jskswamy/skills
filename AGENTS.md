@@ -12,6 +12,22 @@ bd close <id>         # Complete work
 # Remote sync and pushing are handled by the user.
 ```
 
+## Repository Structure
+
+Canonical sources live in `skills/`, `commands/`, `agents/`, `hooks/`,
+`templates/` and `shared-scripts/`, with `registry.json` as the source of
+truth. `scripts/build.mjs` runs one adapter per harness
+(`harnesses/<id>/adapter.mjs`) using shared conversions
+(`scripts/lib/transforms/`). Harness runtimes and tool tables live in
+`harnesses/lib/`, `harnesses/pi/`, `harnesses/antigravity/` and
+`harnesses/opencode/`. See `CLAUDE.md` for the full layout.
+
+Everything under `dist/`, plus `.claude-plugin/marketplace.json`, is
+generated and must not be edited by hand. Only the release writes it
+(`npm run build:release`); never commit it otherwise. Edit the canonical
+source, then run `npm run build` (writes to a temp dir and prints it),
+`npm run validate` and `npm test`.
+
 ## Landing the Plane (Session Completion)
 
 **The user owns pushing and remote synchronization.** Leave changes local and hand them off; a successful push is not required to complete the agent's work.

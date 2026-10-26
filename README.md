@@ -5,9 +5,9 @@ understanding codebases, keeping commits clean, planning and executing work,
 capturing knowledge, publishing notes, and setting up development
 environments.
 
-The same canonical skills work in multiple harnesses. Claude Code users install
-generated plugins from `plugins/`; Pi users install the package and invoke the
-canonical root `skills/` directly.
+The same canonical skills, commands, agents and hooks work in Claude Code, Pi,
+Antigravity and OpenCode. Each harness's install tree is generated into
+`dist/` from one source, at release.
 
 ## What this is
 
@@ -18,8 +18,9 @@ a PDF, or scan for refactoring opportunities.
 
 The repo keeps the reusable source of truth in root directories such as
 `skills/`, `commands/`, `agents/`, `hooks/`, `templates/`, and
-`shared-scripts/`. Claude Code install wrappers are generated from those
-canonical resources with `npm run build`.
+`shared-scripts/`. A per-harness adapter turns those canonical resources into
+that harness's install tree under `dist/`. Only a release writes `dist/`, so
+`main` always installs the last release on every harness.
 
 ## What you can do with it
 
@@ -53,7 +54,7 @@ canonical resources with `npm run build`.
 | Initialize a Nix dev environment | `devenv` |
 | Scan for refactoring opportunities | `refactor-scan` |
 
-## Quick start
+## Install
 
 ### Claude Code
 
@@ -62,76 +63,130 @@ canonical resources with `npm run build`.
 /plugin install <plugin-name>@skills
 ```
 
-Installed plugins expose slash commands such as `/commit`, `/review-commits`,
-`/capture`, `/sketch`, and `/publish`. See each plugin README for its command
-surface.
+Installed plugins expose slash commands such as `/commit`, `/capture`,
+`/sketch`, and `/publish`. See each plugin README for its command surface.
 
 ### Pi
 
-Install a stable release tag:
+Pi installs the whole repository as one package. Use a release tag for a
+stable snapshot:
 
 ```bash
 pi install git:github.com/jskswamy/skills@vX.Y.Z
 ```
 
-Install the latest development version:
+or `main`, which always holds the last release:
 
 ```bash
 pi install git:github.com/jskswamy/skills@main
 ```
 
-Invoke canonical skills directly:
+The package is `dist/pi/`, self-contained. To try unreleased sources from a
+checkout, run `npm run build` and then `pi -e <dir>` with the directory it
+prints. Skills are invoked with
+`/skill:<skill-name>`, and commands are prompts such as `/commit`. See
+[harnesses/pi](harnesses/pi/README.md).
 
-```text
-/skill:<skill-name>
+### Antigravity
+
+Clone the repository, then install every plugin at once, where `<checkout>`
+is the path of the clone:
+
+```bash
+git clone https://github.com/jskswamy/skills.git
+agy plugin install <checkout>/dist/antigravity
 ```
 
-See [Command to Skill Map](docs/command-skill-map.md) for Pi skill equivalents
-to Claude Code commands.
+Point `agy` at `dist/antigravity`, not the repository root. Commands
+become skills named `<plugin>-cmd-<command>`. See
+[harnesses/antigravity](harnesses/antigravity/README.md).
+
+### OpenCode
+
+Each plugin is a self-contained OpenCode V2 package under
+`dist/opencode/<name>/`. From a checkout, list the packages you want in
+`opencode.json`:
+
+```json
+{ "plugins": ["/path/to/skills/dist/opencode/commit-tools"] }
+```
+
+or copy a package directory to `.opencode/plugins/<name>/` in your project.
+Loading by path is the tested route. See
+[harnesses/opencode](harnesses/opencode/README.md).
+
+## Harness support
+
+Each harness has an adapter at `harnesses/<id>/adapter.mjs` that declares what
+it can carry:
+
+| | Claude Code | Pi | Antigravity | OpenCode |
+| --- | --- | --- | --- | --- |
+| Skills | native | native | native | native, registered by the plugin runtime |
+| Commands | native | prompt templates | skills named `<plugin>-cmd-<command>` | native |
+| Agents | native | not available | native, name and description only | native, with plugin-prefixed ids |
+| Hooks | native | runtime shim | `hooks.json` plus a shim | runtime shim |
+| Hook events | all five | session-start, pre-tool, post-tool, stop | session-start, pre-tool, post-tool, stop | all five |
+
+The five hook events are session-start, subagent-start, pre-tool, post-tool
+and stop. Every shim runs the canonical hook scripts under Claude Code's
+contract: only exit code 2 blocks, and a broken or slow script never does.
+
+What `npm run build` reports as degraded or skipped:
+
+- **Pi**: plugin agents are not available, since Pi has no sub-agents, and
+  subagent-start hooks do not apply. A stop hook cannot keep the agent
+  going, so its exit 2 is only logged.
+- **Antigravity**: hooks follow agy's documented contract but are unverified
+  at runtime, because agy 1.4.1 ran no JSON hooks without a signed-in
+  account. PreToolUse hooks can block but not inject context, and
+  PostToolUse output is ignored. agy has no known hook names for MCP, Grep,
+  Glob or file edits, so these hooks are skipped: the MCP half of the
+  commit-tools commit guard (the shell guard is carried),
+  codebase's `discovery-augment`, and devenv's `nixfmt`, `statix` and
+  `deadnix`. The reasons are recorded under `harnesses.antigravity.optional`
+  in `registry.json`.
+- **OpenCode**: devenv's `.mcp.json` is not read; add the server to
+  `opencode.json`. The jot `capture` agent has no frontmatter, so it is not
+  registered (Antigravity gives it a generic description).
+
+Tested with Claude Code, Pi 1.4.0, agy 1.4.1 and OpenCode 2.1.1.
 
 ## How this repo is organized
 
 ```text
-registry.json        # Source of truth for plugin metadata and resource membership
+# Source
+registry.json        # Source of truth for plugin metadata, resources and harnesses
 skills/              # Canonical Agent Skills source
-commands/            # Claude command wrappers grouped by plugin
+commands/            # Command wrappers grouped by plugin
 agents/              # Agent prompts grouped by plugin
-hooks/               # Hook definitions and scripts grouped by plugin
-templates/           # Reusable templates and static assets
+hooks/               # Claude-format hook definitions and scripts grouped by plugin
+templates/           # Reusable templates, static assets and plugin READMEs
 shared-scripts/      # Shared runtime scripts
-plugins/             # Generated Claude Code plugin wrappers
-.claude-plugin/      # Generated Claude Code marketplace metadata
-harnesses/pi/        # Pi-specific package docs/extensions
+scripts/             # Build, validate, eval and release helpers; transforms under lib/
+harnesses/lib/       # Hook runner and tool translation shared by harness runtimes
+harnesses/<id>/      # One folder per harness: adapter, runtime or shim, tool table, docs
+
+# Generated at release
+dist/<harness>/      # Install trees for claude-code, antigravity, opencode and pi
+.claude-plugin/      # Claude Code marketplace, pointing into dist/claude-code
 ```
 
-Edit canonical root resources first, then run `npm run build` to refresh the
-Claude Code install tree under `plugins/`. For details, see
+Edit canonical root resources, then run `npm run build`, which writes every
+harness into a temp dir and reports what each one degrades. For details, see
 [Authoring Skills and Plugins](docs/authoring-skills.md) and
-[Contributing](CONTRIBUTING.md).
+[Contributing](CONTRIBUTING.md). To support another harness, see
+[Adding a harness](docs/authoring-skills.md#adding-a-harness).
 
 ## Complete capability reference
 
 <!-- PLUGINS:START -->
 
-This repository publishes the same canonical workflows to multiple agent harnesses:
-
-- **Claude Code**: install a generated plugin and use its slash commands.
-- **Pi**: install the package once and invoke canonical skills with `/skill:<name>`.
-
-Install all skills in Pi:
-
-```bash
-pi install git:github.com/jskswamy/skills@main
-```
-
-Install individual Claude Code plugins from the marketplace:
-
-```text
-/plugin marketplace add jskswamy/skills
-/plugin install <plugin-name>@skills
-```
-
-See [Command to Skill Map](docs/command-skill-map.md) for full command equivalents.
+Every plugin below ships to Claude Code, Pi, Antigravity and OpenCode. See
+[Install](#install) for each harness and [Harness support](#harness-support)
+for what each one carries. Skills keep their canonical names everywhere; the
+Pi lines show the `/skill:<name>` form. Command names differ per harness; see
+the [Command to Skill Map](docs/command-skill-map.md).
 ### bivouac
 
 Safe workflows for disposable remote coding-agent sessions with bivouac
@@ -147,7 +202,7 @@ Safe workflows for disposable remote coding-agent sessions with bivouac
 ```text
 /skill:bivouac
 ```
-[View documentation](./plugins/bivouac/README.md)
+[View documentation](./templates/bivouac/README.md)
 
 
 ### codebase
@@ -169,7 +224,7 @@ Intelligent codebase exploration powered by codebase-memory-mcp. Natural languag
 /skill:codebase-impact
 /skill:codebase-graph
 ```
-[View documentation](./plugins/codebase/README.md)
+[View documentation](./templates/codebase/README.md)
 
 
 ### commit-tools
@@ -190,7 +245,7 @@ End-to-end commit hygiene: write atomic commits with style enforcement, review a
 /skill:review-commits
 /skill:validate-commits
 ```
-[View documentation](./plugins/commit-tools/README.md)
+[View documentation](./templates/commit-tools/README.md)
 
 
 ### craft
@@ -216,7 +271,7 @@ The craft of building software end-to-end: capture ideas, understand problems, d
 /skill:craft-deps
 # plus 2 more skills in registry.json
 ```
-[View documentation](./plugins/craft/README.md)
+[View documentation](./templates/craft/README.md)
 
 
 ### devenv
@@ -233,7 +288,7 @@ Initialize and manage Nix flake development environments with auto-detection and
 ```text
 /skill:devenv
 ```
-[View documentation](./plugins/devenv/README.md)
+[View documentation](./templates/devenv/README.md)
 
 
 ### jot
@@ -254,7 +309,7 @@ Quick, low-friction capture of notes, tasks, ideas, session summaries, and tech 
 /skill:jot-configure
 /skill:jot-setup
 ```
-[View documentation](./plugins/jot/README.md)
+[View documentation](./templates/jot/README.md)
 
 
 ### refactor
@@ -272,7 +327,7 @@ Semantic refactoring opportunity detection. Scans committed code for structural 
 ```text
 /skill:refactor-scan
 ```
-[View documentation](./plugins/refactor/README.md)
+[View documentation](./templates/refactor/README.md)
 
 
 ### sketch-note
@@ -292,7 +347,7 @@ Generate visual sketch notes in Excalidraw format from conversations, code archi
 /skill:excalidraw-format
 /skill:sketch-note
 ```
-[View documentation](./plugins/sketch-note/README.md)
+[View documentation](./templates/sketch-note/README.md)
 
 
 ### study
@@ -312,7 +367,7 @@ Adaptive study coach with multi-gear learning sessions (Socratic, Explain, Guide
 /skill:study-recall
 /skill:study-setup
 ```
-[View documentation](./plugins/study/README.md)
+[View documentation](./templates/study/README.md)
 
 
 ### typst-notes
@@ -333,7 +388,7 @@ Generate beautiful PDF/HTML shareable notes using Typst with 7 professional temp
 /skill:typst-format
 /skill:typst-publish
 ```
-[View documentation](./plugins/typst-notes/README.md)
+[View documentation](./templates/typst-notes/README.md)
 <!-- PLUGINS:END -->
 
 ## Roadmap

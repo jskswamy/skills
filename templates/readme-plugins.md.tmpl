@@ -3,25 +3,11 @@
   Uses registry.json as the data source.
 */ -}}
 
-This repository publishes the same canonical workflows to multiple agent harnesses:
-
-- **Claude Code**: install a generated plugin and use its slash commands.
-- **Pi**: install the package once and invoke canonical skills with `/skill:<name>`.
-
-Install all skills in Pi:
-
-```bash
-pi install git:github.com/jskswamy/skills@main
-```
-
-Install individual Claude Code plugins from the marketplace:
-
-```text
-/plugin marketplace add jskswamy/skills
-/plugin install <plugin-name>@skills
-```
-
-See [Command to Skill Map](docs/command-skill-map.md) for full command equivalents.
+Every plugin below ships to Claude Code, Pi, Antigravity and OpenCode. See
+[Install](#install) for each harness and [Harness support](#harness-support)
+for what each one carries. Skills keep their canonical names everywhere; the
+Pi lines show the `/skill:<name>` form. Command names differ per harness; see
+the [Command to Skill Map](docs/command-skill-map.md).
 
 {{- $registry := (datasource "marketplace") -}}
 {{- range $registry.plugins | sort "name" }}
@@ -53,6 +39,6 @@ See [Command to Skill Map](docs/command-skill-map.md) for full command equivalen
 ```
 
 {{- end }}
-[View documentation](./plugins/{{ .name }}/README.md)
+[View documentation](./templates/{{ .name }}/README.md)
 
 {{ end -}}
