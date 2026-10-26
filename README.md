@@ -143,8 +143,7 @@ What `npm run build` reports as degraded or skipped:
   PostToolUse output is ignored. agy has no known hook names for MCP, Grep,
   Glob or file edits, so these hooks are skipped: the MCP half of the
   commit-tools commit guard (the shell guard is carried),
-  codebase's `discovery-augment`, and devenv's `nixfmt`, `statix` and
-  `deadnix`. The reasons are recorded under `harnesses.antigravity.optional`
+  codebase's `discovery-augment`, and devenv's `nix-tools`. The reasons are recorded under `harnesses.antigravity.optional`
   in `registry.json`.
 - **OpenCode**: devenv's `.mcp.json` is not read; add the server to
   `opencode.json`. The jot `capture` agent has no frontmatter, so it is not

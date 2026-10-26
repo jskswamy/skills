@@ -85,10 +85,7 @@
         "agents": [],
         "hooks": [
           "devenv/hooks.json",
-          "devenv/scripts/deadnix.sh",
-          "devenv/scripts/nixfmt.sh",
-          "devenv/scripts/statix.sh",
-          "devenv/scripts/lib/run-nix-tool.sh"
+          "devenv/scripts/nix-tools.sh"
         ],
         "templates": [],
         "extra": [
@@ -109,9 +106,7 @@
         "antigravity": {
           "enabled": true,
           "optional": {
-            "post-tool:nixfmt": "agy file-edit hook names and args are unverified, and agy ignores PostToolUse output",
-            "post-tool:statix": "agy file-edit hook names and args are unverified, and agy ignores PostToolUse output",
-            "post-tool:deadnix": "agy file-edit hook names and args are unverified, and agy ignores PostToolUse output"
+            "post-tool:nix-tools": "agy file-edit hook names and args are unverified, and agy ignores PostToolUse output"
           }
         },
         "opencode": {

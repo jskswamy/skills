@@ -106,6 +106,8 @@ When pre-commit is selected, the plugin uses [git-hooks.nix](https://github.com/
 
 The plugin includes hooks that automatically run on any `flake.nix` modification:
 
+One hook runs them in this order, because each rewrites the file in place:
+
 1. **nixfmt** - Formats Nix code (RFC style)
 2. **statix** - Fixes anti-patterns
 3. **deadnix** - Removes unused code
