@@ -103,7 +103,8 @@ export async function generate({ repoRoot, outRoot, model, state, report }) {
   for (const entry of carried) {
     try {
       canonicalPluginPaths(entry.command, layout, ""); // throws when a script is not in the package
-      hooks.push({ ...entry, command: rewritePluginRoot(entry.command, ROOT_TOKEN) });
+      const { statusMessage: _, ...rest } = entry;
+      hooks.push({ ...rest, command: rewritePluginRoot(entry.command, ROOT_TOKEN) });
     } catch (error) {
       report.add({ kind: "hooks", resource: entry.id, status: "error", reason: error.message });
     }

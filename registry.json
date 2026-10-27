@@ -119,7 +119,10 @@
           "enabled": true
         },
         "codex": {
-          "enabled": true
+          "enabled": true,
+          "optional": {
+            "post-tool:nix-tools": "Codex edits files via apply_patch diffs, not Write or Edit file_path inputs"
+          }
         }
       }
     },
@@ -567,7 +570,10 @@
           "enabled": true
         },
         "codex": {
-          "enabled": true
+          "enabled": true,
+          "optional": {
+            "pre-tool:discovery-augment": "Codex has no Grep or Glob tool"
+          }
         }
       }
     },

@@ -7,7 +7,8 @@
           {
             "type": "command",
             "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/routing-reminder.sh",
-            "timeout": 5
+            "timeout": 5,
+            "statusMessage": "Load git commit workflow rules"
           }
         ]
       }
@@ -19,7 +20,8 @@
           {
             "type": "command",
             "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/intercept-git-commit.sh",
-            "timeout": 5
+            "timeout": 5,
+            "statusMessage": "Validate git commit format and require commit skill"
           }
         ]
       }

@@ -5,6 +5,9 @@ set -euo pipefail
 here=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 skill="$here/../../skills/commit-action/SKILL.md"
 if [[ ! -f "$skill" ]]; then
+  skill="$here/../../codex-skills/commit-action/SKILL.md"
+fi
+if [[ ! -f "$skill" ]]; then
   skill="$here/../../../skills/commit-action/SKILL.md"
 fi
 skill="$(cd -- "$(dirname -- "$skill")" && pwd)/SKILL.md"

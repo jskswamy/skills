@@ -127,6 +127,14 @@ test("parseHooks flattens Claude hooks.json into neutral entries", () => {
     { id: "pre-tool:guard", event: "pre-tool", matcher: "Bash", command: "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/guard.sh", timeoutMs: 5000 },
     { id: "stop:check", event: "stop", command: "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/check.sh" },
   ]);
+  assert.deepEqual(
+    parseHooks({
+      hooks: {
+        SessionStart: [{ hooks: [{ type: "command", command: "echo hi", statusMessage: "Say hi" }] }],
+      },
+    }),
+    [{ id: "session-start:0", event: "session-start", command: "echo hi", statusMessage: "Say hi" }],
+  );
   assert.throws(() => parseHooks({ hooks: { Notification: [] } }), /unsupported hook event: Notification/);
   assert.equal(hookId("post-tool", "bash x/nixfmt.sh", 2), "post-tool:nixfmt");
   assert.equal(hookId("stop", "echo hi", 0), "stop:0");

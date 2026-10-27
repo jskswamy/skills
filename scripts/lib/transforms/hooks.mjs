@@ -5,7 +5,7 @@ import { CLAUDE_EVENTS } from "./tools.mjs";
 const NEUTRAL_EVENTS = Object.fromEntries(Object.entries(CLAUDE_EVENTS).map(([neutral, claude]) => [claude, neutral]));
 
 // Flattens a Claude-format hooks.json into entries
-// { id, event, matcher?, command, timeoutMs? }. Claude timeouts are seconds.
+// { id, event, matcher?, command, timeoutMs?, statusMessage? }. Claude timeouts are seconds.
 export function parseHooks(hooksJson) {
   const entries = [];
   for (const [claudeEvent, groups] of Object.entries(hooksJson.hooks ?? {})) {
@@ -19,6 +19,7 @@ export function parseHooks(hooksJson) {
         if (group.matcher !== undefined) entry.matcher = group.matcher;
         entry.command = hook.command;
         if (hook.timeout !== undefined) entry.timeoutMs = hook.timeout * 1000;
+        if (hook.statusMessage !== undefined) entry.statusMessage = hook.statusMessage;
         entries.push(entry);
       }
     }

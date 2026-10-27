@@ -76,7 +76,8 @@ export async function generate({ repoRoot, outRoot, model, state, report }) {
   for (const entry of carried) {
     try {
       canonicalPluginPaths(entry.command, fullLayout, "");
-      hooks.push({ plugin: model.name, ...entry, command: rewritePluginRoot(entry.command, ROOT_TOKEN) });
+      const { statusMessage: _, ...rest } = entry;
+      hooks.push({ plugin: model.name, ...rest, command: rewritePluginRoot(entry.command, ROOT_TOKEN) });
     } catch (error) {
       report.add({ kind: "hooks", resource: entry.id, status: "error", reason: error.message });
     }

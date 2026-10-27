@@ -7,7 +7,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/session-reminder.sh"
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/session-reminder.sh",
+            "statusMessage": "Load codebase knowledge graph protocol"
           }
         ]
       }
@@ -17,7 +18,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/subagent-reminder.sh"
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/subagent-reminder.sh",
+            "statusMessage": "Load codebase knowledge graph protocol for subagent"
           }
         ]
       }
@@ -29,7 +31,8 @@
           {
             "type": "command",
             "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/discovery-augment.sh",
-            "timeout": 5
+            "timeout": 5,
+            "statusMessage": "Augment search with codebase knowledge graph"
           }
         ]
       }

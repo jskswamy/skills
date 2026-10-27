@@ -6,7 +6,8 @@
           {
             "type": "command",
             "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/check-parked-ideas.sh",
-            "timeout": 5
+            "timeout": 5,
+            "statusMessage": "Check for parked ideas before stopping"
           }
         ]
       }
