@@ -1,6 +1,6 @@
 {
   "name": "devenv",
-  "version": "1.6.0",
+  "version": "1.6.1",
   "description": "Initialize and manage Nix flake development environments with auto-detection and security tooling",
   "author": {
     "name": "Krishnaswamy Subramanian"
@@ -17,5 +17,6 @@
     "direnv",
     "direnv-instant"
   ],
-  "skills": "./codex-skills"
+  "skills": "./codex-skills",
+  "hooks": "./codex-hooks.json"
 }

@@ -3,7 +3,7 @@
 # Silent when the binary is absent, so machines without it see nothing.
 # Present if the binary is on PATH or an MCP config names it (it may be launched by absolute path).
 command -v codebase-memory-mcp >/dev/null 2>&1 \
-  || grep -qs codebase-memory-mcp "$HOME/.claude.json" .mcp.json || exit 0
+  || grep -qs codebase-memory-mcp "$HOME/.claude.json" .mcp.json "${CODEX_HOME:-$HOME/.codex}/config.toml" || exit 0
 cat <<'REMINDER'
 Code Discovery Protocol:
 1. Use codebase-memory-mcp tools FIRST for code exploration:

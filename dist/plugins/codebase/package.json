@@ -1,6 +1,6 @@
 {
   "name": "@jskswamy/codebase",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Intelligent codebase exploration powered by codebase-memory-mcp. Natural language queries, change impact analysis, symbol graph traversal, and automatic brainstorming/planning integration.",
   "type": "module",
   "main": ".opencode/plugins/index.js",
