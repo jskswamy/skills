@@ -2,7 +2,44 @@
 
 All notable changes to this skills/plugins collection will be documented in this file.
 
+## [2.4.1] - 2026-10-27
+
+### Other
+
+- Isolate Codex hooks into codex-hooks.json
+
+Generate a dedicated codex-hooks.json manifest referenced from
+.codex-plugin/plugin.json whenever a plugin defines hooks. When
+.codex-plugin/plugin.json omits the hooks field, OpenAI Codex falls
+back to reading Claude Code's hooks/hooks.json in the shared
+dist/plugins/<plugin> directory, which loads incompatible Claude tool
+matchers (Grep|Glob and Write|Edit) and prompts for review with
+"Unnamed hook" labels.
+
+Carry only Codex-supported hook events and tool matchers (Bash and MCP
+patterns), mark Grep|Glob and Write|Edit hooks optional for Codex in
+registry.json, and emit an empty codex-hooks.json when all hooks for a
+plugin are skipped so Codex never falls back to hooks/hooks.json.
+
+Add non-empty statusMessage labels to all canonical hook handlers so
+Codex displays descriptive hook names, and update the codebase and
+commit-tools SessionStart scripts to resolve Codex config and skill
+paths.
+- Release v2.4.1
+
+Bump codebase, commit-tools, craft, and devenv versions in
+registry.json for isolated Codex hook manifests and statusMessage
+labels.
+
+Write every harness's output via npm run build:release and refresh the
+Claude snapshot.
 ## [2.4.0] - 2026-10-26
+
+### Changed
+
+- Update CHANGELOG for v2.4.0
+
+Document all changes included in the v2.4.0 release. by @jskswamy
 
 ### Other
 
@@ -13,7 +50,7 @@ into a shared dist/plugins/<plugin> directory so skillshare and native
 CLIs can discover and install every harness from one path per plugin.
 Isolate hook manifests under runtime/<harness>/hooks.manifest.json,
 place Codex command skills in codex-skills/, and merge OpenCode and Pi
-package.json fields.
+package.json fields. by @jskswamy
 - Release v2.4.0
 
 Bump all 10 plugin versions in registry.json for the unified
@@ -21,7 +58,7 @@ dist/plugins/<plugin> harness layout.
 
 Write every harness's output via npm run build:release and remove the
 superseded dist/claude-code, dist/codex, dist/opencode, and dist/pi
-directories.
+directories. by @jskswamy
 ## [2.3.0] - 2026-10-26
 
 ### Added
@@ -3581,6 +3618,7 @@ as a dependency.
 ### Removed
 
 - Remove welcome message from shell hook by @jskswamy
+[2.4.1]: https://github.com/jskswamy/skills/compare/v2.4.0..v2.4.1
 [2.4.0]: https://github.com/jskswamy/skills/compare/v2.3.0..v2.4.0
 [2.3.0]: https://github.com/jskswamy/skills/compare/v2.2.1..v2.3.0
 [2.2.1]: https://github.com/jskswamy/skills/compare/v2.2.0..v2.2.1
