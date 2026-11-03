@@ -11,36 +11,36 @@ and commit with full task context.
 
 | Command | Purpose |
 |---------|---------|
-| `/park` | Quick-capture an idea while in flow without breaking it; minimal metadata, fast path |
-| `/parked` | List, filter, and manage previously parked ideas |
-| `/review-parked` | On-demand review of the parking lot |
+| `/craft:park` | Quick-capture an idea while in flow without breaking it; minimal metadata, fast path |
+| `/craft:parked` | List, filter, and manage previously parked ideas |
+| `/craft:parked` | On-demand review of the parking lot |
 | `/understand` | Structured questioning to deeply explore a task before planning |
 
 ### Plan and structure
 
 | Command | Purpose |
 |---------|---------|
-| `/decompose` | Transform a complex task into structured units with dependencies, supports configurable frameworks (built-in, superpowers, speckit, bmad) |
-| `/epic` | Create and manage epics, add/remove tasks, track progress |
-| `/task` | Single-task operations: create, start, complete, view |
-| `/deps` | Manage and visualize dependencies |
-| `/backlog` | Dashboard views with filtering and statistics |
+| `/craft:decompose` | Transform a complex task into structured units with dependencies, supports configurable frameworks (built-in, superpowers, speckit, bmad) |
+| `/craft:epic` | Create and manage epics, add/remove tasks, track progress |
+| `/craft:task` | Single-task operations: create, start, complete, view |
+| `/craft:deps` | Manage and visualize dependencies |
+| `/craft:backlog` | Dashboard views with filtering and statistics |
 
 ### Execute and commit
 
 | Command | Purpose |
 |---------|---------|
-| `/execute` | Dispatch subagents to work through ready tasks with batch processing and dual-stage review |
+| `/craft:execute` | Dispatch subagents to work through ready tasks with batch processing and dual-stage review |
 | `/task-commit` | Create rich commit messages by combining task context with code changes |
 
 ## Skills
 
 - `decompose` — The decomposition engine: planning frameworks, dependency graph generation
-- `park-idea` — Frictionless idea capture
-- `review-parked` — Periodic and on-demand triage
+- `craft:park` — Frictionless idea capture
+- `craft:parked` — Periodic and on-demand triage
 - `task-commit` — Task-context-aware commit message authoring
 - `understand` — Pre-planning exploration
-- `execute-tasks` — Subagent dispatch with two-stage review
+- `craft:execute` — Subagent dispatch with two-stage review
 
 ## Agents
 

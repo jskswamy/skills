@@ -1,0 +1,41 @@
+{
+  "description": "Steer agents to codebase-memory graph tools; fail-open and silent without the binary",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/session-reminder.sh",
+            "statusMessage": "Load codebase knowledge graph protocol"
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/subagent-reminder.sh",
+            "statusMessage": "Load codebase knowledge graph protocol for subagent"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Grep|Glob",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/discovery-augment.sh",
+            "timeout": 5,
+            "statusMessage": "Augment search with codebase knowledge graph"
+          }
+        ]
+      }
+    ]
+  }
+}

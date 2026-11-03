@@ -24,10 +24,10 @@ done
 # Second pass: rebuild the rebase todo with exec lines on drifted commits.
 if [[ $drift -eq 1 ]]; then
   if [[ "${__GIT_COMMIT_PLUGIN__:-}" != 1 ]]; then
-    echo 'Load commit-action and obtain plan confirmation before revalidation amendments.' >&2
+    echo 'Load commit-tools:commit and obtain plan confirmation before revalidation amendments.' >&2
     exit 1
   fi
-  commit_script="$(cd -- "$LIB_DIR/../../commit-action/lib" && pwd)/commit.sh"
+  commit_script="$(cd -- "$LIB_DIR/../../commit/lib" && pwd)/commit.sh"
   style=$(awk '/^name:/{print $2; exit}' "$style_file")
   tmp_todo=$(mktemp)
   trap 'rm -f "$tmp_todo"' EXIT

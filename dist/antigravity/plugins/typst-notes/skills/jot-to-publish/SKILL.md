@@ -1,6 +1,8 @@
 ---
 name: jot-to-publish
 description: Use when the user wants to publish or convert a jot capture into a formatted document. Handles reading jot notes and feeding them through the publish pipeline to generate PDF/HTML output.
+disable-slash-command: true
+user-invocable: false
 ---
 
 # Jot to Publish Integration
@@ -8,7 +10,7 @@ description: Use when the user wants to publish or convert a jot capture into a 
 ## When This Activates
 
 This skill activates when:
-- User runs `/publish --source jot:<path>`
+- User runs `/typst-notes:publish --source jot:<path>`
 - User mentions wanting to "publish" or "format" a jot note
 - User wants to convert captured notes into a shareable document
 
@@ -59,7 +61,7 @@ Based on jot note characteristics, suggest a template:
 ## Workflow
 
 ```
-User: /publish --source jot:inbox/meeting-2024-01-15.md
+User: /typst-notes:publish --source jot:inbox/meeting-2024-01-15.md
 
 1. Read `.claude/jot.local.md` → workbench_path: ~/workbench
 2. Resolve path: ~/workbench/notes/inbox/meeting-2024-01-15.md

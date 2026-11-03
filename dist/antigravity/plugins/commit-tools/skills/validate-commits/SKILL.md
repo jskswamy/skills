@@ -1,7 +1,9 @@
 ---
 name: validate-commits
-description: Use when checking commits before pushing, validating commit style or hygiene, checking for AI attribution or tracker leaks, or running unattended commit validation.
+description: "Check commit style and hygiene before pushing. [--base <ref>] [--unattended] [--result <path>] Use when checking commits before pushing, validating commit style or hygiene, checking for AI attribution or tracker leaks, or running unattended commit validation."
 argument-hint: "[--base <ref>] [--unattended] [--result <path>] [--test-cmd <cmd>]"
+metadata:
+  short-description: "Check commit style and hygiene before pushing. [--base <ref>] [--unattended] [--result <path>]"
 ---
 
 # Validate Commits
@@ -171,7 +173,7 @@ Resolve the active style file:
 1. Read `.claude/git-commit.local.md` and extract the `commit_style` value
    from its YAML frontmatter
 2. If missing, default to `classic`
-3. Locate the installed `commit-action` skill and set `COMMIT_SKILL_DIR` to
+3. Locate the installed `commit-tools:commit` skill and set `COMMIT_SKILL_DIR` to
    its absolute directory. Style file: `$COMMIT_SKILL_DIR/styles/<style>.md`.
    If missing, report a blocker rather than guessing a working-repo path.
 

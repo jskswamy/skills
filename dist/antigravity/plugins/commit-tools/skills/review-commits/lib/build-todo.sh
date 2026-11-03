@@ -9,7 +9,7 @@ import re
 import os
 import shlex
 
-commit_script = os.path.abspath(os.path.join(sys.argv[3], '../../commit-action/lib/commit.sh'))
+commit_script = os.path.abspath(os.path.join(sys.argv[3], '../../commit/lib/commit.sh'))
 split_script = os.path.join(sys.argv[3], 'apply-split.sh')
 style = os.environ.get('COMMIT_ACTION_STYLE', 'classic')
 

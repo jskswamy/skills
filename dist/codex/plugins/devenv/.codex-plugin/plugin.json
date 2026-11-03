@@ -1,0 +1,22 @@
+{
+  "name": "devenv",
+  "version": "2.0.0",
+  "description": "Initialize and manage Nix flake development environments with auto-detection and security tooling",
+  "author": {
+    "name": "Krishnaswamy Subramanian"
+  },
+  "keywords": [
+    "nix",
+    "flake",
+    "devenv",
+    "development",
+    "environment",
+    "pre-commit",
+    "gitleaks",
+    "security",
+    "direnv",
+    "direnv-instant"
+  ],
+  "skills": "./codex-skills",
+  "hooks": "./codex-hooks.json"
+}

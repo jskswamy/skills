@@ -4,7 +4,7 @@ Quick, low-friction capture of notes, tasks, ideas, tech radar blips, and Feynma
 
 ## Why Jot?
 
-Capture thoughts, tasks, and discoveries without switching context. Jot provides `/capture` for quick knowledge capture and `/teach` for deepening understanding using the Feynman Technique, automatically linking new notes to related content in your knowledge base.
+Capture thoughts, tasks, and discoveries without switching context. Jot provides `/jot:capture` for quick knowledge capture and `/teach` for deepening understanding using the Feynman Technique, automatically linking new notes to related content in your knowledge base.
 
 ## Features
 
@@ -47,30 +47,30 @@ workbench_path: ~/workbench
 ### Quick Captures (text-based)
 
 ```
-/capture task Buy groceries
-/capture note Meeting notes about project X
-/capture idea What if we tried approach Y
-/capture blip Docker --ring adopt --quadrant platforms
+/jot:capture task Buy groceries
+/jot:capture note Meeting notes about project X
+/jot:capture idea What if we tried approach Y
+/jot:capture blip Docker --ring adopt --quadrant platforms
 ```
 
 ### Session Captures
 
 ```
-/capture session                    # Guided questions about this Claude session
-/capture conversation               # Alias for session
+/jot:capture session                    # Guided questions about this Claude session
+/jot:capture conversation               # Alias for session
 ```
 
 ### Using Aliases
 
 ```
-/capture todo Review Alice's PR     # Same as: /capture task
-/capture thought API seems slow     # Same as: /capture note
+/jot:capture todo Review Alice's PR     # Same as: /jot:capture task
+/jot:capture thought API seems slow     # Same as: /jot:capture note
 ```
 
 ### Quick Captures with URL References
 
 ```
-/capture todo use https://git-cliff.org/ to generate changelog
+/jot:capture todo use https://git-cliff.org/ to generate changelog
 ```
 
 This keeps it as a quick task (not full article extraction) with the URL as a reference.
@@ -78,12 +78,12 @@ This keeps it as a quick task (not full article extraction) with the URL as a re
 ### Full Captures (URL-based)
 
 ```
-/capture https://github.com/some/repo          # Auto-detects as blip
-/capture blip https://github.com/astral-sh/uv --ring trial --quadrant tools
-/capture article https://blog.com/post
-/capture video https://youtube.com/watch?v=xxx
-/capture person https://wikipedia.org/wiki/Person
-/capture book https://goodreads.com/book/show/123
+/jot:capture https://github.com/some/repo          # Auto-detects as blip
+/jot:capture blip https://github.com/astral-sh/uv --ring trial --quadrant tools
+/jot:capture article https://blog.com/post
+/jot:capture video https://youtube.com/watch?v=xxx
+/jot:capture person https://wikipedia.org/wiki/Person
+/jot:capture book https://goodreads.com/book/show/123
 ```
 
 ### Blip Options

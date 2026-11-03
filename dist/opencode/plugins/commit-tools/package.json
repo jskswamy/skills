@@ -1,0 +1,25 @@
+{
+  "name": "@jskswamy/commit-tools",
+  "version": "2.0.0",
+  "description": "End-to-end commit hygiene: write atomic commits with style enforcement, review and consolidate them before push, validate the final history",
+  "type": "module",
+  "main": ".opencode/plugins/index.js",
+  "exports": {
+    ".": "./index.js"
+  },
+  "keywords": [
+    "opencode-plugin",
+    "git",
+    "commit",
+    "atomic",
+    "classic",
+    "conventional",
+    "review",
+    "squash",
+    "merge",
+    "validate",
+    "hooks",
+    "history",
+    "hygiene"
+  ]
+}

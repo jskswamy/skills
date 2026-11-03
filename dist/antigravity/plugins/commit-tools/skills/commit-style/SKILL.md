@@ -1,6 +1,8 @@
 ---
 name: commit-style
-description: Provides educational guidance on writing good git commit messages. Activates when users ASK QUESTIONS about commit message formats, styles, conventional commits, classic commits, atomic commit principles, or git best practices. Does NOT activate when users want to PERFORM a commit (use the commit-action skill instead).
+description: Provides educational guidance on writing good git commit messages. Activates when users ASK QUESTIONS about commit message formats, styles, conventional commits, classic commits, atomic commit principles, or git best practices. Does NOT activate when users want to PERFORM a commit (use the commit-tools:commit skill instead).
+disable-slash-command: true
+user-invocable: false
 ---
 
 # Git Commit Message Guidelines
@@ -9,17 +11,17 @@ This skill provides **educational context** about writing effective git commit m
 
 ## When NOT to Activate
 
-Do NOT use this skill when the user wants to **perform a commit**. The following are handled by the `commit-action` skill:
+Do NOT use this skill when the user wants to **perform a commit**. The following are handled by the `commit-tools:commit` skill:
 - "commit these changes"
 - "let's commit"
 - "make a commit"
 - "commit this"
 
-For action requests, load the `commit-action` skill behind `/commit`.
+For action requests, load the `commit-tools:commit` skill behind `/commit-tools:commit`.
 
 ## Available Commit Styles
 
-Load the installed `commit-action` skill to locate its bundled `styles/` directory. It owns the authoritative rules; resolve paths from that skill's absolute location, not the working repository:
+Load the installed `commit-tools:commit` skill to locate its bundled `styles/` directory. It owns the authoritative rules; resolve paths from that skill's absolute location, not the working repository:
 
 - **Classic** (`styles/classic.md`) - Traditional git commit style following the "7 Rules"
 - **Conventional** (`styles/conventional.md`) - Structured format for automation
@@ -69,8 +71,8 @@ An atomic commit represents a **single, complete, coherent unit of work**.
   - Semantic version bumping
   - Structured commit history for tooling
 - **Always write atomic commits** regardless of style
-- **Use `/commit`** to generate properly formatted messages
+- **Use `/commit-tools:commit`** to generate properly formatted messages
 
 ## Detailed Style Guides
 
-For comprehensive rules and examples, read the corresponding file in the installed commit-action skill's `styles/` directory.
+For comprehensive rules and examples, read the corresponding file in the installed commit-tools:commit skill's `styles/` directory.

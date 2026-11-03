@@ -5,10 +5,10 @@ set -euo pipefail
 hash="$1"
 plan="$2"
 if [[ "${__GIT_COMMIT_PLUGIN__:-}" != 1 ]]; then
-  echo 'Load commit-action and obtain plan confirmation before splitting.' >&2
+  echo 'Load commit-tools:commit and obtain plan confirmation before splitting.' >&2
   exit 1
 fi
-commit_script="$(cd -- "$(dirname -- "$0")/../../commit-action/lib" && pwd)/commit.sh"
+commit_script="$(cd -- "$(dirname -- "$0")/../../commit/lib" && pwd)/commit.sh"
 
 python3 - "$hash" "$plan" "$commit_script" <<'PY'
 import sys, re, subprocess, os, tempfile

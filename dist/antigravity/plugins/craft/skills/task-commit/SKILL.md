@@ -1,19 +1,20 @@
 ---
 name: task-commit
-description: "Use when committing work for a beads task: 'commit this task', 'task commit', 'commit with beads context', or 'now commit' after closing a task. Gathers task context for commit-action; never creates a separate commit workflow."
+description: "Use when committing work for a beads task: 'commit this task', 'task commit', 'commit with beads context', or 'now commit' after closing a task. Gathers task context for commit-tools:commit; never creates a separate commit workflow."
+disable-slash-command: true
+user-invocable: false
 ---
 
 # Task Commit
 
-Gather the reason for the change, then delegate the commit to `commit-action`.
+Gather the reason for the change, then delegate the commit to `commit-tools:commit`.
 
 1. Identify the task from the conversation. If ambiguous, run
    `bd list --status=in_progress --json` and ask which task applies.
 2. Read `bd show <id> --json`. Extract the goal, motivation, decisions and
    relevant constraints. Treat the task ID and acceptance checklist as
    internal context, not text to copy into the commit message.
-3. Load the installed `commit-action` skill (`/commit` in Claude Code or
-   `/skill:commit-action` in Pi) with that context and any user arguments,
+3. Load the installed `commit-tools:commit` skill (`/commit-tools:commit`) with that context and any user arguments,
    including `--amend`. Let it handle staging choices, style, atomicity,
    message generation, validation, confirmation and execution.
 4. If the skill is missing, stop and report the blocker. A task-completion

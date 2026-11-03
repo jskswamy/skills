@@ -50,9 +50,9 @@ mkdir -p "$WORKING_DIR/msgs"
 ```
 
 Resolve `$STYLE_FILE` by reading `.claude/git-commit.local.md` →
-`commit_style` value → the installed commit-action skill's `styles/<style>.md`.
+`commit_style` value → the installed commit-tools:commit skill's `styles/<style>.md`.
 Honor `--style` first. If no flag or settings exist, default to `classic`.
-Load `commit-action` to resolve its absolute location; if unavailable, stop.
+Load `commit-tools:commit` to resolve its absolute location; if unavailable, stop.
 
 Read each commit in `$base..HEAD` oldest-to-newest using
 `git log --reverse --format='%H%x00%s%x00%b%x00---END---' "$base..HEAD"`
@@ -94,7 +94,7 @@ Write the full plan to the result file before executing. The Modify and Reset
 paths are unavailable in unattended mode; if the plan cannot be executed
 mechanically, fail non-zero instead of asking.
 
-Before Step 6, invoke `commit-action` with the authored plan and follow its
+Before Step 6, invoke `commit-tools:commit` with the authored plan and follow its
 history-review approval branch. Show full messages, validate each one and
 obtain explicit approval of the exact operations and messages. Plan previews
 and unattended defaults do not grant commit approval. Without approval,
@@ -123,9 +123,9 @@ message during this step, you are violating the contract — stop, return to
 Step 4, and fix the plan instead.
 
 `build-todo.sh`, `apply-split.sh` and `revalidate.sh` use the installed
-commit-action executor. They require the approval convention inherited
+commit-tools:commit executor. They require the approval convention inherited
 from the confirmed plan; they do not set it themselves. The token is not a
-security boundary. A missing sibling commit-action installation is a blocker.
+security boundary. A missing sibling commit-tools:commit installation is a blocker.
 
 If the rebase reports a conflict:
 1. Stop immediately
@@ -205,7 +205,7 @@ git reset --soft $base
 This keeps all changes staged. Group files by top-level directory and concern,
 then present groupings via AskUserQuestion. For each group:
 1. Stage the group's files: `git add <files>`
-2. Invoke `/commit`
+2. Invoke `/commit-tools:commit`
 
 The hygiene findings from Step 4 carry forward — display them again as
 context for grouping decisions.

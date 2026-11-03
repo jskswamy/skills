@@ -1,6 +1,8 @@
 ---
 name: infographics
 description: Use when deciding whether to add charts, diagrams, flowcharts, or other data visualizations to a Typst document. Provides guidance on when and how to use CeTZ-Plot, Fletcher, Pintorita, and custom CeTZ drawings for infographic generation.
+disable-slash-command: true
+user-invocable: false
 ---
 
 # Infographics Decision Guide

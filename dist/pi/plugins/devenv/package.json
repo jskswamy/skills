@@ -1,0 +1,31 @@
+{
+  "name": "@jskswamy/devenv",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Initialize and manage Nix flake development environments with auto-detection and security tooling",
+  "keywords": [
+    "pi-package",
+    "nix",
+    "flake",
+    "devenv",
+    "development",
+    "environment",
+    "pre-commit",
+    "gitleaks",
+    "security",
+    "direnv",
+    "direnv-instant"
+  ],
+  "pi": {
+    "skills": [
+      "./skills"
+    ],
+    "prompts": [
+      "./prompts"
+    ],
+    "extensions": [
+      "./runtime/pi/runtime.mjs"
+    ]
+  }
+}

@@ -1,6 +1,8 @@
 ---
 name: excalidraw-format
 description: Use when generating Excalidraw JSON files, creating visual diagrams in Excalidraw format, or needing to understand Excalidraw element structure. Provides comprehensive knowledge of Excalidraw JSON schema, element types, styling properties, and valid configurations.
+disable-slash-command: true
+user-invocable: false
 metadata:
   version: "1.0.0"
 ---

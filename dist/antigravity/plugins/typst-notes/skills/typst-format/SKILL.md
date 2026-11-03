@@ -1,6 +1,8 @@
 ---
 name: typst-format
 description: Use when generating Typst source code, formatting documents with Typst syntax, or needing to understand Typst markup, functions, packages (CeTZ, Fletcher, Pintorita), and document structure. Provides comprehensive Typst language reference and package API knowledge.
+disable-slash-command: true
+user-invocable: false
 ---
 
 # Typst Language Reference

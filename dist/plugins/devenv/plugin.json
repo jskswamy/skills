@@ -1,6 +1,0 @@
-{
-  "$schema": "https://antigravity.google/schemas/v1/plugin.json",
-  "name": "devenv",
-  "version": "1.6.1",
-  "description": "Initialize and manage Nix flake development environments with auto-detection and security tooling"
-}

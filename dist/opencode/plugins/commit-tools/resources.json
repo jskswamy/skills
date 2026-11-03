@@ -1,0 +1,46 @@
+{
+  "skills": [
+    {
+      "id": "commit-tools-commit",
+      "name": "commit-tools-commit",
+      "description": "Use when any agent is about to create or amend a Git commit: explicit commit requests, automatic task-completion commits, message-only amendments, task-context commits, and history-review replay. Applies even without a user request to commit. Not for questions about commit style; see commit-style.",
+      "path": "skills/commit/SKILL.md"
+    },
+    {
+      "id": "commit-tools-commit-style",
+      "name": "commit-tools-commit-style",
+      "description": "Provides educational guidance on writing good git commit messages. Activates when users ASK QUESTIONS about commit message formats, styles, conventional commits, classic commits, atomic commit principles, or git best practices. Does NOT activate when users want to PERFORM a commit (use the commit-tools-commit skill instead).",
+      "path": "skills/commit-style/SKILL.md"
+    },
+    {
+      "id": "commit-tools-review-commits",
+      "name": "commit-tools-review-commits",
+      "description": "Use when reviewing or cleaning up commits before pushing, squashing related commits, preparing a branch for main, or checking commit hygiene; includes unattended review requests.",
+      "path": "skills/review-commits/SKILL.md"
+    },
+    {
+      "id": "commit-tools-validate-commits",
+      "name": "commit-tools-validate-commits",
+      "description": "Use when checking commits before pushing, validating commit style or hygiene, checking for AI attribution or tracker leaks, or running unattended commit validation.",
+      "path": "skills/validate-commits/SKILL.md"
+    }
+  ],
+  "commands": [
+    {
+      "name": "commit-tools-commit",
+      "description": "Create a validated git commit. [--style classic|conventional] [--amend] [--pair] [context]",
+      "path": "runtime/opencode/commands/commit-tools-commit.md"
+    },
+    {
+      "name": "commit-tools-review-commits",
+      "description": "Review and clean up commits before pushing. [--base <ref>] [--unattended] [--style classic|conventional]",
+      "path": "runtime/opencode/commands/commit-tools-review-commits.md"
+    },
+    {
+      "name": "commit-tools-validate-commits",
+      "description": "Check commit style and hygiene before pushing. [--base <ref>] [--unattended] [--result <path>]",
+      "path": "runtime/opencode/commands/commit-tools-validate-commits.md"
+    }
+  ],
+  "agents": []
+}

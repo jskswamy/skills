@@ -2,16 +2,16 @@
 
 ## Integration with other skills
 
-### With /commit
+### With /commit-tools:commit
 
-Load the installed `commit-action` skill before accepting a replay plan.
+Load the installed `commit-tools:commit` skill before accepting a replay plan.
 It owns style rules, atomicity and content-leak validation, full-message
 confirmation, and the shared commit executor. Pass it the authored plan;
 follow its `references/review-plan.md` branch. If unavailable, stop rather
 than falling back to raw commits.
 
 After explicit approval, replay stays mechanical: no message generation
-or per-commit editor. Helpers call commit-action's installed executor and
+or per-commit editor. Helpers call commit-tools:commit's installed executor and
 inherit its approval convention; they never mint a bypass token. The same
 approval covers reapplying an unchanged saved message during revalidation.
 Changed messages or operations require fresh approval. Unattended mode

@@ -25,7 +25,7 @@ One of the following for compilation:
 ## Usage
 
 ```bash
-/publish [--template exec|cheat|sketch|meeting|study|tech|portfolio]
+/typst-notes:publish [--template exec|cheat|sketch|meeting|study|tech|portfolio]
          [--theme light|dark|minimal|vibrant]
          [--format pdf|html|both]
          [--output <name>]
@@ -37,16 +37,16 @@ One of the following for compilation:
 
 ```bash
 # Generate an executive summary from the conversation
-/publish --template exec
+/typst-notes:publish --template exec
 
 # Create a cheat sheet for the topic discussed
-/publish --template cheat --theme dark
+/typst-notes:publish --template cheat --theme dark
 
 # Publish a jot note as a study guide
-/publish --template study --source jot:notes/react-hooks.md
+/typst-notes:publish --template study --source jot:notes/react-hooks.md
 
 # Generate a technical brief as both PDF and HTML
-/publish --template tech --format both --output api-design
+/typst-notes:publish --template tech --format both --output api-design
 ```
 
 ## Templates
@@ -84,7 +84,7 @@ Automatically suggests and generates data visualizations:
 Publish jot captures directly:
 
 ```bash
-/publish --source jot:notes/meeting-2024-01-15.md --template meeting
+/typst-notes:publish --source jot:notes/meeting-2024-01-15.md --template meeting
 ```
 
 ## Settings

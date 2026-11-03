@@ -8,7 +8,7 @@ flow runs these steps inline.
 
 - `$base` — base SHA for the rebase
 - `$WORKING_DIR` — directory to write `plan.yaml` to
-- `$STYLE_FILE` — absolute path to the installed commit-action skill's `styles/<style>.md`
+- `$STYLE_FILE` — absolute path to the installed commit-tools:commit skill's `styles/<style>.md`
 - `$REVIEW_SKILL_DIR` — absolute directory of the loaded review-commits skill
 - `$SEMANTIC_AVAILABLE` — `true` if codebase-memory-mcp is reachable via MCP or CLI AND
   the index is fresh; `false` otherwise

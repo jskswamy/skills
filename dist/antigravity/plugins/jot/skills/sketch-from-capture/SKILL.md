@@ -1,13 +1,15 @@
 ---
 name: sketch-from-capture
 description: Use when the user wants to create a visual sketch, diagram, or mind map from captured content like articles, videos, or blips ("visualize this article", "mind map this capture", "draw what I just captured", "make a visual summary", "sketch the architecture from this repo"). Enables creating Excalidraw visualizations from jot captures.
+disable-slash-command: true
+user-invocable: false
 metadata:
   version: "1.0.0"
 ---
 
 # Sketch from Capture
 
-When a user captures content and wants to visualize it, use the `/sketch` command from the sketch-note plugin.
+When a user captures content and wants to visualize it, use the `/sketch-note:sketch` command from the sketch-note plugin.
 
 ## Workflow
 
@@ -58,12 +60,12 @@ When visualizing tech radar blips:
 - Use architecture diagram for system integration
 - Use mind map for feature exploration
 
-## Integration with /sketch
+## Integration with /sketch-note:sketch
 
 After extracting content, invoke the sketch command:
 
 ```
-/sketch --mode custom "{extracted content description}"
+/sketch-note:sketch --mode custom "{extracted content description}"
 ```
 
 **Example workflow:**
@@ -81,7 +83,7 @@ After extracting content, invoke the sketch command:
 
 4. Create visualization:
    ```
-   /sketch --mode custom "REST API tutorial flow: Setup → Routing → Middleware → Authentication → Error Handling → Testing. Key concepts: Express.js framework, JWT tokens, middleware pattern"
+   /sketch-note:sketch --mode custom "REST API tutorial flow: Setup → Routing → Middleware → Authentication → Error Handling → Testing. Key concepts: Express.js framework, JWT tokens, middleware pattern"
    ```
 
 5. Link the sketch to the capture note (both in workbench)

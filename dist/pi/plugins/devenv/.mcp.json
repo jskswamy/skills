@@ -1,0 +1,6 @@
+{
+  "nixos": {
+    "command": "nix-shell",
+    "args": ["-p", "uv", "--run", "uvx mcp-nixos"]
+  }
+}

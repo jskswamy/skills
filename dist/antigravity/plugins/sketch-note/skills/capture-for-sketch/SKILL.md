@@ -1,6 +1,8 @@
 ---
 name: capture-for-sketch
 description: Use when the user wants to sketch content from a URL, YouTube video, or external source ("sketch this YouTube video", "visualize https://...", "draw a diagram of this URL", "sketch the architecture from this GitHub repo"). Enables fetching and extracting content before creating a visual sketch.
+disable-slash-command: true
+user-invocable: false
 metadata:
   version: "1.0.0"
 ---
@@ -125,7 +127,7 @@ Tech Stack: {technologies}
 
 ### Example 1: YouTube Video
 
-User: "/sketch https://youtube.com/watch?v=abc123"
+User: "/sketch-note:sketch https://youtube.com/watch?v=abc123"
 
 1. Detect URL is YouTube
 2. Fetch video info:
@@ -141,7 +143,7 @@ User: "/sketch https://youtube.com/watch?v=abc123"
 
 ### Example 2: Article
 
-User: "/sketch https://example.com/article-about-microservices"
+User: "/sketch-note:sketch https://example.com/article-about-microservices"
 
 1. Detect URL is web article
 2. Fetch with WebFetch:
@@ -154,7 +156,7 @@ User: "/sketch https://example.com/article-about-microservices"
 
 ### Example 3: GitHub Repo
 
-User: "/sketch https://github.com/facebook/react"
+User: "/sketch-note:sketch https://github.com/facebook/react"
 
 1. Detect URL is GitHub
 2. Fetch README content

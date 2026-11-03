@@ -1,7 +1,9 @@
 ---
 name: review-commits
-description: Use when reviewing or cleaning up commits before pushing, squashing related commits, preparing a branch for main, or checking commit hygiene; includes unattended review requests.
+description: "Review and clean up commits before pushing. [--base <ref>] [--unattended] [--style classic|conventional] Use when reviewing or cleaning up commits before pushing, squashing related commits, preparing a branch for main, or checking commit hygiene; includes unattended review requests."
 argument-hint: "[--tag <version>] [--base <ref>] [--unattended] [--style <classic|conventional>] [--result <path>] [--test-cmd <cmd>]"
+metadata:
+  short-description: "Review and clean up commits before pushing. [--base <ref>] [--unattended] [--style classic|conventional]"
 ---
 
 # Review Commits
@@ -12,7 +14,7 @@ planner/executor split: all commit message authoring happens in the planning
 phase, and the executor is purely mechanical replay via
 `git rebase --exec` with `GIT_EDITOR=true` so no editor ever opens
 mid-rebase. A revalidation step auto-amends any subject that drifts from the
-saved style. Before rewriting history, load `commit-action` to validate and
+saved style. Before rewriting history, load `commit-tools:commit` to validate and
 explicitly approve the complete message plan. Its shared executor owns every
 explicit commit/amend; this skill owns analysis and replay sequencing.
 Resolve bundled paths from the absolute directory of this loaded skill,
@@ -37,7 +39,7 @@ human attached:
 
 1. It never calls AskUserQuestion. Analysis gates choose the option marked
    recommended/default and record the decision. Commit approval is separate:
-   invoke `commit-action` for the exact full plan. Without explicit approval
+   invoke `commit-tools:commit` for the exact full plan. Without explicit approval
    already supplied for that plan, write reason: `confirmation-required`
    and stop before any history rewrite.
 2. It stays within the current branch scope: never check out another branch,
@@ -87,7 +89,7 @@ If output is non-empty:
       Your worktree has uncommitted changes. Please commit or stash them
       before running review-commits.
 
-- In interactive mode when tracked files have staged modifications (and no unstaged or untracked files) and `command -v git-absorb >/dev/null 2>&1` is available, resolve `$base` (`--base` or `git merge-base HEAD main`) and run `git absorb --base "$base" --dry-run`. Only if the dry run succeeds and leaves no unabsorbed staged hunks, ask via AskUserQuestion whether to run `git absorb --base "$base"` (creating `fixup!` commits to be folded during Step 6's approved rebase) or abort so the user can commit/stash manually. Never pass `--and-rebase` here so no history is rewritten before the `commit-action` approval gate; if the dry run cannot absorb every hunk cleanly, refuse with the message above without creating any commits.
+- In interactive mode when tracked files have staged modifications (and no unstaged or untracked files) and `command -v git-absorb >/dev/null 2>&1` is available, resolve `$base` (`--base` or `git merge-base HEAD main`) and run `git absorb --base "$base" --dry-run`. Only if the dry run succeeds and leaves no unabsorbed staged hunks, ask via AskUserQuestion whether to run `git absorb --base "$base"` (creating `fixup!` commits to be folded during Step 6's approved rebase) or abort so the user can commit/stash manually. Never pass `--and-rebase` here so no history is rewritten before the `commit-tools:commit` approval gate; if the dry run cannot absorb every hunk cleanly, refuse with the message above without creating any commits.
 
 ## Auto-Detection
 
@@ -275,7 +277,7 @@ and exit non-zero.
 
 ## Integration
 
-See `references/integration.md` for delegation to commit-action, /codebase:index, Superpowers, and standalone use.
+See `references/integration.md` for delegation to commit-tools:commit, /codebase:index, Superpowers, and standalone use.
 Run `/review-commits` anytime — before pushing, after a messy session, to
 clean up agent commits.
 
