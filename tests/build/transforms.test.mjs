@@ -4,7 +4,6 @@ import { mkdtemp, mkdir, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { parseDocument, writeDocument } from "../../scripts/lib/transforms/frontmatter.mjs";
-import { commandToSkill } from "../../scripts/lib/transforms/command-to-skill.mjs";
 import { mapAgent } from "../../scripts/lib/transforms/agents.mjs";
 import { rewritePluginRoot } from "../../scripts/lib/transforms/paths.mjs";
 import { claudeHookInput, matchesClaude, rewriteMatcher, toClaudeToolName } from "../../scripts/lib/transforms/tools.mjs";
@@ -44,17 +43,6 @@ test("writeDocument quotes scalars that YAML would misread", () => {
   const text = writeDocument({ frontmatter: { a: "plain words", b: "has: colon", c: "#hash", d: "" }, body: "x\n" });
   assert.equal(text, '---\na: plain words\nb: "has: colon"\nc: "#hash"\nd: ""\n---\nx\n');
   assert.deepEqual(parseDocument(text).frontmatter, { a: "plain words", b: "has: colon", c: "#hash", d: "" });
-});
-
-test("commandToSkill keeps the command's name, description and body", () => {
-  const skill = commandToSkill({
-    name: "ask",
-    text: '---\nname: ask\ndescription: Ask a question\nargument-hint: "<question>"\n---\n\nInvoke the skill.\n',
-  });
-  assert.equal(skill.name, "ask");
-  assert.equal(skill.content, "---\nname: ask\ndescription: Ask a question\n---\n\nInvoke the skill.\n");
-  assert.equal(commandToSkill({ name: "ask", text: "Just a body\n" }, { name: "codebase-ask" }).content,
-    "---\nname: codebase-ask\ndescription: codebase-ask\n---\nJust a body\n");
 });
 
 test("mapAgent keeps, renames, sets and drops keys and trims examples", () => {
@@ -209,4 +197,11 @@ test("applyHookPolicy rejects a hook that quotes the plugin-root token", () => {
   assert.deepEqual(carried, []);
   assert.equal(report[0].status, "error");
   assert.match(report[0].reason, /unquoted/);
+});
+
+test("derivedId joins plugin and name without repeating the plugin prefix", async () => {
+  const { derivedId } = await import("../../scripts/lib/transforms/names.mjs");
+  assert.equal(derivedId("craft", "backlog"), "craft-backlog");
+  assert.equal(derivedId("craft", "craft-task"), "craft-task");
+  assert.equal(derivedId("commit-tools", "commit"), "commit-tools-commit");
 });

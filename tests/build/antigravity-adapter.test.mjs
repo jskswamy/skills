@@ -36,8 +36,7 @@ const ONE = {
   description: "one plugin",
   author: { name: "me" },
   resources: {
-    skills: ["one-backlog"],
-    commands: ["one/backlog.md"],
+    skills: ["one/backlog", "one/quiet"],
     agents: ["one/helper.md", "one/bare.md"],
     hooks: ["one/hooks.json", "one/context.sh", "one/missing.sh", "one/hang.sh", "one/grep.sh", "one/stop.sh"],
     templates: ["one/note.md"],
@@ -52,8 +51,7 @@ const COMMIT_TOOLS = {
   version: "1.0.0",
   description: "commits",
   resources: {
-    skills: ["commit-action"],
-    commands: ["commit-tools/commit.md"],
+    skills: ["commit-tools/commit"],
     hooks: ["commit-tools/hooks.json", "commit-tools/scripts/intercept-git-commit.sh", "commit-tools/scripts/routing-reminder.sh"],
   },
   harnesses: { antigravity: { enabled: true } },
@@ -72,9 +70,9 @@ const CODEBASE = {
 async function fixture(t, plugins) {
   const repoRoot = await mkdtemp(join(tmpdir(), "agy-adapter-"));
   t.after(() => rm(repoRoot, { recursive: true, force: true }));
-  await write(join(repoRoot, "skills/one-backlog/SKILL.md"), "---\nname: one-backlog\ndescription: Use when one.\n---\n");
-  await write(join(repoRoot, "skills/one-backlog/tests/case.md"), "dev only\n");
-  await write(join(repoRoot, "commands/one/backlog.md"), '---\nname: backlog\ndescription: Show the backlog\nargument-hint: "<x>"\n---\n\nInvoke the `one-backlog` skill.\n');
+  await write(join(repoRoot, "skills/one/backlog/SKILL.md"), '---\nname: backlog\ndescription: Show the backlog\nargument-hint: "<x>"\n---\n');
+  await write(join(repoRoot, "skills/one/backlog/tests/case.md"), "dev only\n");
+  await write(join(repoRoot, "skills/one/quiet/SKILL.md"), "---\nname: quiet\ndescription: Model only\nuser-invocable: false\n---\n");
   await write(
     join(repoRoot, "agents/one/helper.md"),
     '---\nname: helper\ndescription: |\n  Helps.\n\n  <example>x</example>\nmodel: inherit\ntools: "*"\n---\n\nBody.\n',
@@ -88,7 +86,7 @@ async function fixture(t, plugins) {
   await write(join(repoRoot, "hooks/one/hang.sh"), "sleep 30\n");
   await write(join(repoRoot, "hooks/one/grep.sh"), "exit 0\n");
   await write(join(repoRoot, "hooks/one/stop.sh"), "echo 'parked ideas remain' >&2; exit 2\n");
-  for (const path of ["skills/commit-action", "hooks/commit-tools", "commands/commit-tools", "hooks/codebase"]) {
+  for (const path of ["skills/commit-tools/commit", "hooks/commit-tools", "hooks/codebase"]) {
     await cp(join(REPO, path), join(repoRoot, path), { recursive: true });
   }
   const registry = { marketplace: { name: "mp", description: "d" }, plugins };
@@ -110,14 +108,18 @@ function runShim(pluginRoot, hookId, input, env = process.env) {
   return { output: JSON.parse(hooks.stdout), stderr: hooks.stderr };
 }
 
-test("plugin tree: manifest, skills without tests, command skills, mapped agents, templates", async (t) => {
+test("plugin tree: manifest, skills without tests, picker flag, mapped agents, templates", async (t) => {
   const { out } = await fixture(t, [ONE]);
   assert.deepEqual(await readJson(out("one", ".antigravity-plugin/plugin.json")), { name: "one", version: "1.2.3", description: "one plugin" });
-  assert.deepEqual((await readdir(out("one", "skills"))).sort(), ["one-backlog", "one-cmd-backlog"]);
-  assert.equal(existsSync(out("one", "skills/one-backlog/tests")), false);
+  assert.deepEqual((await readdir(out("one", "skills"))).sort(), ["backlog", "quiet"], "no -cmd- wrapper skills");
+  assert.equal(existsSync(out("one", "skills/backlog/tests")), false);
   assert.equal(
-    await readFile(out("one", "skills/one-cmd-backlog/SKILL.md"), "utf8"),
-    "---\nname: one-cmd-backlog\ndescription: Show the backlog\n---\n\nInvoke the `one-backlog` skill.\n",
+    await readFile(out("one", "skills/backlog/SKILL.md"), "utf8"),
+    '---\nname: backlog\ndescription: Show the backlog\nargument-hint: "<x>"\n---\n',
+  );
+  assert.equal(
+    await readFile(out("one", "skills/quiet/SKILL.md"), "utf8"),
+    "---\nname: quiet\ndescription: Model only\ndisable-slash-command: true\nuser-invocable: false\n---\n",
   );
   assert.equal(await readFile(out("one", "agents/helper.md"), "utf8"), "---\nname: helper\ndescription: |\n  Helps.\n\n  <example>x</example>\n---\n\nBody.\n");
   assert.match(await readFile(out("one", "agents/bare.md"), "utf8"), /^---\nname: bare\ndescription: The bare agent of the one plugin\.\n---\n## No frontmatter/);
@@ -159,7 +161,7 @@ test("an optional marker turns the unmapped MCP half into a skip and keeps the r
   assert.match(report.lines().join("\n"), /pre-tool:intercept-git-commit: skipped .*MCP naming unknown/);
   const hooks = await readJson(out("commit-tools", "hooks.json"));
   assert.equal(hooks["commit-tools/pre-tool:intercept-git-commit"].PreToolUse[0].matcher, "^(?:run_command)$");
-  assert.deepEqual(await readdir(out("commit-tools", "skills")), ["commit-action", "commit-tools-cmd-commit"].sort());
+  assert.deepEqual(await readdir(out("commit-tools", "skills")), ["commit"]);
 });
 
 test("a plugin without hooks gets no hooks.json or runtime", async (t) => {
@@ -183,7 +185,7 @@ test("blocking: a run_command git commit through the real commit guard is denied
 
   const denied = runShim(out("commit-tools"), "pre-tool:intercept-git-commit", call("git status; git commit -m test")).output;
   assert.equal(denied.decision, "deny");
-  assert.match(denied.reason, /commit-action/);
+  assert.match(denied.reason, /commit-tools:commit/);
   // agy treats a PreToolUse answer without a decision as a denial.
   assert.deepEqual(runShim(out("commit-tools"), "pre-tool:intercept-git-commit", call("git log -1")).output, { decision: "allow" });
 });
@@ -200,7 +202,7 @@ test("context: SessionStart output becomes injectSteps (codebase reminder and co
   assert.match(reminder.injectSteps[0].systemMessage.systemMessage, /Code Discovery Protocol/);
 
   const routing = runShim(out("commit-tools"), "session-start:routing-reminder", start).output;
-  assert.ok(routing.injectSteps[0].systemMessage.systemMessage.includes(out("commit-tools", "skills/commit-action/SKILL.md")));
+  assert.ok(routing.injectSteps[0].systemMessage.systemMessage.includes(out("commit-tools", "skills/commit/SKILL.md")));
 });
 
 test("failure handling: a missing or hung script does not block; stop exit 2 continues", async (t) => {

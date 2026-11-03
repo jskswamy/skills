@@ -1,5 +1,5 @@
 #!/bin/bash
-# Blocks direct Git commits so they go through the commit-action workflow.
+# Blocks direct Git commits so they go through the commit-tools:commit workflow.
 # Reads a Claude-format PreToolUse event on stdin; exit 2 blocks with the
 # reason on stderr. Needs only bash (3.2+) and jq; without jq it does nothing.
 #
@@ -9,7 +9,7 @@ command -v jq >/dev/null 2>&1 || exit 0
 export LC_ALL=C
 
 MAX_SCAN_BYTES=16384
-COMMIT_REQUIRED="Direct commit blocked. Load the commit-action skill (/commit), validate the message and get explicit confirmation before retrying. Leave commits local; do not push or sync."
+COMMIT_REQUIRED="Direct commit blocked. Load the commit-tools:commit skill, validate the message and get explicit confirmation before retrying. Leave commits local; do not push or sync."
 
 # Splits a command into shell-like words in TOKENS, with ";" for each command
 # separator, and the bodies of $(...) and `...` in NESTED.

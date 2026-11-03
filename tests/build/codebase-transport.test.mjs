@@ -3,9 +3,9 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
 const consumers = [
-  "skills/refactor-scan/SKILL.md",
-  ...["ask", "graph", "impact", "index", "explore"].map(name => `skills/codebase-${name}/SKILL.md`),
-  "skills/review-commits/SKILL.md",
+  "skills/refactor/scan/SKILL.md",
+  ...["ask", "graph", "impact", "index", "explore"].map(name => `skills/codebase/${name}/SKILL.md`),
+  "skills/commit-tools/review-commits/SKILL.md",
   "agents/refactor/scanner.md",
 ];
 
@@ -26,14 +26,14 @@ for (const path of consumers) {
 }
 
 test("refactor dispatch carries transport to scanners", async () => {
-  const scan = await readFile("skills/refactor-scan/SKILL.md", "utf8");
+  const scan = await readFile("skills/refactor/scan/SKILL.md", "utf8");
   const agent = await readFile("agents/refactor/scanner.md", "utf8");
   assert.match(scan, /subagent prompt must include:[\s\S]*codebase_transport/);
   assert.match(agent, /codebase_transport.*mcp.*cli/);
 });
 
 test("commit review only disables semantic analysis after both transports fail", async () => {
-  const text = await readFile("skills/review-commits/SKILL.md", "utf8");
+  const text = await readFile("skills/commit-tools/review-commits/SKILL.md", "utf8");
   assert.match(text, /both MCP and CLI.*unavailable/);
   assert.doesNotMatch(text, /If the MCP server is \*\*not available\*\*/);
 });

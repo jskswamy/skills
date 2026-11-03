@@ -6,11 +6,15 @@ resources and `registry.json` into that harness's install tree under `dist/`:
 
 | Harness | Generated output |
 | --- | --- |
-| Claude Code | `dist/plugins/<plugin-name>/`, `.claude-plugin/marketplace.json` |
-| Pi | `dist/plugins/<plugin-name>/` (`package.json#pi`, `prompts/`, `runtime/pi/`) |
-| Antigravity | `dist/antigravity/plugins/<plugin-name>/` and `dist/plugins/<plugin-name>/plugin.json` |
-| OpenCode | `dist/plugins/<plugin-name>/` (`package.json`, `index.js`, `.opencode/plugins/index.js`, `runtime/opencode/`) |
+| Claude Code | `dist/claude-code/plugins/<plugin-name>/`, `.claude-plugin/marketplace.json` |
+| Pi | `dist/pi/plugins/<plugin-name>/` (`package.json#pi`, `prompts/`, `runtime/pi/`) |
+| Antigravity | `dist/antigravity/plugins/<plugin-name>/` (each with `.antigravity-plugin/plugin.json`) |
+| OpenCode | `dist/opencode/plugins/<plugin-name>/` (`package.json`, `index.js`, `.opencode/plugins/index.js`, `runtime/opencode/`) |
 | Codex | `dist/codex/plugins/<plugin-name>/` (`.codex-plugin/plugin.json`, `codex-skills/`), `.agents/plugins/marketplace.json` |
+
+Each harness reads only its own tree; no adapter writes into another's.
+These paths exist after the next release (the last release shipped
+`dist/plugins/<plugin-name>/`).
 
 `npm run build` writes this into a temp dir and prints it; only the release
 (`npm run build:release`) writes it into the repo. Edit canonical resources,
@@ -20,8 +24,7 @@ a release.
 ## Canonical Resource Directories
 
 ```text
-skills/          # Agent Skills source of truth
-commands/        # Claude command wrappers grouped by plugin
+skills/          # Agent Skills source of truth: skills/<plugin>/<skill>/
 agents/          # agent prompts grouped by plugin
 hooks/           # hook definitions and scripts grouped by plugin
 templates/       # reusable templates and static assets
@@ -36,10 +39,11 @@ canonical source or the adapter that writes it, and regenerate.
 Create:
 
 ```text
-skills/<skill-name>/SKILL.md
+skills/<plugin-name>/<skill-name>/SKILL.md
 ```
 
-Use Agent Skills frontmatter:
+The skill is the only authored file for a capability; there are no command
+files. Use Agent Skills frontmatter:
 
 ```markdown
 ---
@@ -52,48 +56,36 @@ description: What this skill does and when to use it.
 Instructions here.
 ```
 
-Use lowercase hyphenated names. Keep shared skill prose harness-neutral where
-possible. When a harness needs special handling, describe the generic action
-first and name harness-specific commands second.
+Use lowercase hyphenated names. The `name` equals the folder name, and it
+must not start with the plugin name: the skill `backlog` in the `craft`
+plugin is `craft:backlog`, not `craft-backlog`. A skill that belongs to no
+plugin (such as `release`) sits directly under `skills/<skill-name>/`.
 
-## Add Commands, Agents, Hooks, or Templates
+A skill is runnable by name unless its frontmatter has `user-invocable: false`,
+which marks it model-only. Pi and OpenCode get a prompt or command per
+runnable skill and none for a model-only one.
+
+Refer to another skill by its qualified name, `plugin:skill`, or
+`/plugin:skill` where the text tells the user to run it, even within the same
+plugin. The build rewrites these for Pi and OpenCode (`plugin-skill`) and Codex
+(`$plugin:skill`). A token that names no skill is left alone, and a test fails
+when a source file names a skill that does not exist.
+
+Keep shared skill prose harness-neutral where possible. When a harness needs
+special handling, describe the generic action first and name
+harness-specific commands second. How each harness runs a skill is in
+[`docs/command-skill-map.md`](command-skill-map.md).
+
+## Add Agents, Hooks, or Templates
 
 Use plugin-grouped paths:
 
 ```text
-commands/<plugin-name>/<command>.md
 agents/<plugin-name>/<agent>.md
 hooks/<plugin-name>/hooks.json
 templates/<plugin-name>/<template>
 shared-scripts/<plugin-name>/<script>
 ```
-
-## Command Wrappers
-
-For cross-harness workflows, put the full workflow in
-`skills/<name>/SKILL.md`. Claude command files under `commands/` should be
-thin wrappers that invoke the canonical skill and forward all arguments
-unchanged.
-
-Example command wrapper:
-
-```markdown
----
-name: ask
-description: Ask a natural language question about the codebase
-argument-hint: "<question>"
----
-
-# /codebase:ask Command
-
-Invoke the `codebase-ask` skill with the user's question.
-Forward all arguments exactly as provided.
-```
-
-Each harness then exposes the command its own way (a Pi prompt, an
-Antigravity skill, an OpenCode command), and the skill stays invocable by
-name. Keep the mapping visible in
-[`docs/command-skill-map.md`](command-skill-map.md).
 
 ## Register Resources
 
@@ -108,8 +100,7 @@ Update `registry.json`:
   "category": "utilities",
   "tags": ["utility"],
   "resources": {
-    "skills": ["my-skill"],
-    "commands": ["my-plugin/do.md"],
+    "skills": ["my-plugin/my-skill"],
     "agents": [],
     "hooks": [],
     "templates": [],
@@ -188,11 +179,13 @@ resources, the registry schema and the other adapters stay unchanged.
    It exports:
 
    - `id`: the harness id used in `registry.json`.
-   - `capabilities`: a mode for each of `skills`, `commands`, `agents` and
-     `hooks` (`native`, `as-skill`, `as-file`, `shim` or `none`), and for
+   - `capabilities`: a mode for each of `skills`, `agents` and
+     `hooks` (`native`, `as-file`, `shim` or `none`), and for
      `hooks` the list of `events` it can enforce.
+   - `pluginsDir`: where it writes, `dist/<id>/plugins`. The build clears it
+     before the adapters run.
    - `generate({ repoRoot, outRoot, model, plugin, state, report })`:
-     writes one plugin's output under `outRoot/dist/<id>/`. Read sources
+     writes one plugin's output under `outRoot/dist/<id>/plugins/<plugin>/`, and nothing under another harness's tree. Read sources
      from `repoRoot`, write only under `outRoot`. `model` holds the
      plugin's loaded resources.
    - `validate({ repoRoot, outRoot, plugin })`: returns a list of error
@@ -210,9 +203,13 @@ resources, the registry schema and the other adapters stay unchanged.
    `report.add({ kind, resource, status, reason })`, where `status` is
    `degraded`, `skipped`, `not-applicable` or `error`. Reuse the conversions
    in [`scripts/lib/transforms/`](../scripts/lib/transforms/) (frontmatter,
-   command to skill, agent mapping, path tokens, tool names, hooks) and
-   `wrapperLayout` from `scripts/lib/layout.mjs`, which hook commands address
-   through `${CLAUDE_PLUGIN_ROOT}`.
+   names and reference rewriting, agent mapping, path tokens, tool names,
+   hooks) and `wrapperLayout` from `scripts/lib/layout.mjs`, which hook
+   commands address through `${CLAUDE_PLUGIN_ROOT}`. A harness with no
+   namespace gives each skill the id `derivedId(plugin, skill)`
+   (`plugin-skill`), rewrites references with `rewriteTree` or
+   `copyRewrittenSkills`, and writes its entry per runnable skill (`isRunnable`),
+   as Pi and OpenCode do.
 
 2. **Map tools and run hooks.** Add `harnesses/<id>/tools.mjs`, a table
    keyed by Claude tool name giving the harness's tool name and any renamed
@@ -245,4 +242,4 @@ resources, the registry schema and the other adapters stay unchanged.
    `npm run validate` and `npm test`, add `harnesses/<id>/README.md` with
    install steps, and add the harness to the capability table in the
    [README](../README.md#harness-support) and to the
-   [Command to Skill Map](command-skill-map.md).
+   [invocation forms](command-skill-map.md).

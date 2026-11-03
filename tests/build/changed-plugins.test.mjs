@@ -15,7 +15,7 @@ const plugin = (name, version = "1.0.0") => ({
   name,
   version,
   description: `${name} plugin`,
-  resources: { skills: [`${name}-skill`], commands: [], agents: [], hooks: [], templates: [], extra: [] },
+  resources: { skills: [`${name}/skill`], agents: [], hooks: [], templates: [], extra: [] },
   harnesses: { antigravity: { enabled: true }, opencode: { enabled: true } },
 });
 const registry = (plugins) => ({ marketplace: { name: "mp", description: "d", owner: { name: "o" } }, plugins });
@@ -26,7 +26,7 @@ async function fixture(t) {
   const outRoot = await mkdtemp(join(tmpdir(), "changed-out-"));
   t.after(() => Promise.all([rm(repoRoot, { recursive: true, force: true }), rm(outRoot, { recursive: true, force: true })]));
   for (const name of ["a", "b"]) {
-    await write(join(repoRoot, `skills/${name}-skill/SKILL.md`), `---\nname: ${name}-skill\ndescription: Use when ${name}.\n---\n`);
+    await write(join(repoRoot, `skills/${name}/skill/SKILL.md`), `---\nname: skill\ndescription: Use when ${name}.\n---\n`);
   }
   await runAdapters({ repoRoot, registry: registry([plugin("a"), plugin("b")]) });
   const fresh = async (plugins) => {
@@ -44,7 +44,7 @@ test("version-only change is not a change", async (t) => {
 
 test("source change reports only that plugin", async (t) => {
   const { repoRoot, fresh } = await fixture(t);
-  await write(join(repoRoot, "skills/a-skill/SKILL.md"), "---\nname: a-skill\ndescription: Use when a changes.\n---\n");
+  await write(join(repoRoot, "skills/a/skill/SKILL.md"), "---\nname: skill\ndescription: Use when a changes.\n---\n");
   assert.deepEqual(await fresh([plugin("a"), plugin("b")]), ["a"]);
 });
 
@@ -58,7 +58,7 @@ test("adapter-only change is reported", async (t) => {
   const { repoRoot, outRoot } = await fixture(t);
   const reg = registry([plugin("a"), plugin("b")]);
   await runAdapters({ repoRoot, outRoot, registry: reg });
-  await write(join(outRoot, "dist/plugins/b/index.js"), "// changed by an adapter\n");
+  await write(join(outRoot, "dist/opencode/plugins/b/index.js"), "// changed by an adapter\n");
   assert.deepEqual(await changedPlugins({ repoRoot, outRoot }), ["b"]);
 });
 

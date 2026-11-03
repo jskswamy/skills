@@ -97,6 +97,14 @@ release -n -b minor         # dry run with minor bump
 
    If no plugins changed (e.g. only root-level docs changed), skip this step.
 
+   **Breaking renames:** when a plugin renamed or removed a skill name (for
+   example the v3 release that deleted `commands/` and dropped plugin prefixes
+   from skill names), bump that plugin by a major version regardless of
+   `--bump`. Call the break out in the release notes and keep
+   `MIGRATION-v3.md` (old and new names, new install paths) current. For the
+   v3 release also run `git rm -r dist/plugins` before staging, because
+   `npm run build:release` no longer writes that folder.
+
 ### Step 3: Calculate New Release Tag
 
 1. **Get the current version:** the last git tag (from Step 2.2), e.g.
@@ -193,7 +201,7 @@ here) before the final go/no-go.
 ### Step 7: Commit Changes (Two Commits)
 
 Use this repo's own commit workflow for message style consistency — in
-Claude Code that's the `commit-tools` plugin's commit skill (`/commit`); in
+Claude Code that's the `commit-tools` plugin's commit skill (`/commit-tools:commit`); in
 another harness, use whatever equivalent commit-message convention this repo
 documents, or fall back to a plain `git commit -m` with the message shown
 below.
@@ -316,7 +324,7 @@ Tag that would be created:
 
 - **registry.json is the source of truth:** Each plugin's version lives there. There is no marketplace-wide version field — the git tag is the only repo-wide version marker.
 - **Generated files, never hand-edited:** `.claude-plugin/marketplace.json`, `.agents/plugins/marketplace.json`, and everything under `dist/` are produced by `npm run build:release` from `registry.json` and the sources. Editing them directly will be overwritten by the next release.
-- **Harness-agnostic:** `npm run build:release` writes the output of every harness under `dist/`: unified per-plugin bundles for Claude Code, Codex, Pi, OpenCode, and Antigravity in `dist/plugins/<plugin>/`, and standalone Antigravity plugins in `dist/antigravity/plugins/`. Every harness manifest carries each plugin's version, so stage `dist/` with the bump.
+- **Harness-agnostic:** `npm run build:release` writes the output of every harness under `dist/`: one generated tree per harness, `dist/<harness>/plugins/<plugin>/` for `claude-code`, `codex`, `antigravity`, `opencode` and `pi`; there is no shared `dist/plugins/`. Every harness manifest carries each plugin's version, so stage `dist/` with the bump.
 - **Auto-bump:** Plugins listed by `node scripts/changed-plugins.mjs` (built output differs from the committed `dist/`, version fields ignored) get their `registry.json` version bumped (same bump type as `--bump`), except brand-new plugins.
 - **Two-commit workflow:** version bumps and changelog are always in separate commits.
 - **git-cliff required:** changelog generation requires git-cliff (available via `nix develop`).

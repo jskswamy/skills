@@ -15,9 +15,6 @@ import { claudeHookInput, toClaudeToolName } from "../lib/hook-input.mjs";
 import { START_BUDGET_MS, runEvent } from "../lib/hook-runner.mjs";
 import { OPENCODE_TOOLS } from "./tools.mjs";
 
-// Commands OpenCode itself defines; a generated command must not shadow them.
-export const BUILTIN_COMMANDS = ["init", "review"];
-
 const REQUIRED = {
   skills: ["id", "name", "description", "path", "content"],
   commands: ["name", "description", "template"],

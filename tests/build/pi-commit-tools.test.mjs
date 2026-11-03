@@ -14,7 +14,7 @@ import { readJson } from "../../scripts/lib/fs-utils.mjs";
 const outRoot = await mkdtemp(join(tmpdir(), "pi-commit-tools-"));
 test.after(() => rm(outRoot, { recursive: true, force: true }));
 await runAdapters({ repoRoot: ".", outRoot, registry: await readJson("registry.json"), adapters: [piAdapter] });
-const PI = join(outRoot, "dist/plugins/commit-tools");
+const PI = join(outRoot, "dist/pi/plugins/commit-tools");
 const { createRuntime, loadManifest } = await import(pathToFileURL(join(PI, "runtime/pi/runtime.mjs")).href);
 
 async function load(t, entries = loadManifest()) {
@@ -29,19 +29,19 @@ async function load(t, entries = loadManifest()) {
   return { events, messages, logs, ctx: { cwd } };
 }
 
-test("/commit is a generated prompt that forwards its arguments to commit-action", async () => {
-  const prompt = await readFile(join(PI, "prompts/commit.md"), "utf8");
-  assert.match(prompt, /^description: Generate and create git commit messages/m);
-  assert.match(prompt, /`commit-action` skill/);
+test("/commit is a generated prompt that forwards its arguments to commit-tools-commit", async () => {
+  const prompt = await readFile(join(PI, "prompts/commit-tools-commit.md"), "utf8");
+  assert.match(prompt, /^description: Create a validated git commit\./m);
+  assert.match(prompt, /`commit-tools-commit` skill/);
   assert.match(prompt, /\$ARGUMENTS/);
 });
 
-test("session start routes commits through commit-action without a user commit request", async (t) => {
+test("session start routes commits through commit-tools-commit without a user commit request", async (t) => {
   const { events, messages, ctx } = await load(t);
   await events.get("session_start")({ reason: "startup" }, ctx);
   assert.equal(messages.length, 1);
   assert.match(messages[0].content, /before.*commit/i);
-  assert.ok(messages[0].content.includes(join(PI, "skills/commit-action/SKILL.md")));
+  assert.ok(messages[0].content.includes(join(PI, "skills/commit/SKILL.md")));
   assert.equal(messages[0].display, false);
 });
 
@@ -55,7 +55,7 @@ test("Pi blocks direct and codemode-nested bash commits and direct MCP commits",
   ]) {
     const result = await handler(event, ctx);
     assert.equal(result?.block, true, event.toolCallId);
-    assert.match(result.reason, /commit-action/);
+    assert.match(result.reason, /commit-tools-commit/);
   }
   assert.equal(await handler({ toolName: "bash", input: { command: "git log -1" }, toolCallId: "c2" }, ctx), undefined);
   assert.equal(

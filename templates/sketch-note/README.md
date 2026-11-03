@@ -21,15 +21,15 @@ claude --plugin-dir ./dist/claude-code/sketch-note
 ### Command
 
 ```bash
-/sketch                           # Interactive mode selection
-/sketch --mode conversation       # Sketch current conversation
-/sketch --mode code               # Visualize code architecture
-/sketch --mode custom             # Custom content input
-/sketch --output my-diagram       # Specify output filename
-/sketch --format png              # PNG via Excalidraw conversion
-/sketch --format both             # Export both Excalidraw and PNG
-/sketch --format direct-png       # Direct PNG (no Excalidraw file)
-/sketch --format png --scale 4    # High-resolution PNG (4x)
+/sketch-note:sketch                           # Interactive mode selection
+/sketch-note:sketch --mode conversation       # Sketch current conversation
+/sketch-note:sketch --mode code               # Visualize code architecture
+/sketch-note:sketch --mode custom             # Custom content input
+/sketch-note:sketch --output my-diagram       # Specify output filename
+/sketch-note:sketch --format png              # PNG via Excalidraw conversion
+/sketch-note:sketch --format both             # Export both Excalidraw and PNG
+/sketch-note:sketch --format direct-png       # Direct PNG (no Excalidraw file)
+/sketch-note:sketch --format png --scale 4    # High-resolution PNG (4x)
 ```
 
 ### Agent

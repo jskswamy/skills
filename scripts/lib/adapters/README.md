@@ -15,6 +15,7 @@ Central registry and execution runner for harness build adapters (`claude-code`,
 - `claude-code` is enabled by default for every plugin unless `plugin.harnesses["claude-code"].enabled === false`; all other harnesses (`antigravity`, `opencode`, `pi`, `codex`) are opt-in and require `enabled === true`.
 - For each adapter, `generateRoot` executes once before per-plugin `generate` calls, and its return value (`state`) is passed to every `generate` call and to `finish`.
 - `withTempBuild` guarantees cleanup of its temporary build directory in a `finally` block regardless of whether `runAdapters` or `use` throws.
+- Each adapter exports `pluginsDir` (`dist/<harness>/plugins`), one folder per harness; `runAdapters` clears each before generating, and no adapter writes into another's.
 - Source files are always read from `repoRoot` while generated artifacts are written exclusively under `outRoot`.
 
 ## Side Effects

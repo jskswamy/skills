@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
-import { access, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { access, mkdir, readdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { promisify } from "node:util";
@@ -23,8 +23,7 @@ const PLUGIN = {
   category: "workflow",
   tags: ["sample", "codex"],
   resources: {
-    skills: ["sample-skill"],
-    commands: ["sample/do.md"],
+    skills: ["sample/do"],
     agents: ["sample/helper.md"],
     hooks: ["sample/hooks.json", "sample/session-reminder.sh"],
     templates: [],
@@ -42,10 +41,12 @@ const PLUGIN = {
 
 async function fixture() {
   const repoRoot = await mkdtemp(join(tmpdir(), "codex-adapter-"));
-  await write(join(repoRoot, "skills/sample-skill/SKILL.md"), "---\nname: sample-skill\ndescription: Use when testing.\n---\n\nBody\n");
-  await write(join(repoRoot, "commands/sample/do.md"), "---\ndescription: Do something\n---\n\nInvoke `sample-skill`.\n");
+  await write(
+    join(repoRoot, "skills/sample/do/SKILL.md"),
+    "---\nname: do\ndescription: Use when testing.\n---\n\nSee /sample:do, but not docs/sample:do.\n",
+  );
   await write(join(repoRoot, "agents/sample/helper.md"), "---\nname: helper\ndescription: Helper\n---\n");
-  await write(join(repoRoot, "hooks/sample/session-reminder.sh"), "#!/usr/bin/env bash\necho hi\n");
+  await write(join(repoRoot, "hooks/sample/session-reminder.sh"), "#!/usr/bin/env bash\necho hi /sample:do\n");
   await write(
     join(repoRoot, "hooks/sample/hooks.json"),
     JSON.stringify({
@@ -98,7 +99,7 @@ async function fixture() {
   return { repoRoot, registry };
 }
 
-test("codex adapter writes .agents/plugins/marketplace.json, .codex-plugin/plugin.json, codex-hooks.json, and converts commands to skills", async (t) => {
+test("codex adapter writes .agents/plugins/marketplace.json, .codex-plugin/plugin.json, codex-hooks.json, and ships no wrapper skills or commands", async (t) => {
   const { repoRoot, registry } = await fixture();
   t.after(() => rm(repoRoot, { recursive: true, force: true }));
 
@@ -144,11 +145,15 @@ test("codex adapter writes .agents/plugins/marketplace.json, .codex-plugin/plugi
     },
   });
 
-  await access(join(repoRoot, "dist/codex/plugins/sample/codex-skills/sample-skill/SKILL.md"));
-  await access(join(repoRoot, "dist/codex/plugins/sample/codex-skills/sample-cmd-do/SKILL.md"));
+  const skills = join(repoRoot, "dist/codex/plugins/sample/codex-skills");
+  await access(join(skills, "do/SKILL.md"));
+  assert.deepEqual(await readdir(skills), ["do"], "no -cmd- wrapper skills");
+  // /plugin:skill becomes $plugin:skill in text, but not inside a path and not in a hook script.
+  assert.match(await readFile(join(skills, "do/SKILL.md"), "utf8"), /See \$sample:do, but not docs\/sample:do\./);
+  assert.equal(await readFile(join(repoRoot, "dist/codex/plugins/sample/hooks/session-reminder.sh"), "utf8"), "#!/usr/bin/env bash\necho hi /sample:do\n");
   await access(join(repoRoot, "dist/codex/plugins/sample/hooks/session-reminder.sh"));
   await access(join(repoRoot, "dist/codex/plugins/sample/.mcp.json"));
-  await assert.rejects(access(join(repoRoot, "dist/codex/plugins/sample/commands")), "commands are converted to skills");
+  await assert.rejects(access(join(repoRoot, "dist/codex/plugins/sample/commands")), "no commands folder ships");
   await assert.rejects(access(join(repoRoot, "dist/codex/plugins/sample/agents")), "agents are excluded");
   await assert.rejects(access(join(repoRoot, "dist/codex/plugins/sample/hooks/hooks.json")), "Claude hooks.json is not copied in standalone codex build");
 
@@ -253,7 +258,7 @@ test("real plugins build isolated codex-hooks.json and execute carried hooks cle
   const commitHooks = JSON.parse(await readFile(join(outRoot, "dist/codex/plugins/commit-tools/codex-hooks.json"), "utf8"));
   assert.deepEqual(Object.keys(commitHooks.hooks), ["SessionStart", "PreToolUse"]);
   const { stdout: routingOut } = await execFileP("bash", [join(outRoot, "dist/codex/plugins/commit-tools/hooks/scripts/routing-reminder.sh")]);
-  assert.match(routingOut, /codex-skills\/commit-action\/SKILL\.md/);
+  assert.match(routingOut, /codex-skills\/commit\/SKILL\.md/);
 
   // codebase session-reminder.sh detects codebase-memory-mcp configured in CODEX_HOME/config.toml even without the binary on PATH.
   const codexHome = await mkdtemp(join(tmpdir(), "codex-home-"));

@@ -1,9 +1,7 @@
-import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import { commandSkillName } from "../antigravity/adapter.mjs";
-import { ensureDir, pathExists, readJson, writeJson } from "../../scripts/lib/fs-utils.mjs";
-import { copyLayout, wrapperLayout } from "../../scripts/lib/layout.mjs";
-import { commandToSkill } from "../../scripts/lib/transforms/command-to-skill.mjs";
+import { pathExists, readJson, writeJson } from "../../scripts/lib/fs-utils.mjs";
+import { copyLayout, rewriteTree, wrapperLayout } from "../../scripts/lib/layout.mjs";
+import { referencePairs } from "../../scripts/lib/transforms/names.mjs";
 import { canonicalPluginPaths } from "../../scripts/lib/transforms/paths.mjs";
 import { carryHooks } from "../../scripts/lib/transforms/policy.mjs";
 import { CLAUDE_EVENTS, rewriteMatcher } from "../../scripts/lib/transforms/tools.mjs";
@@ -29,7 +27,6 @@ export const id = "codex";
 
 export const capabilities = {
   skills: { mode: "native" },
-  commands: { mode: "as-skill" },
   agents: { mode: "none" },
   hooks: { mode: "native", events: ["session-start", "pre-tool", "post-tool", "stop"] },
 };
@@ -53,27 +50,25 @@ export async function generateRoot({ outRoot, registry, plugins }) {
       tags: plugin.tags ?? [],
     })),
   });
+  return { pairs: referencePairs(registry) };
 }
 
-export async function generate({ repoRoot, outRoot, model, report }) {
+export async function generate({ repoRoot, outRoot, model, report, state }) {
   const pluginRoot = join(outRoot, pluginsDir, model.name);
 
   // Codex reads codex-skills/, codex-hooks.json, and optional .mcp.json/.app.json;
-  // commands are converted into skills below, while agents are not supported.
-  // A commands/ folder here would make Codex convert them a second time.
+  // agents are not supported. A commands/ folder here would make Codex convert it
+  // into skills, so none is ever shipped.
   const fullLayout = wrapperLayout(model);
   const layout = fullLayout
-    .filter(({ kind, from }) => !["commands", "agents"].includes(kind) && !(kind === "hooks" && from.endsWith("hooks.json")))
+    .filter(({ kind, from }) => kind !== "agents" && !(kind === "hooks" && from.endsWith("hooks.json")))
     .map((entry) => (entry.kind === "skills" ? { ...entry, to: entry.to.replace(/^skills\//, `${SKILLS_DIR}/`) } : entry));
   await copyLayout({ repoRoot, layout, to: pluginRoot });
 
-  for (const command of model.commands) {
-    const skill = commandToSkill(
-      { name: command.name, text: await readFile(join(repoRoot, command.path), "utf8") },
-      { name: commandSkillName(model.name, command.name) },
-    );
-    await ensureDir(join(pluginRoot, SKILLS_DIR, skill.name));
-    await writeFile(join(pluginRoot, SKILLS_DIR, skill.name, "SKILL.md"), skill.content);
+  // Codex runs a skill as $plugin:skill, so a /plugin:skill in text becomes $plugin:skill.
+  // Hook scripts are not rewritten: a leading $ would be expanded by the shell.
+  for (const dir of [SKILLS_DIR, "templates", "README.md"]) {
+    await rewriteTree(join(pluginRoot, dir), { pairs: state.pairs, join: ":", sigil: "$", exts: [".md", ".yaml"] });
   }
 
   for (const agent of model.agents) {
@@ -148,7 +143,8 @@ export async function validate({ repoRoot, outRoot = repoRoot, plugin }) {
       errors.push(`${label}: .codex-plugin/plugin.json missing ${field}`);
     }
   }
-  for (const skill of plugin.resources?.skills ?? []) {
+  for (const entry of plugin.resources?.skills ?? []) {
+    const skill = entry.split("/").at(-1);
     if (!(await pathExists(join(out, SKILLS_DIR, skill, "SKILL.md")))) {
       errors.push(`${label}: missing ${SKILLS_DIR}/${skill}/SKILL.md`);
     }

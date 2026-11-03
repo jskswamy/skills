@@ -1,17 +1,19 @@
 # Resource & Hook Transforms (`scripts/lib/transforms`)
 
 ## Overview
-Pure and file-backed transformation utilities that convert canonical Claude-format skills, commands, agents, frontmatter documents, tool matchers, and hooks into harness-specific formats and enforce cross-harness hook portability policies.
+Pure and file-backed transformation utilities that convert canonical Claude-format skills, agents, frontmatter documents, tool matchers, and hooks into harness-specific formats and enforce cross-harness hook portability policies.
 
 ## Interface
 - `mapAgent(text, { keep = [], rename = {}, set = {}, trimExamples = false })` (`agents.mjs`): Parses an agent Markdown document, filters or renames YAML frontmatter keys, optionally strips `<example>...</example>` blocks from `description`, merges `set` fields, and serializes the result.
-- `commandToSkill({ name, text }, { name: skillName = name } = {})` (`command-to-skill.mjs`): Converts a command Markdown file into a skill object `{ name, content }` with `name` and `description` frontmatter.
 - `parseDocument(text)` (`frontmatter.mjs`): Splits a Markdown document with optional YAML frontmatter into `{ frontmatter, body }`.
 - `writeDocument({ frontmatter, body })` (`frontmatter.mjs`): Serializes `{ frontmatter, body }` back to Markdown with YAML frontmatter (plain or JSON-quoted scalars, `|` block scalars for multiline strings, and raw array lines).
 - `parseHooks(hooksJson)` (`hooks.mjs`): Flattens a Claude-format `hooks.json` object into normalized hook entries `{ id, event, matcher?, command, timeoutMs? }` with timeouts converted from seconds to milliseconds.
 - `hookId(event, command, index)` (`hooks.mjs`): Computes a stable hook identifier (`<event>:<script-basename>` or `<event>:<index>`) used by `registry.json` optional hook markers.
 - `loadPluginHooks({ repoRoot, hooks })` (`hooks.mjs`): Reads and parses all `hooks.json` files listed in a plugin model's `hooks` array from `repoRoot`.
-- `commandNames(plugins, reserved = [])` (`names.mjs`): Returns a resolver `(plugin, name) => string` that prefixes command names with `<plugin>-` when another plugin or the `reserved` list also claims `name`.
+- `derivedId(plugin, name)` (`names.mjs`): The id a skill or agent has on Pi and OpenCode, `plugin-name`, without repeating a plugin prefix the name already has.
+- `referencePairs(registry)` (`names.mjs`): The set of every `plugin:skill` and `plugin:agent` pair in the registry, enabled or not.
+- `rewriteReferences(text, pairs, { join = "-", sigil })` (`names.mjs`): Rewrites `plugin:skill` or `/plugin:skill` tokens that name a pair: `join` `"-"` gives `plugin-skill` (Pi, OpenCode); `join` `":"` with `sigil` `"$"` turns a leading `/` into `$` (Codex). Other text, URLs and unknown pairs are left alone.
+- `wrapperText(id)` (`names.mjs`): The body of a Pi prompt template and an OpenCode command: invoke skill `id` and forward `$ARGUMENTS`.
 - `rewritePluginRoot(command, replacement)` (`paths.mjs`): Replaces `${CLAUDE_PLUGIN_ROOT}` and `$CLAUDE_PLUGIN_ROOT` tokens in a hook command string with `replacement`.
 - `pluginRootPaths(command)` (`paths.mjs`): Extracts all plugin-relative paths referenced via `${CLAUDE_PLUGIN_ROOT}/...` or `$CLAUDE_PLUGIN_ROOT/...` in a hook command.
 - `canonicalPluginPaths(command, layout, root)` (`paths.mjs`): Maps wrapper-relative `${CLAUDE_PLUGIN_ROOT}/<to>` paths in `command` back to `<root>/<from>` canonical paths using a `wrapperLayout` table.

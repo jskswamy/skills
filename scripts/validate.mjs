@@ -12,15 +12,16 @@ import { validateOptionalHooks } from "./lib/transforms/policy.mjs";
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
 const registry = await loadRegistry(join(repoRoot, "registry.json"));
 
-const skills = await validateSkills({ repoRoot });
-
-const errors = [
-  ...validateRegistryShape(registry),
-  ...(await validateRegistryResources({ repoRoot, registry })),
-  ...validateHarnessIds(registry),
-  ...(await validateOptionalHooks({ repoRoot, registry })),
-  ...skills.errors,
-];
+// A malformed registry would throw inside the checks below, so shape comes first.
+const errors = validateRegistryShape(registry);
+if (errors.length === 0) {
+  errors.push(
+    ...(await validateRegistryResources({ repoRoot, registry })),
+    ...validateHarnessIds(registry),
+    ...(await validateOptionalHooks({ repoRoot, registry })),
+    ...(await validateSkills({ repoRoot, registry })).errors,
+  );
+}
 
 if (errors.length === 0) {
   await withTempBuild({ repoRoot, registry }, async ({ outRoot, report }) => {

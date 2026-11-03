@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
-const skill = await readFile("skills/bivouac/SKILL.md", "utf8");
+const skill = await readFile("skills/bivouac/session/SKILL.md", "utf8");
 
 test("bivouac routes repo-independent image operations before repo preflight", () => {
   const imageRoute = skill.indexOf("Route image requests");

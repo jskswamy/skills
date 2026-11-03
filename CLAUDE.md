@@ -9,24 +9,21 @@ This is a multi-harness agent capabilities repository. Reusable behavior lives i
 ```text
 # Source (edit these)
 registry.json                         # Source of truth for plugin metadata, resource membership and harnesses
-skills/                               # Canonical Agent Skills source
-commands/                             # Canonical slash-command markdown grouped by plugin
+skills/<plugin>/<skill>/              # Canonical Agent Skills source; the only authored entry (no commands/ folder)
 agents/                               # Canonical agent prompts grouped by plugin
 hooks/                                # Canonical Claude-format hook definitions/scripts grouped by plugin
 templates/                            # Canonical templates/static assets, including each plugin's README.md
 shared-scripts/                       # Canonical shared runtime scripts
 scripts/build.mjs, scripts/validate.mjs, scripts/changed-plugins.mjs
-scripts/lib/transforms/               # Conversions shared by adapters (frontmatter, commands, agents, hooks, tools, policy)
+scripts/lib/transforms/               # Conversions shared by adapters (frontmatter, names and references, agents, hooks, tools, policy)
 harnesses/lib/                        # Hook runner and tool translation copied into generated packages
 harnesses/<id>/                       # One folder per harness: adapter.mjs, runtime or shim, tool table, README
 package.json                          # Repository dev/test script runner
 
 # Generated (written only by the release: npm run build:release)
-.claude-plugin/marketplace.json       # Claude Code marketplace; sources point into dist/plugins
+.claude-plugin/marketplace.json       # Claude Code marketplace; sources point into dist/claude-code/plugins
 .agents/plugins/marketplace.json      # Codex marketplace; sources point into dist/codex/plugins
-dist/plugins/<plugin>/                # Unified per-plugin bundles (Claude Code, Pi, OpenCode, Antigravity discovery)
-dist/codex/plugins/<plugin>/          # Codex bundles; no commands/ (Codex would convert them into duplicate skills)
-dist/antigravity/plugins/<plugin>/    # Standalone Antigravity bulk-install plugins
+dist/<harness>/plugins/<plugin>/      # One generated tree per harness: claude-code, codex, antigravity, opencode, pi
 ```
 
 ## Source-of-Truth Rules
@@ -41,17 +38,16 @@ dist/antigravity/plugins/<plugin>/    # Standalone Antigravity bulk-install plug
 
 ## Creating or Updating a Plugin
 
-1. Add reusable skills under `skills/<skill-name>/SKILL.md` using Agent Skills frontmatter.
-2. Add commands under `commands/<plugin-name>/`.
-3. Add agents under `agents/<plugin-name>/`.
-4. Add hooks under `hooks/<plugin-name>/`.
-5. Add templates/assets under `templates/<plugin-name>/` or `shared-scripts/<plugin-name>/`.
-6. Register all resources in `registry.json`.
-7. Build into a temp dir and read the report:
+1. Add reusable skills under `skills/<plugin>/<skill>/SKILL.md` using Agent Skills frontmatter. The skill is the only authored entry (no `commands/` folder); its `name` equals the folder name and does not start with the plugin name. Set `user-invocable: false` for a model-only skill.
+2. Add agents under `agents/<plugin-name>/`.
+3. Add hooks under `hooks/<plugin-name>/`.
+4. Add templates/assets under `templates/<plugin-name>/` or `shared-scripts/<plugin-name>/`.
+5. Register all resources in `registry.json` (skills as `plugin/skill`).
+6. Build into a temp dir and read the report:
    ```bash
    npm run build
    ```
-8. Verify:
+7. Verify:
    ```bash
    npm run validate
    npm test
@@ -64,13 +60,13 @@ dist/antigravity/plugins/<plugin>/    # Standalone Antigravity bulk-install plug
 Claude Code plugin:
 
 ```bash
-claude --plugin-dir <dir>/dist/plugins/<plugin-name>
+claude --plugin-dir <dir>/dist/claude-code/plugins/<plugin-name>
 ```
 
 Pi package:
 
 ```bash
-pi -e <dir>/dist/plugins/<plugin-name>
+pi -e <dir>/dist/pi/plugins/<plugin-name>
 ```
 
 Antigravity and OpenCode: see `harnesses/antigravity/README.md` and `harnesses/opencode/README.md`. To add a harness, see `docs/authoring-skills.md#adding-a-harness`.

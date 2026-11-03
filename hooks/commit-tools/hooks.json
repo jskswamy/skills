@@ -1,5 +1,5 @@
 {
-  "description": "Route commits through the /commit workflow and intercept direct git commit attempts",
+  "description": "Route commits through the /commit-tools:commit workflow and intercept direct git commit attempts",
   "hooks": {
     "SessionStart": [
       {

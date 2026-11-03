@@ -31,7 +31,7 @@ echo "$PARKED" | python3 -c '
 import sys, json
 items = json.load(sys.stdin)
 if items:
-    lines = [f"You have {len(items)} parked idea(s). Review with: /parked list"]
+    lines = [f"You have {len(items)} parked idea(s). Review with: /craft:parked list"]
     lines += ["  - " + str(i.get("id", "?")) + ": " + str(i.get("title", "untitled")) for i in items]
     print(json.dumps({"systemMessage": "\n".join(lines)}))
 ' 2>/dev/null || exit 0

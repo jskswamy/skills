@@ -1,40 +1,52 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
+import { join } from "node:path";
+import * as opencode from "../../harnesses/opencode/adapter.mjs";
+import * as pi from "../../harnesses/pi/adapter.mjs";
+import { withTempBuild } from "../../scripts/lib/adapters/index.mjs";
+import { loadRegistry } from "../../scripts/lib/registry.mjs";
+import { loadPluginModel } from "../../scripts/lib/model.mjs";
+import { derivedId } from "../../scripts/lib/transforms/names.mjs";
 
-const wrappers = [
-  ["commands/bivouac/bivouac.md", "bivouac"],
-  ["commands/codebase/ask.md", "codebase-ask"],
-  ["commands/codebase/index.md", "codebase-index"],
-  ["commands/codebase/impact.md", "codebase-impact"],
-  ["commands/codebase/graph.md", "codebase-graph"],
-  ["commands/commit-tools/commit.md", "commit-action"],
-  ["commands/craft/backlog.md", "craft-backlog"],
-  ["commands/craft/decompose.md", "craft-decompose"],
-  ["commands/craft/deps.md", "craft-deps"],
-  ["commands/craft/epic.md", "craft-epic"],
-  ["commands/craft/execute.md", "execute-tasks"],
-  ["commands/craft/park.md", "park-idea"],
-  ["commands/craft/parked.md", "review-parked"],
-  ["commands/craft/task.md", "craft-task"],
-  ["commands/jot/capture.md", "jot-capture"],
-  ["commands/jot/configure.md", "jot-configure"],
-  ["commands/jot/setup.md", "jot-setup"],
-  ["commands/refactor/scan.md", "refactor-scan"],
-  ["commands/sketch-note/sketch.md", "sketch-note"],
-  ["commands/study/coach.md", "study-coach"],
-  ["commands/study/recall.md", "study-recall"],
-  ["commands/study/setup.md", "study-setup"],
-  ["commands/typst-notes/publish.md", "typst-publish"],
-];
-
-test("commands are thin wrappers over skills", async () => {
-  for (const [path, skill] of wrappers) {
-    const content = await readFile(path, "utf8");
-    assert.match(content, /^---[\s\S]*?---/, `${path} keeps frontmatter`);
-    assert.match(content, new RegExp(`\\b${skill}\\b`), `${path} names ${skill}`);
-    assert.match(content, /Forward all arguments/i, `${path} forwards arguments`);
-    const body = content.replace(/^---[\s\S]*?---\s*/, "");
-    assert.ok(body.split("\n").filter(Boolean).length <= 5, `${path} should be a thin wrapper`);
+test("Pi prompts and OpenCode commands are thin wrappers over runnable skills", async () => {
+  const repoRoot = process.cwd();
+  const registry = await loadRegistry(join(repoRoot, "registry.json"));
+  // every plugin on, so each harness builds all of them
+  const all = {
+    ...registry,
+    plugins: registry.plugins.map((p) => ({ ...p, harnesses: { ...p.harnesses, pi: { enabled: true }, opencode: { enabled: true } } })),
+  };
+  const expected = [];
+  for (const plugin of all.plugins) {
+    const model = await loadPluginModel({ repoRoot, plugin });
+    for (const skill of model.skills.filter((s) => s.userInvocable)) expected.push([plugin.name, derivedId(plugin.name, skill.name)]);
   }
+  assert.ok(expected.length > 0);
+
+  await withTempBuild({ repoRoot, registry: all, adapters: [pi, opencode] }, async ({ outRoot }) => {
+    const wrappers = [
+      ["dist/pi/plugins", "prompts"],
+      ["dist/opencode/plugins", "runtime/opencode/commands"],
+    ];
+    for (const [base, sub] of wrappers) {
+      const found = [];
+      for (const [plugin, id] of expected) {
+        const path = join(outRoot, base, plugin, sub, `${id}.md`);
+        const content = await readFile(path, "utf8");
+        found.push(`${plugin}/${id}`);
+        assert.match(content, new RegExp(`\\b${id}\\b`), `${path} names ${id}`);
+        assert.match(content, /Forward all arguments/i, `${path} forwards arguments`);
+        assert.ok(content.includes("$ARGUMENTS"), `${path} has the $ARGUMENTS placeholder`);
+        const body = content.replace(/^---[\s\S]*?---\s*/, "");
+        assert.ok(body.split("\n").filter((l) => l.trim()).length <= 5, `${path} should be a thin wrapper`);
+      }
+      // no wrapper exists for a skill that is not runnable
+      const onDisk = new Set();
+      for (const [plugin] of expected) {
+        for (const f of await readdir(join(outRoot, base, plugin, sub)).catch(() => [])) onDisk.add(`${plugin}/${f.slice(0, -3)}`);
+      }
+      assert.deepEqual([...onDisk].sort(), found.sort(), `${base} has exactly the runnable skills' wrappers`);
+    }
+  });
 });

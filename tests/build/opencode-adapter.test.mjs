@@ -8,7 +8,7 @@ import * as opencode from "../../harnesses/opencode/adapter.mjs";
 import { runAdapters } from "../../scripts/lib/adapters/index.mjs";
 import { expandCommand } from "../../harnesses/opencode/runtime.mjs";
 
-const PLUGINS = "dist/plugins";
+const PLUGINS = "dist/opencode/plugins";
 
 async function write(path, content) {
   await mkdir(join(path, ".."), { recursive: true });
@@ -39,7 +39,7 @@ function plugin(name, overrides = {}) {
     version: "1.0.0",
     description: `${name} plugin`,
     tags: ["t"],
-    resources: { skills: [`${name}-skill`], commands: [`${name}/setup.md`], agents: [], hooks: [], templates: [], extra: [] },
+    resources: { skills: [`${name}/setup`], agents: [], hooks: [], templates: [], extra: [] },
     harnesses: { opencode: { enabled: true } },
     ...overrides,
   };
@@ -47,8 +47,7 @@ function plugin(name, overrides = {}) {
 
 const ONE = plugin("one", {
   resources: {
-    skills: ["one-skill"],
-    commands: ["one/setup.md", "one/review.md", "one/run.md"],
+    skills: ["one/setup", "one/review", "one/run", "one/quiet"],
     agents: ["one/helper.md"],
     hooks: ["one/hooks.json", "one/reminder.sh", "one/sub.sh", "one/scripts"],
     templates: [],
@@ -59,19 +58,19 @@ const ONE = plugin("one", {
 async function fixture(t, plugins) {
   const repoRoot = await tempDir(t, "opencode-adapter-");
   for (const name of ["one", "two"]) {
-    await write(join(repoRoot, `skills/${name}-skill/SKILL.md`), `---\nname: ${name}-skill\ndescription: Use when ${name}.\n---\n\nBody of ${name}.\n`);
-    await write(join(repoRoot, `commands/${name}/setup.md`), `---\nname: setup\ndescription: Set up ${name}\n---\n\nInvoke the \`${name}-skill\` skill.\n`);
+    await write(join(repoRoot, `skills/${name}/setup/SKILL.md`), `---\nname: setup\ndescription: Set up ${name}\n---\n\nBody of ${name}.\n`);
   }
-  await write(join(repoRoot, "skills/one-skill/tests/x.test.mjs"), "");
-  await write(join(repoRoot, "commands/one/review.md"), "---\ndescription: Review\n---\n\nReview $1 then $ARGUMENTS.\n");
-  await write(join(repoRoot, "commands/one/run.md"), "---\ndescription: Run it\n---\n\nRun now.\n");
+  await write(join(repoRoot, "skills/one/setup/tests/x.test.mjs"), "");
+  await write(join(repoRoot, "skills/one/review/SKILL.md"), "---\nname: review\ndescription: Review\n---\n\nReview $1 then $ARGUMENTS.\n");
+  await write(join(repoRoot, "skills/one/run/SKILL.md"), "---\nname: run\ndescription: Run it\n---\n\nRun now.\n");
+  await write(join(repoRoot, "skills/one/quiet/SKILL.md"), "---\nname: quiet\ndescription: Model only\nuser-invocable: false\n---\n\nQuiet.\n");
   await write(
     join(repoRoot, "agents/one/helper.md"),
-    "---\nname: helper\ndescription: |\n  Helps with things.\n\n  <example>\n  user: help\n  </example>\nmodel: sonnet\ntools: Bash\n---\n\nYou help.\n",
+    "---\nname: helper\ndescription: |\n  Helps with things.\n\n  <example>\n  user: help\n  </example>\nmodel: sonnet\ntools: Bash\n---\n\nYou help, see /one:setup.\n",
   );
   await write(join(repoRoot, "templates/one/.mcp.json"), "{}");
   await write(join(repoRoot, "hooks/one/hooks.json"), JSON.stringify(HOOKS));
-  await write(join(repoRoot, "hooks/one/reminder.sh"), "echo '{\"hookSpecificOutput\":{\"additionalContext\":\"one reminder\"}}'");
+  await write(join(repoRoot, "hooks/one/reminder.sh"), "echo '{\"hookSpecificOutput\":{\"additionalContext\":\"one reminder, run /one:setup\"}}'");
   await write(join(repoRoot, "hooks/one/sub.sh"), "echo sub reminder");
   await write(join(repoRoot, "hooks/one/scripts/guard.sh"), "cat > /dev/null; sleep 30");
   await write(join(repoRoot, "hooks/one/scripts/nb.sh"), "exit 0");
@@ -91,7 +90,7 @@ async function realFixture(t, names) {
   for (const { resources: r } of plugins) {
     const paths = [
       ...r.skills.map((s) => `skills/${s}`),
-      ...["commands", "agents", "hooks", "templates"].flatMap((kind) => r[kind].map((entry) => `${kind}/${entry}`)),
+      ...["agents", "hooks", "templates"].flatMap((kind) => r[kind].map((entry) => `${kind}/${entry}`)),
       ...r.extra.map((e) => (typeof e === "string" ? e : e.from)),
     ];
     for (const path of paths) await cp(path, join(repoRoot, path), { recursive: true });
@@ -167,7 +166,7 @@ test("each plugin becomes a self-contained package that OpenCode can load by pat
   assert.match(await readFile(join(out, "index.js"), "utf8"), /createPlugin\(\{ id: "one"/);
   assert.match(await readFile(join(out, ".opencode/plugins/index.js"), "utf8"), /export \{ default \} from "\.\.\/\.\.\/index\.js"/);
   assert.deepEqual((await readdir(join(out, "runtime/lib"))).sort(), ["hook-input.mjs", "hook-runner.mjs"]);
-  assert.deepEqual((await readdir(join(out, "skills/one-skill"))), ["SKILL.md"]);
+  assert.deepEqual((await readdir(join(out, "skills/setup"))), ["SKILL.md"]);
   assert.deepEqual(await opencode.validate({ repoRoot, plugin: ONE }), []);
 
   const { plugin: loaded } = await load(out, fakeCtx());
@@ -182,21 +181,51 @@ test("skills, commands and agents are registered with valid payloads", async (t)
   const ctx = fakeCtx();
   await load(out, ctx);
 
-  assert.deepEqual(ctx.added.skills, [
-    { id: "one-skill", name: "one-skill", description: "Use when one.", path: join(out, "skills/one-skill/SKILL.md"), content: "\nBody of one.\n" },
-  ]);
-  // "setup" is in two plugins and "review" is OpenCode's own.
-  assert.deepEqual(ctx.added.commands.map((c) => c.name), ["one-setup", "one-review", "run"]);
+  assert.deepEqual(ctx.added.skills.map((x) => x.id), ["one-setup", "one-review", "one-run", "one-quiet"]);
+  assert.deepEqual(ctx.added.skills[0], {
+    id: "one-setup",
+    name: "one-setup",
+    description: "Set up one",
+    path: join(out, "skills/setup/SKILL.md"),
+    content: "\nBody of one.\n",
+  });
+  assert.match(await readFile(join(out, "skills/setup/SKILL.md"), "utf8"), /^name: one-setup$/m);
+  // one command per runnable skill; the model-only skill gets none.
+  assert.deepEqual(ctx.added.commands.map((c) => c.name), ["one-setup", "one-review", "one-run"]);
+  const template = await readFile(join(out, "runtime/opencode/commands/one-run.md"), "utf8");
+  assert.match(template, /\$ARGUMENTS/);
+  await assert.rejects(readFile(join(out, "runtime/opencode/commands/one-quiet.md"), "utf8"));
   await ctx.added.commands[2].execute({ sessionID: "s1", prompt: { text: "fast" }, delivery: "steer" });
-  assert.deepEqual(ctx.prompts, [{ sessionID: "s1", text: "\nRun now.\n\nArguments: fast", delivery: "steer" }]);
+  assert.deepEqual(ctx.prompts, [{ sessionID: "s1", text: `${expandCommand(template, "fast")}`, delivery: "steer" }]);
+  assert.match(ctx.prompts[0].text, /Invoke the `one-run` skill[\s\S]*Arguments: fast\n$/);
 
   const agent = ctx.added.agents.get("one-helper");
-  assert.deepEqual(agent, { id: "one-helper", mode: "subagent", description: "Helps with things.", system: "\nYou help.\n" });
+  assert.deepEqual(agent, { id: "one-helper", mode: "subagent", description: "Helps with things.", system: "\nYou help, see /one-setup.\n" });
   assert.equal(
     await readFile(join(out, "opencode-agents/one-helper.md"), "utf8"),
-    "---\ndescription: Helps with things.\nmode: subagent\n---\n\nYou help.\n",
+    "---\ndescription: Helps with things.\nmode: subagent\n---\n\nYou help, see /one-setup.\n",
   );
   assert.ok(report.entries.some((e) => e.kind === "extra" && e.status === "degraded"));
+  await assert.rejects(readFile(join(out, "commands/run.md"), "utf8"));
+});
+
+test("plugin:skill references become plugin-skill, only where they are references", async (t) => {
+  const { repoRoot, run } = await fixture(t, [ONE]);
+  await write(
+    join(repoRoot, "skills/one/run/SKILL.md"),
+    "---\nname: run\ndescription: Run it, not for one:setup.\n---\n\nSee /one:setup, (/one:setup) and one:setup but not docs/one:setup, https://x/one:setup, my-one:setup or one:setup_x.\n",
+  );
+  await run();
+  const out = join(repoRoot, PLUGINS, "one");
+  assert.match(
+    await readFile(join(out, "skills/run/SKILL.md"), "utf8"),
+    /See \/one-setup, \(\/one-setup\) and one-setup but not docs\/one:setup, https:\/\/x\/one:setup, my-one:setup or one:setup_x\./,
+  );
+  assert.match(await readFile(join(out, "hooks/reminder.sh"), "utf8"), /run \/one-setup/);
+  // the registered description is rewritten like the file
+  const resources = JSON.parse(await readFile(join(out, "resources.json"), "utf8"));
+  assert.equal(resources.skills.find((skill) => skill.id === "one-run").description, "Run it, not for one-setup.");
+  assert.equal(resources.commands.find((command) => command.name === "one-run").description, "Run it, not for one-setup.");
 });
 
 test("command arguments are placed the way Claude places them", () => {
@@ -207,14 +236,15 @@ test("command arguments are placed the way Claude places them", () => {
 
 test("a payload OpenCode would reject fails the build instead of disabling the plugin", async (t) => {
   const { repoRoot, run } = await fixture(t, [ONE]);
-  await write(join(repoRoot, "skills/one-skill/SKILL.md"), "---\nname: one-skill\n---\n\nNo description.\n");
+  await write(join(repoRoot, "skills/one/setup/SKILL.md"), "---\nname: setup\n---\n\nNo description.\n");
   const report = await run();
   assert.deepEqual(
     report.errors().map(({ kind, resource }) => `${kind} ${resource}`),
-    ["skills one-skill", "hooks pre-tool:nb"],
+    ["skills one-setup", "commands one-setup", "hooks pre-tool:nb"],
   );
   const resources = JSON.parse(await readFile(join(repoRoot, PLUGINS, "one/resources.json"), "utf8"));
-  assert.deepEqual(resources.skills, []);
+  assert.deepEqual(resources.skills.map((x) => x.id), ["one-review", "one-run", "one-quiet"]);
+  assert.deepEqual(resources.commands.map((c) => c.name), ["one-review", "one-run"]);
 });
 
 test("hooks go to a manifest with package-relative scripts, and the policy applies", async (t) => {
@@ -244,9 +274,9 @@ test("validate reports a package whose files went missing", async (t) => {
   const { repoRoot, run } = await fixture(t, [ONE]);
   await run();
   await rm(join(repoRoot, PLUGINS, "one/hooks/scripts/guard.sh"));
-  await rm(join(repoRoot, PLUGINS, "one/commands/run.md"));
+  await rm(join(repoRoot, PLUGINS, "one/runtime/opencode/commands/one-run.md"));
   assert.deepEqual(await opencode.validate({ repoRoot, plugin: ONE }), [
-    "opencode one: missing commands/run.md",
+    "opencode one: missing runtime/opencode/commands/one-run.md",
     "opencode one: hook pre-tool:guard runs missing hooks/scripts/guard.sh",
   ]);
 });
@@ -261,7 +291,7 @@ test("blocking: shell and MCP commits are blocked by the real commit-tools hook"
     { tool: "shell", input: { command: "git status && git commit -m test" } },
     { tool: "git_git_commit", input: { message: "Skip workflow" } },
   ]) {
-    await assert.rejects(before({ ...ev, sessionID: "s1", id: "c1" }), /commit-action/, ev.tool);
+    await assert.rejects(before({ ...ev, sessionID: "s1", id: "c1" }), /commit-tools-commit/, ev.tool);
   }
   // Code Mode's wrapper is left to the inner calls, which are hooked one by one.
   await before({ tool: "execute", input: { code: "await tools.git.git_commit({})" }, sessionID: "s1", id: "c2" });
@@ -291,7 +321,7 @@ test("context injection: session-start reminders reach the system prompt once pe
   await load(join(repoRoot, PLUGINS, "commit-tools"), commitCtx);
   const [routing] = await context(commitCtx, "s2");
   assert.match(routing, /before.*commit/i);
-  assert.ok(routing.includes(join(repoRoot, PLUGINS, "commit-tools/skills/commit-action/SKILL.md")));
+  assert.ok(routing.includes(join(repoRoot, PLUGINS, "commit-tools/skills/commit/SKILL.md")));
 });
 
 test("failure handling: a missing script, a hung script and runtime errors do not block", async (t) => {

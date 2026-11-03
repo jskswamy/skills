@@ -1,20 +1,21 @@
 # Antigravity Harness Support (`harnesses/antigravity`)
 
 ## Overview
-Build adapter and bash/`jq` runtime hook shim for Google Antigravity (`agy`). Generates standalone Antigravity plugins under `dist/antigravity/plugins/<plugin>/` by converting commands into `<plugin>-cmd-<command>` skills, normalizing agent frontmatter to `name` and `description`, and bridging canonical Claude Code hooks to Antigravity's root `hooks.json` contract via `hook-shim.sh` and `tools.json`.
+Build adapter and bash/`jq` runtime hook shim for Google Antigravity (`agy`). Generates standalone Antigravity plugins under `dist/antigravity/plugins/<plugin>/` by copying the skills as they are (the skill is the `/plugin:skill` entry; there are no command wrappers), normalizing agent frontmatter to `name` and `description`, and bridging canonical Claude Code hooks to Antigravity's root `hooks.json` contract via `hook-shim.sh` and `tools.json`.
 
 The release build (`npm run build:release`) generates one native Antigravity
 plugin per registry plugin with `harnesses.antigravity.enabled` under
-`dist/antigravity/plugins/`. Do not edit them by hand. `npm run build` writes
+`dist/antigravity/plugins/`. Each plugin carries its own
+`.antigravity-plugin/plugin.json`; nothing is written into another harness's
+tree. Do not edit them by hand. `npm run build` writes
 the same tree into a temp dir for local testing. Tested with agy 1.4.1.
 
 ## Interface
 - `id` (`adapter.mjs`): Harness identifier `"antigravity"`.
 - `pluginsDir` (`adapter.mjs`): Output directory `"dist/antigravity/plugins"`.
-- `capabilities` (`adapter.mjs`): Declares `skills` (`native`), `commands` (`as-skill`), `agents` (`native`), and `hooks` (`shim` for `session-start`, `pre-tool`, `post-tool`, `stop`).
+- `capabilities` (`adapter.mjs`): Declares `skills` (`native`), `agents` (`native`), and `hooks` (`shim` for `session-start`, `pre-tool`, `post-tool`, `stop`).
 - `generateRoot({ outRoot })` (`adapter.mjs`): Removes `<outRoot>/dist/antigravity/plugins` before generating enabled plugins.
-- `generate({ repoRoot, outRoot, model, report })` (`adapter.mjs`): Generates `.antigravity-plugin/plugin.json`, copies skills/templates/hook scripts, converts commands to skills, maps agents, and emits `hooks.json`, `runtime/antigravity/hooks.manifest.json`, `hook-shim.sh`, and `tools.json`.
-- `commandSkillName(plugin, command)` (`adapter.mjs`): Returns the converted skill name `${plugin}-cmd-${command}`.
+- `generate({ repoRoot, outRoot, model, report })` (`adapter.mjs`): Generates `.antigravity-plugin/plugin.json`, copies skills/templates/hook scripts, adds `disable-slash-command: true` to a model-only skill (`user-invocable: false`), maps agents, and emits `hooks.json`, `runtime/antigravity/hooks.manifest.json`, `hook-shim.sh`, and `tools.json`.
 - `splitMatcher(entry)` (`adapter.mjs`): Splits pipe-delimited `pre-tool`/`post-tool` matchers into mappable and unmappable entries so known tool guards are carried while unknown parts go through hook policy reporting.
 - `canCarry(entry)` (`adapter.mjs`): Evaluates whether a hook entry is supported on Antigravity based on event type, `startup` session matcher compatibility, and `tools.json` tool mappings.
 - `validate({ repoRoot, outRoot = repoRoot, plugin })` (`adapter.mjs`): Runs `agy plugin validate <dir> --json --strict` (when `agy` is on `PATH`) in an isolated temporary `HOME`/`XDG_*_HOME` and verifies component counts (`skills`, `agents`, `hooks`).
@@ -45,19 +46,24 @@ From a clone of this repository, install every plugin at once, where
 agy plugin install <checkout>/dist/antigravity
 ```
 
-Point agy at `dist/antigravity`, not the repository root: agy installs every
-plugin under that folder's `plugins/`.
+Point agy at `dist/antigravity`, not the repository root. `dist/antigravity`
+is a folder of plugin folders, not a plugin: agy installs every plugin under its
+`plugins/`, each with its own `.antigravity-plugin/plugin.json`. To install one
+plugin, point agy at `<checkout>/dist/antigravity/plugins/<plugin>`. These paths
+exist after the next release.
+
+Run a skill as `/<plugin>:<skill>`, for example `/commit-tools:commit`.
 
 ## What a plugin contains
 
 Each plugin holds:
 
 - `.antigravity-plugin/plugin.json`: name, version and description
-- `skills/`: the plugin's skills, plus one skill per command. agy does not
-  load commands, so `/commit` of `commit-tools` becomes the skill
-  `commit-tools-cmd-commit`, the name agy itself gives a converted Claude
-  command. [`docs/command-skill-map.md`](../../docs/command-skill-map.md)
-  lists them all.
+- `skills/`: the plugin's skills. A model-only skill gets
+  `disable-slash-command: true`, which hides it from the TUI picker; typing
+  `/plugin:skill` still reaches the model.
+  [`docs/command-skill-map.md`](../../docs/command-skill-map.md) lists the
+  invocation forms.
 - `agents/`: name and description only. agy skips an agent without both, or
   with `tools: "*"`, and Claude tool lists mean nothing to it.
 - `hooks.json` and `runtime/`: the hooks, described below

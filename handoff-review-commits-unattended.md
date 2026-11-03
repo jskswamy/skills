@@ -114,7 +114,7 @@ should add to `.git/info/exclude`).
 - With `--unattended`, the skill never calls `AskUserQuestion`, never merges,
   deletes, tags or pushes, and always writes the result file.
 - The flag and the result schema are documented in both SKILL.md files and in
-  `docs/command-skill-map.md` (for Pi: `/skill:review-commits --unattended ...`).
+  `docs/command-skill-map.md` (for Pi: `/skill:commit-tools-review-commits --unattended ...`).
 - A **git tag** is cut for the release (ulai pins the package by tag or commit:
   `pi install git:github.com/jskswamy/skills@<tag>`).
 

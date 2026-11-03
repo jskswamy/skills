@@ -1,24 +1,23 @@
 # OpenCode Harness Support (`harnesses/opencode`)
 
 ## Overview
-Build adapter, OpenCode V2 plugin runtime, and tool-mapping table that package each enabled registry plugin into a self-contained OpenCode V2 plugin under `dist/plugins/<name>/`. Registers skills, commands, and subagents through OpenCode's transform APIs and bridges canonical Claude Code hooks to OpenCode tool, session context, and session execution events.
+Build adapter, OpenCode V2 plugin runtime, and tool-mapping table that package each enabled registry plugin into a self-contained OpenCode V2 plugin under `dist/opencode/plugins/<name>/`. Registers skills, one command per runnable skill, and subagents through OpenCode's transform APIs and bridges canonical Claude Code hooks to OpenCode tool, session context, and session execution events.
 
 The release build (`npm run build:release`) writes one OpenCode (V2) plugin
 package per plugin with `harnesses.opencode.enabled` to
-`dist/plugins/<name>/`; `npm run build` writes the same into a temp dir. Each
+`dist/opencode/plugins/<name>/` (after the next release; the last release shipped `dist/plugins/<name>/`); `npm run build` writes the same into a temp dir. Each
 package is self-contained: it runs without the rest of this repository. Do not
 edit the packages by hand. The packages target the OpenCode V2 plugin API and
 were tested with OpenCode 2.1.1; V1 is not supported.
 
 ## Interface
 - `id` (`adapter.mjs`): Harness identifier `"opencode"`.
-- `pluginsDir` (`adapter.mjs`): Output directory `"dist/plugins"`.
-- `capabilities` (`adapter.mjs`): Declares `skills` (`native`), `commands` (`native`), `agents` (`native`), and `hooks` (`shim` for `session-start`, `subagent-start`, `pre-tool`, `post-tool`, `stop`).
-- `generateRoot({ outRoot, plugins })` (`adapter.mjs`): Removes legacy `<outRoot>/dist/opencode` and returns `{ commandName }` collision resolver seeded with `BUILTIN_COMMANDS`.
-- `generate({ repoRoot, outRoot, model, state, report })` (`adapter.mjs`): Copies the canonical wrapper layout and shared runtime into `<outRoot>/dist/plugins/<plugin>/`, maps agents to `opencode-agents/`, validates payloads, rewrites hook commands to `"${OPENCODE_PLUGIN_ROOT}"`, and writes `resources.json`, `runtime/opencode/hooks.manifest.json`, `package.json`, `index.js`, and `.opencode/plugins/index.js`.
+- `pluginsDir` (`adapter.mjs`): Output directory `"dist/opencode/plugins"`.
+- `capabilities` (`adapter.mjs`): Declares `skills` (`native`), `agents` (`native`), and `hooks` (`shim` for `session-start`, `subagent-start`, `pre-tool`, `post-tool`, `stop`).
+- `generateRoot({ outRoot, plugins })` (`adapter.mjs`): Removes `<outRoot>/dist/opencode` and returns `{ pairs }`, the `plugin:skill` and `plugin:agent` pairs (`referencePairs`) used to rewrite references.
+- `generate({ repoRoot, outRoot, model, state, report })` (`adapter.mjs`): Copies the canonical wrapper layout and shared runtime into `<outRoot>/dist/opencode/plugins/<plugin>/`, rewrites `plugin:skill` references to `plugin-skill` in skills, agents, templates and scripts (`copyRewrittenSkills`), registers each skill as `plugin-skill` (`derivedId`) with a command of the same id for every runnable skill (no command for `user-invocable: false`), maps agents to `opencode-agents/`, validates payloads, rewrites hook commands to `"${OPENCODE_PLUGIN_ROOT}"`, and writes `resources.json`, `runtime/opencode/hooks.manifest.json`, `package.json`, `index.js`, and `.opencode/plugins/index.js`.
 - `canCarry(entry)` (`adapter.mjs`): Verifies `pre-tool` and `post-tool` hook matchers can be rewritten via `OPENCODE_TOOLS`.
 - `validate({ repoRoot, outRoot = repoRoot, plugin })` (`adapter.mjs`): Verifies generated `package.json`, runtime files, `resources.json` payloads, and `runtime/opencode/hooks.manifest.json` script targets exist and are valid.
-- `BUILTIN_COMMANDS` (`runtime.mjs`): Reserved OpenCode built-in commands (`["init", "review"]`).
 - `payloadErrors(kind, payload)` (`runtime.mjs`): Validates required non-empty string fields for `skills`, `commands`, and `agents` payloads.
 - `stripFrontmatter(text)` (`runtime.mjs`): Strips leading YAML frontmatter from Markdown content.
 - `expandCommand(template, args = "")` (`runtime.mjs`): Substitutes `$ARGUMENTS` and positional `$1..$9` placeholders in command templates or appends `Arguments: <args>` when unplaced.
@@ -32,7 +31,7 @@ were tested with OpenCode 2.1.1; V1 is not supported.
 - Code Mode's `execute` wrapper tool is always skipped in `toolCall` because individual MCP tool calls inside it trigger their own hooks.
 
 ## Side Effects
-- `generateRoot` and `generate` remove legacy `<outRoot>/dist/opencode/` and write plugin packages under `<outRoot>/dist/plugins/`.
+- `generateRoot` and `generate` remove `<outRoot>/dist/opencode/` and write plugin packages under `<outRoot>/dist/opencode/plugins/`.
 - At runtime, `createPlugin` reads `runtime/opencode/hooks.manifest.json`, `resources.json`, and Markdown resource files from disk, sets `OPENCODE_PLUGIN_ROOT` in hook environments, registers OpenCode tool/session/skill/command/agent hooks and transforms on `ctx`, subscribes to `ctx.event`, and spawns canonical hook scripts via [`../lib/hook-runner.mjs`](../lib/README.md).
 
 ## Verification
@@ -45,7 +44,7 @@ OpenCode loads a local plugin from a directory whose `package.json` has a
 `main`. Either list the package in `opencode.json`:
 
 ```json
-{ "plugins": ["/path/to/skills/dist/plugins/commit-tools"] }
+{ "plugins": ["/path/to/skills/dist/opencode/plugins/commit-tools"] }
 ```
 
 or copy the package directory into `.opencode/plugins/<name>/` (project) or
@@ -67,13 +66,14 @@ yourself instead.
 | `runtime/` | Copy of `runtime.mjs`, `tools.mjs` and `harnesses/lib/` |
 | `resources.json` | Skills, commands and agents the runtime registers |
 | `hooks.manifest.json` | Canonical hooks the runtime runs |
-| `skills/`, `commands/`, `agents/`, `hooks/`, ... | Claude wrapper layout; hook scripts find their files through it |
+| `skills/`, `agents/`, `hooks/`, ... | Claude wrapper layout; hook scripts find their files through it |
 | `opencode-agents/` | Agents with OpenCode frontmatter (`description`, `mode: subagent`) |
 
 Skills and commands are added with `ctx.skill.transform` and
 `ctx.command.transform`. A command sends its body as a prompt, with
 arguments placed as Claude places them. A command name another plugin or
-OpenCode itself uses gets the plugin as a prefix (`/jot-setup`). Agents are
+OpenCode itself uses is not an issue: every skill and command id is `plugin-skill`
+(`/jot-setup`, `/commit-tools-commit`). Agents are
 added through `ctx.agent.transform` (`update` creates a missing agent) with
 plugin-prefixed ids (`craft-spec-reviewer`); an existing agent with the same
 id is left alone.
@@ -84,8 +84,12 @@ jot `capture` agent has no frontmatter, so it is not registered; the build
 reports it. OpenCode does not read a plugin's `.mcp.json`, so add devenv's MCP
 server to `opencode.json` yourself.
 
+A runnable skill is a command `/plugin-skill` in the TUI and the skill is
+`@plugin-skill`. `opencode run "/name"` does not expand a command; the TUI and
+the API do. A model-only skill (`user-invocable: false`) is listed in `/skills`
+and has no command.
 [`docs/command-skill-map.md`](../../docs/command-skill-map.md) lists every
-command name.
+name.
 
 ## Hooks
 

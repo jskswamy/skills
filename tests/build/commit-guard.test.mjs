@@ -31,7 +31,7 @@ test("Claude guard blocks compound, nested and option-prefixed direct commits", 
   ]) {
     const result = check(command);
     assert.equal(result.status, 2, `${command}: ${result.stderr}`);
-    assert.match(result.stderr, /commit-action|\/commit/);
+    assert.match(result.stderr, /commit-tools:commit/);
   }
 });
 
@@ -76,7 +76,7 @@ test("without jq the guard allows everything, and it never needs node", async ()
   assert.equal(run(noNode, "ls -la").status, 0);
   const blocked = run(noNode, "git status; git commit -m test");
   assert.equal(blocked.status, 2, blocked.stderr);
-  assert.match(blocked.stderr, /commit-action/);
+  assert.match(blocked.stderr, /commit-tools:commit/);
 });
 
 test("a very long command is answered quickly instead of timing out into a pass", () => {
@@ -84,7 +84,7 @@ test("a very long command is answered quickly instead of timing out into a pass"
   const started = Date.now();
   const long = check(`cat > notes.md <<'EOF'\n${prose}\nEOF`);
   assert.equal(long.status, 2, long.stderr);
-  assert.match(long.stderr, /commit-action|\/commit/);
+  assert.match(long.stderr, /commit-tools:commit/);
   assert.ok(Date.now() - started < 3000, `took ${Date.now() - started}ms`);
   // Long text that never names a commit is untouched.
   assert.equal(check(`cat > notes.md <<'EOF'\n${"plain words. ".repeat(8000)}\nEOF`).status, 0);

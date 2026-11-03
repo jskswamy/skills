@@ -5,7 +5,7 @@ understanding codebases, keeping commits clean, planning and executing work,
 capturing knowledge, publishing notes, and setting up development
 environments.
 
-The same canonical skills, commands, agents and hooks work in Claude Code, Pi,
+The same canonical skills, agents and hooks work in Claude Code, Pi,
 Antigravity, OpenCode and Codex. Each harness's install tree is generated into
 `dist/` from one source, at release.
 
@@ -17,7 +17,7 @@ codebase, write a cleaner commit, decompose a feature, capture a note, generate
 a PDF, or scan for refactoring opportunities.
 
 The repo keeps the reusable source of truth in root directories such as
-`skills/`, `commands/`, `agents/`, `hooks/`, `templates/`, and
+`skills/`, `agents/`, `hooks/`, `templates/`, and
 `shared-scripts/`. A per-harness adapter turns those canonical resources into
 that harness's install tree under `dist/`. Only a release writes `dist/`, so
 `main` always installs the last release on every harness.
@@ -26,33 +26,33 @@ that harness's install tree under `dist/`. Only a release writes `dist/`, so
 
 | Area | Skills | What it helps with |
 | --- | --- | --- |
-| **Codebase understanding** | `codebase-*` | Ask questions, build semantic indexes, trace symbols, inspect change impact |
-| **Commit hygiene** | `commit-*`, `review-commits`, `validate-commits` | Write atomic commits, clean branch history, prevent AI co-author and tracker-ID leaks |
-| **Craft workflow** | `craft-*`, `execute-tasks`, `park-idea` | Understand tasks, decompose work, execute subagent batches, park follow-ups |
-| **Remote agent workspaces** | `bivouac` | Start, monitor, retrieve, and merge disposable cloud coding-agent sessions |
-| **Knowledge capture** | `jot-*` | Capture notes, ideas, session summaries, and source material |
-| **Study workflows** | `study-*` | Coach through new material and run recall sessions |
-| **Publishing and sketches** | `typst-*`, `sketch-*` | Generate PDFs, shareable notes, diagrams, and Excalidraw sketches |
-| **Development environments** | `devenv` | Initialize and maintain Nix development environments |
-| **Refactoring** | `refactor-scan` | Find refactoring opportunities and turn them into reviewable findings |
+| **Codebase understanding** | `codebase:*` | Ask questions, build semantic indexes, trace symbols, inspect change impact |
+| **Commit hygiene** | `commit-tools:*` | Write atomic commits, clean branch history, prevent AI co-author and tracker-ID leaks |
+| **Craft workflow** | `craft:*` | Understand tasks, decompose work, execute subagent batches, park follow-ups |
+| **Remote agent workspaces** | `bivouac:session` | Start, monitor, retrieve, and merge disposable cloud coding-agent sessions |
+| **Knowledge capture** | `jot:*` | Capture notes, ideas, session summaries, and source material |
+| **Study workflows** | `study:*` | Coach through new material and run recall sessions |
+| **Publishing and sketches** | `typst-notes:*`, `sketch-note:*` | Generate PDFs, shareable notes, diagrams, and Excalidraw sketches |
+| **Development environments** | `devenv:manage` | Initialize and maintain Nix development environments |
+| **Refactoring** | `refactor:scan` | Find refactoring opportunities and turn them into reviewable findings |
 
 ## Choose by task
 
 | If you want to... | Use... |
 | --- | --- |
-| Ask where something happens in a codebase | `codebase-ask` |
-| See the impact of recent changes | `codebase-impact` |
-| Make a clean commit | `commit-action` or `/commit` |
-| Clean up commits before pushing | `review-commits` |
-| Validate history before pushing | `validate-commits` |
-| Explore a task before decomposing it | `craft-understand` |
-| Decompose work into issues | `craft-decompose` |
-| Park a follow-up idea without derailing flow | `park-idea` |
-| Capture notes or source material | `jot-capture` |
-| Generate a PDF from content | `typst-publish` |
-| Create sketch notes | `sketch-note` |
-| Initialize a Nix dev environment | `devenv` |
-| Scan for refactoring opportunities | `refactor-scan` |
+| Ask where something happens in a codebase | `codebase:ask` |
+| See the impact of recent changes | `codebase:impact` |
+| Make a clean commit | `commit-tools:commit` |
+| Clean up commits before pushing | `commit-tools:review-commits` |
+| Validate history before pushing | `commit-tools:validate-commits` |
+| Explore a task before decomposing it | `craft:understand` |
+| Decompose work into issues | `craft:decompose` |
+| Park a follow-up idea without derailing flow | `craft:park` |
+| Capture notes or source material | `jot:capture` |
+| Generate a PDF from content | `typst-notes:publish` |
+| Create sketch notes | `sketch-note:sketch` |
+| Initialize a Nix dev environment | `devenv:manage` |
+| Scan for refactoring opportunities | `refactor:scan` |
 
 ## Install
 
@@ -63,16 +63,18 @@ that harness's install tree under `dist/`. Only a release writes `dist/`, so
 /plugin install <plugin-name>@skills
 ```
 
-Installed plugins expose slash commands such as `/commit`, `/capture`,
-`/sketch`, and `/publish`. See each plugin README for its command surface.
+Skills run as `/<plugin>:<skill>`, for example `/commit-tools:commit`,
+`/jot:capture`, `/sketch-note:sketch` and `/typst-notes:publish`. See
+[Invocation forms](docs/command-skill-map.md) for every harness. Plugins install
+from `dist/claude-code/plugins/<plugin>` after the next release.
 
 ### Pi
 
-Each plugin is a self-contained Pi package under `dist/plugins/<name>/`. From a
-checkout, install the packages you want:
+Each plugin is a self-contained Pi package under `dist/pi/plugins/<name>/`
+(after the next release). From a checkout, install the packages you want:
 
 ```bash
-pi install <checkout>/dist/plugins/<plugin-name>
+pi install <checkout>/dist/pi/plugins/<plugin-name>
 ```
 
 or via skillshare:
@@ -81,8 +83,8 @@ or via skillshare:
 skillshare plugin add <checkout> --plugin <plugin-name> --target pi -g
 ```
 
-Skills are invoked with `/skill:<skill-name>`, and commands are prompts such as
-`/commit`. See [harnesses/pi](harnesses/pi/README.md).
+Each runnable skill is a prompt template named `/<plugin>-<skill>`, such as
+`/commit-tools-commit`; `/skill:<plugin>-<skill>` also works. See [harnesses/pi](harnesses/pi/README.md).
 
 ### Antigravity
 
@@ -94,34 +96,37 @@ git clone https://github.com/jskswamy/skills.git
 agy plugin install <checkout>/dist/antigravity
 ```
 
-Point `agy` at `dist/antigravity` (or `dist/plugins/<plugin-name>` for a single plugin), not the repository root. Commands
-become skills named `<plugin>-cmd-<command>`. See
+Point `agy` at `dist/antigravity` (or `dist/antigravity/plugins/<plugin-name>`
+for a single plugin), not the repository root. Skills run as
+`/<plugin>:<skill>`. See
 [harnesses/antigravity](harnesses/antigravity/README.md).
 
 ### OpenCode
 
 Each plugin is a self-contained OpenCode V2 package under
-`dist/plugins/<name>/`. From a checkout, list the packages you want in
-`opencode.json`:
+`dist/opencode/plugins/<name>/` (after the next release). From a checkout, list
+the packages you want in `opencode.json`:
 
 ```json
-{ "plugins": ["/path/to/skills/dist/plugins/commit-tools"] }
+{ "plugins": ["/path/to/skills/dist/opencode/plugins/commit-tools"] }
 ```
 
 or copy a package directory to `.opencode/plugins/<name>/` in your project.
+Each runnable skill is a command named `/<plugin>-<skill>`.
 Loading by path is the tested route. See
 [harnesses/opencode](harnesses/opencode/README.md).
 
 ### Codex
 
-Each plugin is packaged under `dist/plugins/<name>/` and indexed by
+Each plugin is packaged under `dist/codex/plugins/<name>/` (after the next
+release) and indexed by
 `.agents/plugins/marketplace.json`. Install via skillshare:
 
 ```bash
 skillshare plugin add <checkout> --plugin <plugin-name> --target codex -g
 ```
 
-Commands become skills named `<plugin>-cmd-<command>`. See
+Skills run as `$<plugin>:<skill>`. See
 [harnesses/codex](harnesses/codex/README.md).
 
 ## Harness support
@@ -132,7 +137,7 @@ it can carry:
 | | Claude Code | Pi | Antigravity | OpenCode | Codex |
 | --- | --- | --- | --- | --- | --- |
 | Skills | native | native | native | native, registered by the plugin runtime | native |
-| Commands | native | prompt templates | skills named `<plugin>-cmd-<command>` | native | skills named `<plugin>-cmd-<command>` |
+| Entry for a skill | the skill, `/plugin:skill` | prompt template, `/plugin-skill` | the skill, `/plugin:skill` | command, `/plugin-skill` | the skill, `$plugin:skill` |
 | Agents | native | not available | native, name and description only | native, with plugin-prefixed ids | not available |
 | Hooks | native | runtime shim | `hooks.json` plus a shim | runtime shim | not available |
 | Hook events | all five | session-start, pre-tool, post-tool, stop | session-start, pre-tool, post-tool, stop | all five | none |
@@ -158,8 +163,7 @@ What `npm run build` reports as degraded or skipped:
   `opencode.json`. The jot `capture` agent has no frontmatter, so it is not
   registered (Antigravity gives it a generic description).
 - **Codex**: plugin agents and hooks are not available in Codex's
-  `.codex-plugin` format; canonical skills and `<plugin>-cmd-<command>`
-  command skills are carried natively.
+  `.codex-plugin` format; canonical skills are carried natively.
 
 Tested with Claude Code, Pi 1.4.0, agy 1.4.1, OpenCode 2.1.1 and Codex.
 
@@ -168,8 +172,7 @@ Tested with Claude Code, Pi 1.4.0, agy 1.4.1, OpenCode 2.1.1 and Codex.
 ```text
 # Source
 registry.json        # Source of truth for plugin metadata, resources and harnesses
-skills/              # Canonical Agent Skills source
-commands/            # Command wrappers grouped by plugin
+skills/              # Canonical Agent Skills source, skills/<plugin>/<skill>/
 agents/              # Agent prompts grouped by plugin
 hooks/               # Claude-format hook definitions and scripts grouped by plugin
 templates/           # Reusable templates, static assets and plugin READMEs
@@ -179,10 +182,8 @@ harnesses/lib/       # Hook runner and tool translation shared by harness runtim
 harnesses/<id>/      # One folder per harness: adapter, runtime or shim, tool table, docs
 
 # Generated at release
-dist/plugins/        # Unified per-plugin bundles for claude-code, pi, opencode and antigravity
-dist/codex/plugins/  # Codex bundles (separate: Codex converts a commands/ folder into duplicate skills)
-dist/antigravity/    # Standalone Antigravity bulk-install tree (agy plugin install dist/antigravity)
-.claude-plugin/      # Claude Code marketplace, pointing into dist/plugins
+dist/<harness>/plugins/<plugin>/  # One generated tree per harness: claude-code, codex, antigravity, opencode, pi
+.claude-plugin/      # Claude Code marketplace, pointing into dist/claude-code/plugins
 .agents/plugins/     # Codex marketplace, pointing into dist/codex/plugins
 ```
 
@@ -198,9 +199,10 @@ harness into a temp dir and reports what each one degrades. For details, see
 
 Every plugin below ships to Claude Code, Pi, Antigravity, OpenCode and Codex. See
 [Install](#install) for each harness and [Harness support](#harness-support)
-for what each one carries. Skills keep their canonical names everywhere; the
-Pi lines show the `/skill:<name>` form. Command names differ per harness; see
-the [Command to Skill Map](docs/command-skill-map.md).
+for what each one carries. Skills are written `plugin:skill` below. Claude Code
+and Antigravity run them as `/plugin:skill`, Codex as `$plugin:skill`, and Pi and
+OpenCode as `/plugin-skill`; see the [invocation forms](docs/command-skill-map.md).
+Model-only skills have no entry.
 ### bivouac
 
 Safe workflows for disposable remote coding-agent sessions with bivouac
@@ -209,12 +211,11 @@ Safe workflows for disposable remote coding-agent sessions with bivouac
 
 ```text
 /plugin install bivouac@skills
-# Commands are documented in the capability README
 ```
-**Pi skills:**
+**Skills:**
 
 ```text
-/skill:bivouac
+bivouac:session
 ```
 [View documentation](./templates/bivouac/README.md)
 
@@ -227,16 +228,15 @@ Intelligent codebase exploration powered by codebase-memory-mcp. Natural languag
 
 ```text
 /plugin install codebase@skills
-# Commands are documented in the capability README
 ```
-**Pi skills:**
+**Skills:**
 
 ```text
-/skill:codebase-explore
-/skill:codebase-ask
-/skill:codebase-index
-/skill:codebase-impact
-/skill:codebase-graph
+codebase:explore
+codebase:ask
+codebase:index
+codebase:impact
+codebase:graph
 ```
 [View documentation](./templates/codebase/README.md)
 
@@ -249,15 +249,14 @@ End-to-end commit hygiene: write atomic commits with style enforcement, review a
 
 ```text
 /plugin install commit-tools@skills
-# Commands are documented in the capability README
 ```
-**Pi skills:**
+**Skills:**
 
 ```text
-/skill:commit-action
-/skill:commit-style
-/skill:review-commits
-/skill:validate-commits
+commit-tools:commit
+commit-tools:commit-style
+commit-tools:review-commits
+commit-tools:validate-commits
 ```
 [View documentation](./templates/commit-tools/README.md)
 
@@ -270,19 +269,18 @@ The craft of building software end-to-end: capture ideas, understand problems, d
 
 ```text
 /plugin install craft@skills
-# Commands are documented in the capability README
 ```
-**Pi skills:**
+**Skills:**
 
 ```text
-/skill:craft-decompose
-/skill:execute-tasks
-/skill:park-idea
-/skill:review-parked
-/skill:task-commit
-/skill:craft-understand
-/skill:craft-backlog
-/skill:craft-deps
+craft:decompose
+craft:execute
+craft:park
+craft:parked
+craft:task-commit
+craft:understand
+craft:backlog
+craft:deps
 # plus 2 more skills in registry.json
 ```
 [View documentation](./templates/craft/README.md)
@@ -297,10 +295,10 @@ Initialize and manage Nix flake development environments with auto-detection and
 ```text
 /plugin install devenv@skills
 ```
-**Pi skills:**
+**Skills:**
 
 ```text
-/skill:devenv
+devenv:manage
 ```
 [View documentation](./templates/devenv/README.md)
 
@@ -313,15 +311,14 @@ Quick, low-friction capture of notes, tasks, ideas, session summaries, and tech 
 
 ```text
 /plugin install jot@skills
-# Commands are documented in the capability README
 ```
-**Pi skills:**
+**Skills:**
 
 ```text
-/skill:sketch-from-capture
-/skill:jot-capture
-/skill:jot-configure
-/skill:jot-setup
+jot:sketch-from-capture
+jot:capture
+jot:configure
+jot:setup
 ```
 [View documentation](./templates/jot/README.md)
 
@@ -334,12 +331,11 @@ Semantic refactoring opportunity detection. Scans committed code for structural 
 
 ```text
 /plugin install refactor@skills
-# Commands are documented in the capability README
 ```
-**Pi skills:**
+**Skills:**
 
 ```text
-/skill:refactor-scan
+refactor:scan
 ```
 [View documentation](./templates/refactor/README.md)
 
@@ -352,14 +348,13 @@ Generate visual sketch notes in Excalidraw format from conversations, code archi
 
 ```text
 /plugin install sketch-note@skills
-# Commands are documented in the capability README
 ```
-**Pi skills:**
+**Skills:**
 
 ```text
-/skill:capture-for-sketch
-/skill:excalidraw-format
-/skill:sketch-note
+sketch-note:capture-for-sketch
+sketch-note:excalidraw-format
+sketch-note:sketch
 ```
 [View documentation](./templates/sketch-note/README.md)
 
@@ -372,14 +367,13 @@ Adaptive study coach with multi-gear learning sessions (Socratic, Explain, Guide
 
 ```text
 /plugin install study@skills
-# Commands are documented in the capability README
 ```
-**Pi skills:**
+**Skills:**
 
 ```text
-/skill:study-coach
-/skill:study-recall
-/skill:study-setup
+study:coach
+study:recall
+study:setup
 ```
 [View documentation](./templates/study/README.md)
 
@@ -392,15 +386,14 @@ Generate beautiful PDF/HTML shareable notes using Typst with 7 professional temp
 
 ```text
 /plugin install typst-notes@skills
-# Commands are documented in the capability README
 ```
-**Pi skills:**
+**Skills:**
 
 ```text
-/skill:infographics
-/skill:jot-to-publish
-/skill:typst-format
-/skill:typst-publish
+typst-notes:infographics
+typst-notes:jot-to-publish
+typst-notes:typst-format
+typst-notes:publish
 ```
 [View documentation](./templates/typst-notes/README.md)
 <!-- PLUGINS:END -->

@@ -1,15 +1,15 @@
 import { readFile, writeFile } from "node:fs/promises";
-import { basename, join } from "node:path";
-import { BUILTIN_COMMANDS, payloadErrors, stripFrontmatter } from "./runtime.mjs";
+import { join } from "node:path";
+import { payloadErrors, stripFrontmatter } from "./runtime.mjs";
 import { OPENCODE_TOOLS } from "./tools.mjs";
 import { ensureDir, pathExists, readJson, removeDir, writeJson } from "../../scripts/lib/fs-utils.mjs";
 import { mapAgent } from "../../scripts/lib/transforms/agents.mjs";
 import { parseDocument } from "../../scripts/lib/transforms/frontmatter.mjs";
 import { canonicalPluginPaths, rewritePluginRoot } from "../../scripts/lib/transforms/paths.mjs";
 import { carryHooks } from "../../scripts/lib/transforms/policy.mjs";
-import { commandNames } from "../../scripts/lib/transforms/names.mjs";
+import { derivedId, referencePairs, rewriteReferences, wrapperText } from "../../scripts/lib/transforms/names.mjs";
 import { rewriteMatcher } from "../../scripts/lib/transforms/tools.mjs";
-import { copyLayout, copyRuntime, wrapperLayout } from "../../scripts/lib/layout.mjs";
+import { copyLayout, copyRewrittenSkills, copyRuntime, wrapperLayout } from "../../scripts/lib/layout.mjs";
 
 // One self-contained OpenCode V2 package per plugin: the Claude wrapper
 // layout (hook scripts find their skills through it), a copy of the shared
@@ -18,13 +18,12 @@ export const id = "opencode";
 
 export const capabilities = {
   skills: { mode: "native" },
-  commands: { mode: "native" },
   agents: { mode: "native" },
   hooks: { mode: "shim", events: ["session-start", "subagent-start", "pre-tool", "post-tool", "stop"] },
 };
 
 // One folder per plugin under this; changed-plugins and eval read it.
-export const pluginsDir = "dist/plugins";
+export const pluginsDir = "dist/opencode/plugins";
 // Mapped agents; agents/ keeps the canonical copies.
 const AGENTS = "opencode-agents";
 const MANIFEST = "runtime/opencode/hooks.manifest.json";
@@ -37,21 +36,19 @@ const RUNTIME = {
   "harnesses/lib/hook-input.mjs": "runtime/lib/hook-input.mjs",
 };
 
-export async function generateRoot({ outRoot, plugins }) {
+export async function generateRoot({ outRoot, registry }) {
   await removeDir(join(outRoot, "dist/opencode"));
-
-  // OpenCode command names are global, including its built-in ones.
-  return { commandName: commandNames(plugins, BUILTIN_COMMANDS) };
+  return { pairs: referencePairs(registry) };
 }
 
 export async function generate({ repoRoot, outRoot, model, state, report }) {
   const out = join(outRoot, pluginsDir, model.name);
   const layout = wrapperLayout(model);
 
-  // Canonical agents are copied too: a skill may read one as a spec file.
-  if (!(await pathExists(join(out, ".claude-plugin/plugin.json")))) {
-    await copyLayout({ repoRoot, layout, to: out });
-  }
+  // Canonical agents are copied too: a skill may read one as a spec file. The skills are copied
+  // after the rest, so their references can be rewritten together with agents, templates and hooks.
+  await copyLayout({ repoRoot, layout: layout.filter(({ kind }) => kind !== "skills"), to: out });
+  await copyRewrittenSkills({ repoRoot, model, to: out, pairs: state.pairs });
   for (const { to } of layout.filter(({ to }) => to.endsWith(".mcp.json"))) {
     report.add({ kind: "extra", resource: to, status: "degraded", reason: "OpenCode does not read .mcp.json; add the server to opencode.json" });
   }
@@ -71,26 +68,38 @@ export async function generate({ repoRoot, outRoot, model, state, report }) {
   };
 
   for (const skill of model.skills) {
+    const skillId = derivedId(model.name, skill.name);
     const path = `skills/${skill.name}/SKILL.md`;
-    const entry = { id: skill.name, name: skill.frontmatter.name ?? skill.name, description: skill.frontmatter.description, path };
+    // the registered description comes from the source, so it needs the same rewrite as the file
+    const description = rewriteText(skill.frontmatter.description, state.pairs);
+    const entry = { id: skillId, name: skillId, description, path };
     if (String(skill.frontmatter["disable-model-invocation"]) === "true") entry.autoinvoke = false;
     accept("skills", entry, { ...entry, content: stripFrontmatter(await readFile(join(out, path), "utf8")) });
   }
 
-  for (const command of model.commands) {
-    const path = `commands/${basename(command.path)}`;
-    const entry = { name: state.commandName(model.name, command.name), description: command.frontmatter?.description, path };
+  // A runnable skill gets a command of the same id, OpenCode's own slash entry.
+  for (const skill of model.skills.filter(({ userInvocable }) => userInvocable)) {
+    const commandId = derivedId(model.name, skill.name);
+    const path = `runtime/opencode/commands/${commandId}.md`;
+    await ensureDir(join(out, "runtime/opencode/commands"));
+    await writeFile(join(out, path), wrapperText(commandId));
+    // the picker line replaces the skill description in phase 3
+    const entry = { name: commandId, description: rewriteText(skill.pickerLine ?? skill.frontmatter.description, state.pairs), path };
     accept("commands", entry, { ...entry, template: stripFrontmatter(await readFile(join(out, path), "utf8")) });
   }
 
   // Plugin-prefixed ids: agent names are global and two plugins may share one.
   for (const agent of model.agents) {
-    const agentId = agent.name.startsWith(`${model.name}-`) ? agent.name : `${model.name}-${agent.name}`;
-    const text = mapAgent(await readFile(join(repoRoot, agent.path), "utf8"), {
-      keep: ["description"],
-      set: { mode: "subagent" },
-      trimExamples: true,
-    });
+    const agentId = derivedId(model.name, agent.name);
+    const text = rewriteReferences(
+      mapAgent(await readFile(join(repoRoot, agent.path), "utf8"), {
+        keep: ["description"],
+        set: { mode: "subagent" },
+        trimExamples: true,
+      }),
+      state.pairs,
+      { join: "-" },
+    );
     const entry = { id: agentId, description: parseDocument(text).frontmatter.description, path: `${AGENTS}/${agentId}.md` };
     if (accept("agents", entry, { ...entry, system: stripFrontmatter(text) })) {
       await ensureDir(join(out, AGENTS));
@@ -134,6 +143,9 @@ export async function generate({ repoRoot, outRoot, model, state, report }) {
   await ensureDir(join(out, ".opencode/plugins"));
   await writeFile(join(out, ".opencode/plugins/index.js"), 'export { default } from "../../index.js";\n');
 }
+
+// A missing description stays missing so payloadErrors reports it.
+const rewriteText = (text, pairs) => (typeof text === "string" ? rewriteReferences(text, pairs, { join: "-" }) : text);
 
 export function canCarry(entry) {
   if (entry.event !== "pre-tool" && entry.event !== "post-tool") return { ok: true };

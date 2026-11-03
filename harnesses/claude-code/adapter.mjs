@@ -1,15 +1,15 @@
 import { join } from "node:path";
 import { removeDir, writeJson } from "../../scripts/lib/fs-utils.mjs";
-import { copyLayout, wrapperLayout } from "../../scripts/lib/layout.mjs";
+import { readFile, writeFile } from "node:fs/promises";
+import { copyLayout, restatePicker, wrapperLayout } from "../../scripts/lib/layout.mjs";
 
 // One folder per plugin under this; changed-plugins and eval read it.
-export const pluginsDir = "dist/plugins";
+export const pluginsDir = "dist/claude-code/plugins";
 
 export const id = "claude-code";
 
 export const capabilities = {
   skills: { mode: "native" },
-  commands: { mode: "native" },
   agents: { mode: "native" },
   hooks: { mode: "native", events: ["session-start", "subagent-start", "pre-tool", "post-tool", "stop"] },
 };
@@ -47,6 +47,13 @@ export async function generate({ repoRoot, outRoot, model }) {
   });
 
   await copyLayout({ repoRoot, layout: wrapperLayout(model), to: pluginRoot });
+
+  // The picker line goes in description and the trigger text moves to when_to_use, which the model
+  // reads appended to description. A model-only skill keeps its description.
+  for (const skill of model.skills.filter(({ userInvocable, pickerLine }) => userInvocable && pickerLine !== undefined)) {
+    const file = join(pluginRoot, "skills", skill.name, "SKILL.md");
+    await writeFile(file, restatePicker(await readFile(file, "utf8"), skill.pickerLine, "when_to_use", file));
+  }
 }
 
 export async function validate() {

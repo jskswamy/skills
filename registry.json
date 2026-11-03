@@ -27,10 +27,7 @@
       ],
       "resources": {
         "skills": [
-          "bivouac"
-        ],
-        "commands": [
-          "bivouac/bivouac.md"
+          "bivouac/session"
         ],
         "agents": [],
         "hooks": [],
@@ -82,9 +79,8 @@
       ],
       "resources": {
         "skills": [
-          "devenv"
+          "devenv/manage"
         ],
-        "commands": [],
         "agents": [],
         "hooks": [
           "devenv/hooks.json",
@@ -150,13 +146,10 @@
       ],
       "resources": {
         "skills": [
-          "commit-action",
-          "commit-style",
-          "review-commits",
-          "validate-commits"
-        ],
-        "commands": [
-          "commit-tools/commit.md"
+          "commit-tools/commit",
+          "commit-tools/commit-style",
+          "commit-tools/review-commits",
+          "commit-tools/validate-commits"
         ],
         "agents": [],
         "hooks": [
@@ -167,7 +160,7 @@
         "templates": [],
         "extra": [
           {
-            "from": "skills/commit-action/styles",
+            "from": "skills/commit-tools/commit/styles",
             "to": "styles"
           },
           {
@@ -224,15 +217,10 @@
       ],
       "resources": {
         "skills": [
-          "sketch-from-capture",
-          "jot-capture",
-          "jot-configure",
-          "jot-setup"
-        ],
-        "commands": [
-          "jot/capture.md",
-          "jot/configure.md",
-          "jot/setup.md"
+          "jot/sketch-from-capture",
+          "jot/capture",
+          "jot/configure",
+          "jot/setup"
         ],
         "agents": [
           "jot/capture.md",
@@ -302,26 +290,16 @@
       ],
       "resources": {
         "skills": [
-          "craft-decompose",
-          "execute-tasks",
-          "park-idea",
-          "review-parked",
-          "task-commit",
-          "craft-understand",
-          "craft-backlog",
-          "craft-deps",
-          "craft-epic",
-          "craft-task"
-        ],
-        "commands": [
-          "craft/backlog.md",
-          "craft/decompose.md",
-          "craft/deps.md",
-          "craft/epic.md",
-          "craft/execute.md",
-          "craft/park.md",
-          "craft/parked.md",
-          "craft/task.md"
+          "craft/decompose",
+          "craft/execute",
+          "craft/park",
+          "craft/parked",
+          "craft/task-commit",
+          "craft/understand",
+          "craft/backlog",
+          "craft/deps",
+          "craft/epic",
+          "craft/task"
         ],
         "agents": [
           "craft/issue-writer.md",
@@ -379,12 +357,9 @@
       ],
       "resources": {
         "skills": [
-          "capture-for-sketch",
-          "excalidraw-format",
-          "sketch-note"
-        ],
-        "commands": [
-          "sketch-note/sketch.md"
+          "sketch-note/capture-for-sketch",
+          "sketch-note/excalidraw-format",
+          "sketch-note/sketch"
         ],
         "agents": [
           "sketch-note/sketch.md"
@@ -447,13 +422,10 @@
       ],
       "resources": {
         "skills": [
-          "infographics",
-          "jot-to-publish",
-          "typst-format",
-          "typst-publish"
-        ],
-        "commands": [
-          "typst-notes/publish.md"
+          "typst-notes/infographics",
+          "typst-notes/jot-to-publish",
+          "typst-notes/typst-format",
+          "typst-notes/publish"
         ],
         "agents": [
           "typst-notes/content-analyzer.md",
@@ -526,17 +498,11 @@
       ],
       "resources": {
         "skills": [
-          "codebase-explore",
-          "codebase-ask",
-          "codebase-index",
-          "codebase-impact",
-          "codebase-graph"
-        ],
-        "commands": [
-          "codebase/ask.md",
-          "codebase/graph.md",
-          "codebase/impact.md",
-          "codebase/index.md"
+          "codebase/explore",
+          "codebase/ask",
+          "codebase/index",
+          "codebase/impact",
+          "codebase/graph"
         ],
         "agents": [],
         "hooks": [
@@ -597,14 +563,9 @@
       ],
       "resources": {
         "skills": [
-          "study-coach",
-          "study-recall",
-          "study-setup"
-        ],
-        "commands": [
-          "study/coach.md",
-          "study/recall.md",
-          "study/setup.md"
+          "study/coach",
+          "study/recall",
+          "study/setup"
         ],
         "agents": [
           "study/coach-agent.md",
@@ -659,10 +620,7 @@
       ],
       "resources": {
         "skills": [
-          "refactor-scan"
-        ],
-        "commands": [
-          "refactor/scan.md"
+          "refactor/scan"
         ],
         "agents": [
           "refactor/scanner.md",

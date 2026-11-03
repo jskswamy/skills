@@ -7,7 +7,7 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 
 const execFileAsync = promisify(execFile);
-const detector = join(process.cwd(), "skills/review-commits/lib/detect-tracker-leaks.sh");
+const detector = join(process.cwd(), "skills/commit-tools/review-commits/lib/detect-tracker-leaks.sh");
 
 async function git(cwd, args, options = {}) {
   return execFileAsync("git", args, { cwd, ...options });

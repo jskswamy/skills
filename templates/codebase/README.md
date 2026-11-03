@@ -8,16 +8,16 @@ Intelligent codebase exploration powered by [codebase-memory-mcp](https://github
 
 ## Commands and Skills
 
-Claude Code users can use `/codebase:*` commands. Pi users can invoke the
-same canonical workflows directly as skills:
+Claude Code, Codex and Antigravity run the skills as `/codebase:*` (Codex: `$codebase:*`).
+Pi and OpenCode have no namespace and use `/codebase-*`:
 
-| Workflow | Claude Code | Pi |
-|----------|-------------|----|
-| Index | `/codebase:index [--mode full|moderate|fast]` | `/skill:codebase-index [--mode full|moderate|fast]` |
-| Ask | `/codebase:ask <question>` | `/skill:codebase-ask <question>` |
-| Impact | `/codebase:impact [--base <sha>]` | `/skill:codebase-impact [--base <sha>]` |
-| Graph | `/codebase:graph <symbol> ...` | `/skill:codebase-graph <symbol> ...` |
-| Explore | auto-triggered skill | `/skill:codebase-explore` |
+| Workflow | Claude Code | Pi and OpenCode |
+|----------|-------------|-----------------|
+| Index | `/codebase:index [--mode full|moderate|fast]` | `/codebase-index [--mode full|moderate|fast]` |
+| Ask | `/codebase:ask <question>` | `/codebase-ask <question>` |
+| Impact | `/codebase:impact [--base <sha>]` | `/codebase-impact [--base <sha>]` |
+| Graph | `/codebase:graph <symbol> ...` | `/codebase-graph <symbol> ...` |
+| Explore | auto-triggered skill | auto-triggered skill |
 
 ### `/codebase:index [--mode full|moderate|fast]`
 

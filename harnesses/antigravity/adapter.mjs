@@ -4,14 +4,13 @@ import { mkdtemp, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { delimiter, join } from "node:path";
 import { DEFAULT_TIMEOUT_MS } from "../lib/hook-runner.mjs";
-import { copyResourceTree, ensureDir, readJson, removeDir, writeJson } from "../../scripts/lib/fs-utils.mjs";
+import { ensureDir, readJson, removeDir, writeJson } from "../../scripts/lib/fs-utils.mjs";
 import { mapAgent } from "../../scripts/lib/transforms/agents.mjs";
-import { commandToSkill } from "../../scripts/lib/transforms/command-to-skill.mjs";
 import { parseDocument } from "../../scripts/lib/transforms/frontmatter.mjs";
 import { pluginRootPaths, rewritePluginRoot } from "../../scripts/lib/transforms/paths.mjs";
 import { carryHooks } from "../../scripts/lib/transforms/policy.mjs";
 import { matchesClaude, rewriteMatcher } from "../../scripts/lib/transforms/tools.mjs";
-import { copyLayout, copyRuntime, wrapperLayout } from "../../scripts/lib/layout.mjs";
+import { copyLayout, copyRuntime, insertAfterDescription, restatePicker, wrapperLayout } from "../../scripts/lib/layout.mjs";
 
 // One native plugin per registry plugin under dist/antigravity/plugins/.
 // `agy plugin install dist/antigravity` installs them all. agy copies a
@@ -21,7 +20,6 @@ export const id = "antigravity";
 
 export const capabilities = {
   skills: { mode: "native" },
-  commands: { mode: "as-skill" },
   agents: { mode: "native" },
   hooks: { mode: "shim", events: ["session-start", "pre-tool", "post-tool", "stop"] },
 };
@@ -68,20 +66,22 @@ export async function generate({ repoRoot, outRoot, model, report }) {
     description: model.description,
   });
 
-  // agy ignores commands/ and reads hooks only from the root hooks.json;
-  // agents are mapped below.
+  // agy reads hooks only from the root hooks.json; agents are mapped below.
   const layout = wrapperLayout(model).filter(
-    ({ kind, from }) => !["commands", "agents"].includes(kind) && !(kind === "hooks" && from.endsWith("hooks.json")),
+    ({ kind, from }) => kind !== "agents" && !(kind === "hooks" && from.endsWith("hooks.json")),
   );
   await copyLayout({ repoRoot, layout, to: pluginRoot });
 
-  for (const command of model.commands) {
-    const skill = commandToSkill(
-      { name: command.name, text: await readFile(join(repoRoot, command.path), "utf8") },
-      { name: commandSkillName(model.name, command.name) },
-    );
-    await ensureDir(join(pluginRoot, "skills", skill.name));
-    await writeFile(join(pluginRoot, "skills", skill.name, "SKILL.md"), skill.content);
+  // The picker shows the start of the description, so the picker line goes first.
+  for (const skill of model.skills.filter(({ userInvocable, pickerLine }) => userInvocable && pickerLine !== undefined)) {
+    const file = join(pluginRoot, "skills", skill.name, "SKILL.md");
+    await writeFile(file, restatePicker(await readFile(file, "utf8"), skill.pickerLine, "prefix", file));
+  }
+
+  // A model-only skill is hidden from the TUI picker (typing it still reaches the model).
+  for (const skill of model.skills.filter(({ userInvocable }) => !userInvocable)) {
+    const file = join(pluginRoot, "skills", skill.name, "SKILL.md");
+    await writeFile(file, insertAfterDescription(await readFile(file, "utf8"), "disable-slash-command: true"));
   }
 
   for (const agent of model.agents) {
@@ -91,39 +91,6 @@ export async function generate({ repoRoot, outRoot, model, report }) {
   }
 
   await generateHooks({ repoRoot, model, pluginRoot, report });
-
-  const sharedRoot = join(outRoot, "dist/plugins", model.name);
-  if (existsSync(sharedRoot)) {
-    await writeJson(join(sharedRoot, "plugin.json"), {
-      $schema: "https://antigravity.google/schemas/v1/plugin.json",
-      name: model.name,
-      version: model.version,
-      description: model.description,
-    });
-    if (model.commands.length > 0) {
-      for (const c of model.commands) {
-        const name = commandSkillName(model.name, c.name);
-        await copyResourceTree({ from: join(pluginRoot, "skills", name), to: join(sharedRoot, "agy-skills", name) });
-      }
-      await writeJson(join(sharedRoot, "skills.json"), { entries: [{ path: "agy-skills" }] });
-    }
-    if (model.agents.length > 0) {
-      await copyResourceTree({ from: join(pluginRoot, "agents"), to: join(sharedRoot, "agy-agents") });
-      await writeJson(join(sharedRoot, "agents.json"), { entries: [{ path: "agy-agents" }] });
-    }
-    if (existsSync(join(pluginRoot, "hooks.json"))) {
-      await copyResourceTree({ from: join(pluginRoot, "hooks.json"), to: join(sharedRoot, "hooks.json") });
-      await copyResourceTree({ from: join(pluginRoot, "runtime/antigravity"), to: join(sharedRoot, "runtime/antigravity") });
-    }
-  }
-}
-
-// agy's own conversion of a Claude plugin uses this scheme, so a plugin
-// installed either way exposes the same skills. It cannot collide with a
-// plugin's skills (craft has command backlog and skill craft-backlog) or with
-// another plugin's commands (jot and study both have setup).
-export function commandSkillName(plugin, command) {
-  return `${plugin}-cmd-${command}`;
 }
 
 // agy silently skips an agent without name and description, or whose tools
@@ -221,7 +188,7 @@ export async function validate({ repoRoot, outRoot = repoRoot, plugin }) {
   if (!existsSync(join(dir, ".antigravity-plugin", "plugin.json"))) return [`${label}: not generated; run npm run build`];
 
   const expected = {
-    skills: (await readdir(join(dir, "skills"), { withFileTypes: true }).catch(() => [])).filter((e) => e.isDirectory()).length,
+    skills: plugin.resources.skills.length,
     agents: (await readdir(join(dir, "agents")).catch(() => [])).filter((name) => name.endsWith(".md")).length,
     // One named hook per manifest entry; hooks.json itself is what is checked.
     hooks: Object.keys((await readJson(join(dir, MANIFEST)).catch(() => ({}))).entries ?? {}).length,

@@ -5,9 +5,9 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { spawn } from "node:child_process";
 
-const canonicalPath = "skills/typst-publish/SKILL.md";
+const canonicalPath = "skills/typst-notes/publish/SKILL.md";
 
-test("typst-publish accepts Nix as a non-install fallback", async () => {
+test("typst-notes:publish accepts Nix as a non-install fallback", async () => {
   const content = await readFile(canonicalPath, "utf8");
 
   assert.match(content, /command -v nix\b/, "preflight checks for the nix command");

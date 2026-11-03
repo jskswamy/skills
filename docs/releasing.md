@@ -51,10 +51,10 @@ Plugin versions live in `registry.json` and are emitted to:
 
 - `.claude-plugin/marketplace.json`
 - `.agents/plugins/marketplace.json`
-- `dist/plugins/<plugin-name>/.claude-plugin/plugin.json`
+- `dist/claude-code/plugins/<plugin-name>/.claude-plugin/plugin.json`
 - `dist/codex/plugins/<plugin-name>/.codex-plugin/plugin.json`
-- `dist/plugins/<plugin-name>/plugin.json`
-- `dist/plugins/<plugin-name>/package.json`
+- `dist/pi/plugins/<plugin-name>/package.json`
+- `dist/opencode/plugins/<plugin-name>/package.json`
 - `dist/antigravity/plugins/<plugin-name>/.antigravity-plugin/plugin.json`
 
 List the plugins whose built output changed since the last release:
@@ -72,6 +72,22 @@ release.
 
 Bump each listed plugin's version in `registry.json`.
 
+### The skill-rename release (v3)
+
+The release that deletes `commands/` and renames skills is breaking: old names
+stop working and there are no aliases. Bump each plugin that renamed a skill by
+a major version, mark the changelog entry as breaking, and keep
+[`MIGRATION-v3.md`](../MIGRATION-v3.md) with the release notes. In the same
+release commit, remove the old shared tree, which `npm run build:release` no
+longer writes:
+
+```bash
+git rm -r dist/plugins
+```
+
+`node scripts/changed-plugins.mjs` lists every plugin for this release, since
+every tree moved.
+
 ## Write the Release Output
 
 After editing `registry.json`, write every harness's output into the repo.
@@ -86,7 +102,7 @@ Verify the versions are synced and nothing else is left to bump:
 ```bash
 jq -r '.plugins[] | [.name,.version] | @tsv' registry.json
 jq -r '.plugins[] | [.name,.version] | @tsv' .claude-plugin/marketplace.json
-jq -r .version dist/plugins/<plugin-name>/.claude-plugin/plugin.json
+jq -r .version dist/claude-code/plugins/<plugin-name>/.claude-plugin/plugin.json
 node scripts/changed-plugins.mjs   # prints nothing now
 ```
 
@@ -107,8 +123,8 @@ working tree whose files change while it copies:
 git clone -q . /tmp/skills-release && cd /tmp/skills-release
 claude plugin marketplace add "$PWD"            # then: claude plugin install <plugin>@skills
 agy plugin install "$PWD/dist/antigravity"
-pi install "$PWD/dist/plugins/<plugin>"
-# OpenCode: list "$PWD/dist/plugins/<plugin>" folders under "plugins" in opencode.json
+pi install "$PWD/dist/pi/plugins/<plugin>"
+# OpenCode: list "$PWD/dist/opencode/plugins/<plugin>" folders under "plugins" in opencode.json
 skillshare plugin add "$PWD" --plugin <plugin> --target claude -g
 skillshare plugin add "$PWD" --plugin <plugin> --target pi -g
 ```
@@ -135,6 +151,8 @@ Stage the registry and all generated output:
 ```bash
 git add registry.json .claude-plugin .agents dist
 ```
+
+For the v3 release, `git rm -r dist/plugins` first (see above).
 
 Commit with the commit workflow used by this repo. Subject format:
 

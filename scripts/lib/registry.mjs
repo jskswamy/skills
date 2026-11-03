@@ -1,8 +1,9 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { pathExists } from "./fs-utils.mjs";
+import { derivedId } from "./transforms/names.mjs";
 
-const RESOURCE_KEYS = ["skills", "commands", "agents", "hooks", "templates", "extra"];
+const RESOURCE_KEYS = ["skills", "agents", "hooks", "templates", "extra"];
 
 export async function loadRegistry(registryPath) {
   return JSON.parse(await readFile(registryPath, "utf8"));
@@ -13,7 +14,6 @@ export async function validateRegistryResources({ repoRoot, registry }) {
 
   for (const plugin of registry.plugins ?? []) {
     const resources = plugin.resources ?? {};
-    await validatePathList({ repoRoot, plugin, type: "commands", base: "commands", values: resources.commands ?? [], errors });
     await validatePathList({ repoRoot, plugin, type: "agents", base: "agents", values: resources.agents ?? [], errors });
     await validatePathList({ repoRoot, plugin, type: "hooks", base: "hooks", values: resources.hooks ?? [], errors });
     await validatePathList({ repoRoot, plugin, type: "templates", base: "templates", values: resources.templates ?? [], errors });
@@ -56,6 +56,7 @@ export function validateRegistryShape(registry) {
   }
 
   const seenNames = new Set();
+  const derivedIds = new Map();
   for (const [index, plugin] of registry.plugins.entries()) {
     const label = isObject(plugin) && typeof plugin.name === "string" && plugin.name.trim()
       ? plugin.name
@@ -84,6 +85,17 @@ export function validateRegistryShape(registry) {
         if (!Array.isArray(plugin.resources[key])) {
           errors.push(`${label}.resources.${key} must be an array`);
         }
+      }
+      for (const entry of Array.isArray(plugin.resources.skills) ? plugin.resources.skills : []) {
+        const [group, skill, ...rest] = String(entry).split("/");
+        if (!skill || rest.length > 0 || group !== plugin.name) {
+          errors.push(`${label} skill entry must be "${plugin.name}/<skill>": ${entry}`);
+          continue;
+        }
+        // plugin a-b with skill c and plugin a with skill b-c would both register a-b-c
+        const id = derivedId(group, skill);
+        if (derivedIds.has(id)) errors.push(`derived id ${id} is used by ${derivedIds.get(id)} and ${entry}`);
+        derivedIds.set(id, entry);
       }
     }
   }

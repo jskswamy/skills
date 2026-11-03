@@ -1,32 +1,31 @@
-import { readFile, writeFile } from "node:fs/promises";
+import { writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { PI_TOOLS } from "./tools.mjs";
 import { ensureDir, pathExists, readJson, removeDir, writeJson } from "../../scripts/lib/fs-utils.mjs";
-import { parseDocument, writeDocument } from "../../scripts/lib/transforms/frontmatter.mjs";
+import { writeDocument } from "../../scripts/lib/transforms/frontmatter.mjs";
 import { canonicalPluginPaths, rewritePluginRoot } from "../../scripts/lib/transforms/paths.mjs";
 import { carryHooks } from "../../scripts/lib/transforms/policy.mjs";
 import { validatePiPackage } from "../../scripts/lib/pi-package.mjs";
-import { commandNames } from "../../scripts/lib/transforms/names.mjs";
+import { derivedId, referencePairs, wrapperText } from "../../scripts/lib/transforms/names.mjs";
 import { rewriteMatcher } from "../../scripts/lib/transforms/tools.mjs";
-import { copyLayout, copyRuntime, wrapperLayout } from "../../scripts/lib/layout.mjs";
+import { copyLayout, copyRewrittenSkills, copyRuntime, wrapperLayout } from "../../scripts/lib/layout.mjs";
 
-// One self-contained Pi package per plugin under dist/pi/<name>/: the Claude
+// One self-contained Pi package per plugin under dist/pi/plugins/<name>/: the Claude
 // wrapper layout (so hook scripts find their skills through relative paths),
-// prompt templates for commands, and—when the plugin carries hooks—the shared
-// Pi extension runtime and hooks.manifest.json.
+// one prompt template per runnable skill, and—when the plugin carries hooks—the
+// shared Pi extension runtime and hooks.manifest.json.
 export const id = "pi";
 
 export const capabilities = {
   skills: { mode: "native" },
-  commands: { mode: "as-file" },
   agents: { mode: "none" },
   hooks: { mode: "shim", events: ["session-start", "pre-tool", "post-tool", "stop"] },
 };
 
 // One folder per plugin under this; changed-plugins and eval read it.
-export const pluginsDir = "dist/plugins";
+export const pluginsDir = "dist/pi/plugins";
 const MANIFEST = "runtime/pi/hooks.manifest.json";
-// The runtime sets this to dist/plugins/<plugin>, its own package root.
+// The runtime sets this to the package root, dist/pi/plugins/<plugin>.
 const ROOT_TOKEN = '"${PI_PACKAGE_ROOT}"';
 // Package paths keep the runtime's relative imports intact.
 const RUNTIME = {
@@ -36,34 +35,31 @@ const RUNTIME = {
   "harnesses/lib/hook-input.mjs": "runtime/lib/hook-input.mjs",
 };
 
-export async function generateRoot({ outRoot, plugins }) {
+export async function generateRoot({ outRoot, registry }) {
   await removeDir(join(outRoot, "dist/pi"));
-
-  // Pi names a prompt by file name alone, so collisions across plugins are prefixed.
-  return { promptName: commandNames(plugins) };
+  return { pairs: referencePairs(registry) };
 }
 
 export async function generate({ repoRoot, outRoot, model, state, report }) {
   const out = join(outRoot, pluginsDir, model.name);
   const fullLayout = wrapperLayout(model);
-  if (!(await pathExists(join(out, ".claude-plugin/plugin.json")))) {
-    const layout = fullLayout.filter(
-      ({ kind, from }) => !["commands", "agents"].includes(kind) && !(kind === "hooks" && from.endsWith("hooks.json")),
-    );
-    await copyLayout({ repoRoot, layout, to: out });
-  }
+  const layout = fullLayout.filter(
+    ({ kind, from }) => !["skills", "agents"].includes(kind) && !(kind === "hooks" && from.endsWith("hooks.json")),
+  );
+  await copyLayout({ repoRoot, layout, to: out });
+  await copyRewrittenSkills({ repoRoot, model, to: out, pairs: state.pairs });
 
-  if (model.commands.length > 0) {
+  // A runnable skill gets a prompt of the same id, Pi's own slash entry. Pi drops arguments from a
+  // prompt with no placeholder, so wrapperText places them.
+  const runnable = model.skills.filter(({ userInvocable }) => userInvocable);
+  if (runnable.length > 0) {
     await ensureDir(join(out, "prompts"));
-    for (const command of model.commands) {
-      const { frontmatter, body } = parseDocument(await readFile(join(repoRoot, command.path), "utf8"));
-      const kept = Object.fromEntries(Object.entries(frontmatter).filter(([key]) => ["description", "argument-hint"].includes(key)));
-      // Claude appends arguments a command does not place; Pi only substitutes.
-      const withArguments = /\$(ARGUMENTS|@|\d|\{)/.test(body) ? body : `${body.trimEnd()}\n\nArguments: $ARGUMENTS\n`;
-      await writeFile(
-        join(out, "prompts", `${state.promptName(model.name, command.name)}.md`),
-        writeDocument({ frontmatter: kept, body: withArguments }),
-      );
+    for (const skill of runnable) {
+      const promptId = derivedId(model.name, skill.name);
+      // the picker line replaces the skill description in phase 3
+      const frontmatter = { description: skill.pickerLine ?? skill.frontmatter.description };
+      if (skill.frontmatter["argument-hint"] !== undefined) frontmatter["argument-hint"] = skill.frontmatter["argument-hint"];
+      await writeFile(join(out, "prompts", `${promptId}.md`), writeDocument({ frontmatter, body: wrapperText(promptId) }));
     }
   }
 
@@ -90,7 +86,7 @@ export async function generate({ repoRoot, outRoot, model, state, report }) {
 
   const pi = {};
   if (model.skills.length > 0) pi.skills = ["./skills"];
-  if (model.commands.length > 0) pi.prompts = ["./prompts"];
+  if (runnable.length > 0) pi.prompts = ["./prompts"];
   if (hooks.length > 0) pi.extensions = ["./runtime/pi/runtime.mjs"];
 
   const pkgPath = join(out, "package.json");

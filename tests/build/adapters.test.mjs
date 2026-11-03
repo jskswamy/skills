@@ -20,8 +20,7 @@ function plugin(overrides = {}) {
     category: "code-intelligence",
     tags: ["codebase"],
     resources: {
-      skills: ["codebase-explore"],
-      commands: ["codebase/ask.md"],
+      skills: ["codebase/explore"],
       agents: ["codebase/explorer.md"],
       hooks: ["codebase/hooks.json"],
       templates: [],
@@ -42,10 +41,9 @@ function registry(plugins) {
 async function fixtureRepo() {
   const repoRoot = await mkdtemp(join(tmpdir(), "adapters-"));
   await write(
-    join(repoRoot, "skills/codebase-explore/SKILL.md"),
+    join(repoRoot, "skills/codebase/explore/SKILL.md"),
     "---\nname: codebase-explore\ndescription: Use when exploring.\n---\n\n# Explore\n",
   );
-  await write(join(repoRoot, "commands/codebase/ask.md"), "---\ndescription: Ask a question\n---\n\nAsk.\n");
   await write(join(repoRoot, "agents/codebase/explorer.md"), "---\nname: explorer\ndescription: Explores\n---\n\nBody\n");
   await write(join(repoRoot, "hooks/codebase/hooks.json"), "{\"hooks\":{}}\n");
   return repoRoot;
@@ -55,7 +53,7 @@ test("every adapter implements the interface", () => {
   assert.ok(ADAPTERS.length > 0);
   for (const adapter of ADAPTERS) {
     assert.equal(typeof adapter.id, "string", "id");
-    for (const kind of ["skills", "commands", "agents", "hooks"]) {
+    for (const kind of ["skills", "agents", "hooks"]) {
       assert.ok(adapter.capabilities?.[kind]?.mode, `${adapter.id} capabilities.${kind}.mode`);
     }
     assert.equal(typeof adapter.generate, "function", `${adapter.id} generate`);
@@ -88,16 +86,19 @@ test("loadPluginModel reads resources and their frontmatter", async () => {
   const model = await loadPluginModel({ repoRoot, plugin: plugin() });
 
   assert.equal(model.name, "codebase");
-  assert.deepEqual(model.skills, [
+  assert.equal(model.skills.length, 1);
+  assert.deepEqual(
+    { ...model.skills[0], pickerLine: undefined },
     {
-      name: "codebase-explore",
-      path: "skills/codebase-explore",
+      name: "explore",
+      plugin: "codebase",
+      path: "skills/codebase/explore",
       frontmatter: { name: "codebase-explore", description: "Use when exploring." },
+      userInvocable: true,
+      pickerLine: undefined,
     },
-  ]);
-  assert.deepEqual(model.commands, [
-    { name: "ask", path: "commands/codebase/ask.md", frontmatter: { description: "Ask a question" } },
-  ]);
+  );
+  assert.equal(model.commands, undefined);
   assert.equal(model.agents[0].name, "explorer");
   assert.equal(model.agents[0].frontmatter.description, "Explores");
   assert.deepEqual(model.hooks, [{ path: "hooks/codebase/hooks.json" }]);
@@ -152,9 +153,9 @@ test("claude-code adapter writes the marketplace and plugin wrapper", async () =
     adapters: ADAPTERS.filter((a) => a.id === "claude-code"),
   });
   const marketplace = JSON.parse(await readFile(join(repoRoot, ".claude-plugin/marketplace.json"), "utf8"));
-  assert.equal(marketplace.plugins[0].source, "./dist/plugins/codebase");
+  assert.equal(marketplace.plugins[0].source, "./dist/claude-code/plugins/codebase");
   assert.equal(
-    await readFile(join(repoRoot, "dist/plugins/codebase/agents/explorer.md"), "utf8"),
+    await readFile(join(repoRoot, "dist/claude-code/plugins/codebase/agents/explorer.md"), "utf8"),
     await readFile(join(repoRoot, "agents/codebase/explorer.md"), "utf8"),
   );
 });
@@ -179,7 +180,7 @@ test("withTempBuild builds into a temp dir, hands it over, then removes it", asy
     async ({ outRoot, report }) => {
       seen = outRoot;
       assert.notEqual(outRoot, repoRoot);
-      await access(join(outRoot, "dist/plugins/codebase/.claude-plugin/plugin.json"));
+      await access(join(outRoot, "dist/claude-code/plugins/codebase/.claude-plugin/plugin.json"));
       assert.deepEqual(report.errors(), []);
       return "used";
     },
@@ -188,7 +189,7 @@ test("withTempBuild builds into a temp dir, hands it over, then removes it", asy
   await assert.rejects(access(seen), "the temp dir is removed afterwards");
 });
 
-test("all adapters co-exist in dist/plugins/<plugin> without manifest or skill collisions", async () => {
+test("all adapters co-exist in dist/<harness>/plugins/<plugin> without manifest or skill collisions", async () => {
   const repoRoot = await fixtureRepo();
   await write(
     join(repoRoot, "hooks/codebase/hooks.json"),
@@ -197,8 +198,7 @@ test("all adapters co-exist in dist/plugins/<plugin> without manifest or skill c
   await write(join(repoRoot, "hooks/codebase/remind.sh"), "echo hi\n");
   const allEnabled = plugin({
     resources: {
-      skills: ["codebase-explore"],
-      commands: ["codebase/ask.md"],
+      skills: ["codebase/explore"],
       agents: ["codebase/explorer.md"],
       hooks: ["codebase/hooks.json", "codebase/remind.sh"],
       templates: [],
@@ -213,31 +213,42 @@ test("all adapters co-exist in dist/plugins/<plugin> without manifest or skill c
     },
   });
 
-  const report = await runAdapters({ repoRoot, registry: registry([allEnabled]) });
+  const outRoot = await mkdtemp(join(tmpdir(), "adapters-out-"));
+  const report = await runAdapters({ repoRoot, outRoot, registry: registry([allEnabled]) });
   assert.deepEqual(report.errors(), []);
 
-  const root = join(repoRoot, "dist/plugins/codebase");
-  const pkg = JSON.parse(await readFile(join(root, "package.json"), "utf8"));
-  assert.equal(pkg.main, ".opencode/plugins/index.js");
-  assert.deepEqual(pkg.exports, { ".": "./index.js" });
-  assert.deepEqual(pkg.pi, {
-    skills: ["./skills"],
-    prompts: ["./prompts"],
-    extensions: ["./runtime/pi/runtime.mjs"],
-  });
-  assert.ok(pkg.keywords.includes("opencode-plugin") && pkg.keywords.includes("pi-package"));
+  // no adapter writes outside dist/<harness>/ except the two marketplace files
+  const files = (await readdir(outRoot, { recursive: true, withFileTypes: true }))
+    .filter((e) => e.isFile())
+    .map((e) => join(e.parentPath, e.name).slice(outRoot.length + 1));
+  const outside = files.filter((f) => !/^dist\/(claude-code|antigravity|opencode|pi|codex)\//.test(f));
+  assert.deepEqual(outside.sort(), [".agents/plugins/marketplace.json", ".claude-plugin/marketplace.json"]);
 
-  await access(join(root, ".claude-plugin/plugin.json"));
-  await assert.rejects(access(join(root, ".codex-plugin")), "Codex has its own bundle");
-  await access(join(root, "plugin.json"));
-  await access(join(root, ".opencode/plugins/index.js"));
-  await access(join(root, "runtime/opencode/hooks.manifest.json"));
-  await access(join(root, "runtime/pi/hooks.manifest.json"));
-  await access(join(root, "runtime/antigravity/hooks.manifest.json"));
+  const tree = (harness) => join(outRoot, "dist", harness, "plugins/codebase");
+  await access(join(tree("claude-code"), ".claude-plugin/plugin.json"));
+  await access(join(tree("codex"), ".codex-plugin/plugin.json"));
+  await access(join(tree("antigravity"), ".antigravity-plugin/plugin.json"));
+  await access(join(tree("opencode"), ".opencode/plugins/index.js"));
+  await access(join(tree("opencode"), "runtime/opencode/hooks.manifest.json"));
+  await access(join(tree("pi"), "runtime/pi/hooks.manifest.json"));
+  await access(join(tree("antigravity"), "runtime/antigravity/hooks.manifest.json"));
 
-  assert.deepEqual(await readdir(join(root, "skills")), ["codebase-explore"]);
-  assert.deepEqual((await readdir(join(root, "agy-skills"))).sort(), ["codebase-cmd-ask"]);
-  const codexRoot = join(repoRoot, "dist/codex/plugins/codebase");
-  assert.deepEqual((await readdir(join(codexRoot, "codex-skills"))).sort(), ["codebase-cmd-ask", "codebase-explore"]);
-  await assert.rejects(access(join(codexRoot, "commands")), "Codex converts commands/ into duplicate skills");
+  const pkg = JSON.parse(await readFile(join(tree("pi"), "package.json"), "utf8"));
+  assert.equal(pkg.main, undefined, "Pi package does not carry the OpenCode entry");
+  assert.deepEqual(pkg.pi.skills, ["./skills"]);
+  assert.ok(pkg.keywords.includes("pi-package") && !pkg.keywords.includes("opencode-plugin"));
+  const ocPkg = JSON.parse(await readFile(join(tree("opencode"), "package.json"), "utf8"));
+  assert.equal(ocPkg.main, ".opencode/plugins/index.js");
+  assert.ok(ocPkg.keywords.includes("opencode-plugin"));
+
+  // one skill folder per harness, no -cmd- skills, no commands/ capability or folder
+  for (const harness of ["claude-code", "antigravity", "opencode", "pi"]) {
+    assert.deepEqual(await readdir(join(tree(harness), "skills")), ["explore"], harness);
+  }
+  assert.deepEqual(await readdir(join(tree("codex"), "codex-skills")), ["explore"]);
+  assert.ok(files.every((f) => !f.includes("-cmd-")));
+  for (const harness of ["claude-code", "codex", "antigravity", "opencode", "pi"]) {
+    await assert.rejects(access(join(tree(harness), "commands")), `${harness} has no commands/`);
+  }
+  assert.ok(ADAPTERS.every((a) => a.capabilities.commands === undefined));
 });

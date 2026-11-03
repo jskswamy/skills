@@ -16,7 +16,7 @@ async function fixture(t) {
   t.after(() => rm(root, { recursive: true, force: true }));
   const skill = join(root, "installed skill");
   const cwd = join(root, "repo");
-  await cp(resolve("skills/commit-action"), skill, { recursive: true });
+  await cp(resolve("skills/commit-tools/commit"), skill, { recursive: true });
   await mkdir(cwd);
   const env = { ...process.env, GIT_CONFIG_GLOBAL: "/dev/null", GIT_CONFIG_NOSYSTEM: "1", __GIT_COMMIT_PLUGIN__: "1", PATH: PATH_WITHOUT_NODE };
   const run = (cmd, args, overrides = {}) => spawnSync(cmd, args, { cwd, env: { ...env, ...overrides }, encoding: "utf8" });
@@ -107,14 +107,14 @@ test("conventional style works from a standalone skill copy", async (t) => {
   assert.equal(git("log", "-1", "--format=%s"), "test: add fixture");
 });
 
-test("history replay uses commit-action and requires approval before amendments", async (t) => {
+test("history replay uses the commit skill and requires approval before amendments", async (t) => {
   const { cwd, git, commit, run } = await fixture(t);
   assert.equal((await commit("Add initial file\n")).status, 0);
   const head = git("rev-parse", "HEAD");
   const tree = git("rev-parse", "HEAD^{tree}");
   const plan = join(cwd, "plan.yaml"), msgs = join(cwd, "messages with spaces");
   await writeFile(plan, `actions:\n  - hash: ${head}\n    action: reword\n    new_message: |\n      Explain initial fixture\n\n      Preserve the original file tree.\n`);
-  const build = run("bash", [resolve("skills/review-commits/lib/build-todo.sh"), plan, msgs]);
+  const build = run("bash", [resolve("skills/commit-tools/review-commits/lib/build-todo.sh"), plan, msgs]);
   assert.equal(build.status, 0, build.stderr);
   const line = build.stdout.split("\n").find((line) => line.startsWith("exec "));
   const rejected = run("bash", ["-c", line.slice(5)], { __GIT_COMMIT_PLUGIN__: "" });
@@ -126,7 +126,7 @@ test("history replay uses commit-action and requires approval before amendments"
   assert.equal(git("rev-parse", "HEAD^{tree}"), tree);
 });
 
-test("approved split replay finishes without pausing before its commit-action calls", async (t) => {
+test("approved split replay finishes without pausing before its commit calls", async (t) => {
   const { cwd, git, commit, run } = await fixture(t);
   assert.equal((await commit("Add initial file\n")).status, 0);
   const base = git("rev-parse", "HEAD");
@@ -137,7 +137,7 @@ test("approved split replay finishes without pausing before its commit-action ca
   const hash = git("rev-parse", "HEAD"), tree = git("rev-parse", "HEAD^{tree}");
   const plan = join(cwd, "../split.yaml"), msgs = join(cwd, "../split messages"), todo = join(cwd, "../todo");
   await writeFile(plan, `actions:\n  - hash: ${hash}\n    action: edit\n    split_into:\n      - files: [a.txt]\n        message: |\n          Add first fixture\n      - files: [b.txt]\n        message: |\n          Add second fixture\n`);
-  const build = run("bash", [resolve("skills/review-commits/lib/build-todo.sh"), plan, msgs]);
+  const build = run("bash", [resolve("skills/commit-tools/review-commits/lib/build-todo.sh"), plan, msgs]);
   assert.equal(build.status, 0, build.stderr);
   await writeFile(todo, build.stdout);
   const result = run("git", ["rebase", "-i", base], { GIT_EDITOR: "true", GIT_SEQUENCE_EDITOR: `cat '${todo}' >` });
@@ -152,7 +152,7 @@ test("split refuses missing approval before changing HEAD or the index", async (
   const { git, commit, run } = await fixture(t);
   assert.equal((await commit("Add initial file\n")).status, 0);
   const head = git("rev-parse", "HEAD");
-  const result = run("bash", [resolve("skills/review-commits/lib/apply-split.sh"), head, "/missing-plan"], { __GIT_COMMIT_PLUGIN__: "" });
+  const result = run("bash", [resolve("skills/commit-tools/review-commits/lib/apply-split.sh"), head, "/missing-plan"], { __GIT_COMMIT_PLUGIN__: "" });
   assert.notEqual(result.status, 0);
   assert.match(result.stderr, /confirm|approval/i);
   assert.equal(git("rev-parse", "HEAD"), head);
@@ -166,7 +166,7 @@ test("split rejects a missing plan before resetting HEAD", async (t) => {
   git("add", "second.txt");
   assert.equal((await commit("Add second fixture\n")).status, 0);
   const head = git("rev-parse", "HEAD");
-  const result = run("bash", [resolve("skills/review-commits/lib/apply-split.sh"), head, "/missing-plan"]);
+  const result = run("bash", [resolve("skills/commit-tools/review-commits/lib/apply-split.sh"), head, "/missing-plan"]);
   assert.notEqual(result.status, 0);
   assert.equal(git("rev-parse", "HEAD"), head);
   assert.equal(git("status", "--porcelain"), "");

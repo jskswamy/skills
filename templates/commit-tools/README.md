@@ -10,7 +10,7 @@ Claude Code:
 
 ```text
 /plugin install commit-tools@skills
-/commit
+/commit-tools:commit
 ```
 
 Pi (global package install, once):
@@ -19,14 +19,14 @@ Pi (global package install, once):
 pi install git:github.com/jskswamy/skills@main
 ```
 
-Then use `/commit` or `/skill:commit-action`. Installing/copying **only skill
+Then use `/commit-tools:commit` or `/commit-tools-commit`. Installing/copying **only skill
 files** through Skillshare supplies instructions and bundled scripts, not Pi
-executable extensions. The Pi package is needed for `/commit` and its guard.
+executable extensions. The Pi package is needed for `/commit-tools:commit` and its guard.
 Restart or reload Pi after updating the installed package.
 
 ## Workflow
 
-- `commit-action` owns every commit/amend, including agent-initiated task
+- `commit-tools:commit` owns every commit/amend, including agent-initiated task
   completion. It validates atomicity and messages, then asks for confirmation.
 - Classic style is the default. `--style conventional` overrides it; existing
   `.claude/git-commit.local.md` preferences remain optional.
@@ -34,9 +34,9 @@ Restart or reload Pi after updating the installed package.
   unstaged files are left alone. Known-published commits and other authors'
   commits cannot be amended. Published-state checks use local cached refs;
   there is no implicit fetch.
-- `task-commit` gathers task context and delegates to `commit-action`.
+- `task-commit` gathers task context and delegates to `commit-tools:commit`.
 - `review-commits` plans history changes, then delegates full-message validation
-  and approval to `commit-action`. Replay uses its shared executor. Unattended
+  and approval to `commit-tools:commit`. Replay uses its shared executor. Unattended
   review returns `confirmation-required` without approval of the exact plan.
 - Commits remain local. The user owns pushes and remote issue synchronization.
 
@@ -54,7 +54,7 @@ aliases can hide writes. Use OS-level controls for an untrusted agent.
 
 ## Bundled resources
 
-`skills/commit-action/` contains its style guides, validator and executor.
+`skills/commit-tools/commit/` contains its style guides, validator and executor.
 They resolve from the installed skill location, not the working repository.
 The generated Claude wrapper also exports `styles/` for compatibility.
 

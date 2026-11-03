@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { basename, join } from "node:path";
-import { parseFrontmatter } from "./skills.mjs";
+import { isRunnable, parseFrontmatter, pickerLine } from "./skills.mjs";
 
 // One plugin's resources, resolved against the canonical root directories.
 // Paths are repo-relative so adapters can join them onto repoRoot.
@@ -21,14 +21,20 @@ export async function loadPluginModel({ repoRoot, plugin }) {
     category: plugin.category,
     tags: plugin.tags ?? [],
     harnesses: plugin.harnesses ?? {},
+    // a registry skill entry is "<plugin>/<skill>"; the skill is its last segment
     skills: await Promise.all(
-      (resources.skills ?? []).map(async (name) => ({
-        name,
-        path: `skills/${name}`,
-        frontmatter: parseFrontmatter(await readFile(join(repoRoot, "skills", name, "SKILL.md"), "utf8")) ?? {},
-      })),
+      (resources.skills ?? []).map(async (entry) => {
+        const frontmatter = parseFrontmatter(await readFile(join(repoRoot, "skills", entry, "SKILL.md"), "utf8")) ?? {};
+        return {
+          name: entry.split("/").at(-1),
+          plugin: plugin.name,
+          path: `skills/${entry}`,
+          frontmatter,
+          userInvocable: isRunnable(frontmatter),
+          pickerLine: pickerLine(frontmatter),
+        };
+      }),
     ),
-    commands: await Promise.all((resources.commands ?? []).map((entry) => markdown("commands", entry))),
     agents: await Promise.all((resources.agents ?? []).map((entry) => markdown("agents", entry))),
     hooks: (resources.hooks ?? []).map((entry) => ({ path: `hooks/${entry}` })),
     templates: (resources.templates ?? []).map((entry) => ({ path: `templates/${entry}` })),

@@ -1,28 +1,28 @@
 # Multi-Harness Targets & Runtimes (`harnesses`)
 
 ## Overview
-Target-specific build adapters, runtime hook shims, tool-mapping tables, and shared hook execution libraries that package canonical repository skills, commands, agents, and Claude-format hooks for each supported coding agent harness (`claude-code`, `antigravity`, `opencode`, `pi`, and `codex`).
+Target-specific build adapters, runtime hook shims, tool-mapping tables, and shared hook execution libraries that package canonical repository skills, agents, and Claude-format hooks for each supported coding agent harness (`claude-code`, `antigravity`, `opencode`, `pi`, and `codex`).
 
 ## Interface
 Each target harness directory (`claude-code`, `antigravity`, `opencode`, `pi`, `codex`) exposes an `adapter.mjs` module conforming to the harness adapter contract consumed by [`../scripts/lib/adapters/index.mjs`](../scripts/lib/adapters/README.md):
 - `id`: Unique harness identifier (`"claude-code"`, `"antigravity"`, `"opencode"`, `"pi"`, `"codex"`).
-- `capabilities`: Capability descriptor object for `skills`, `commands`, `agents`, and `hooks`.
-- `pluginsDir`: Relative per-plugin output directory under `dist/` (`dist/plugins` for `claude-code`, `opencode` and `pi`; `dist/codex/plugins` for `codex`; `dist/antigravity/plugins` for `antigravity`).
-- `generateRoot({ repoRoot, outRoot, registry, plugins, report })`: Cleans legacy build output and initializes root manifests or cross-plugin naming state.
+- `capabilities`: Capability descriptor object for `skills`, `agents`, and `hooks`.
+- `pluginsDir`: Relative per-plugin output directory, `dist/<id>/plugins` for each harness (`dist/claude-code/plugins`, `dist/codex/plugins`, `dist/antigravity/plugins`, `dist/opencode/plugins`, `dist/pi/plugins`). Nothing is written into another harness's tree.
+- `generateRoot({ repoRoot, outRoot, registry, plugins, report })`: Cleans the harness's build output and initializes root manifests or cross-plugin state (Pi, OpenCode and Codex return the `plugin:skill` reference pairs).
 - `generate({ repoRoot, outRoot, model, plugin, state, report })`: Emits converted resources, manifests, and runtime shims for a single enabled plugin.
 - `finish({ repoRoot, outRoot, registry, plugins, state, report })` (optional): Finalizes post-plugin steps after all plugins are generated.
 - `validate({ repoRoot, outRoot, plugin })`: Verifies generated package structure, payloads, and external CLI validators.
 
 ## Subdirectories & Boundaries
-- [`antigravity`](./antigravity/README.md): Build adapter (`adapter.mjs`), standalone bash + `jq` hook shim (`hook-shim.sh`), and tool mapping table (`tools.json`) generating native Antigravity plugins under `dist/antigravity/plugins/` and Antigravity discovery manifests in `dist/plugins/<plugin>/`.
-- [`claude-code`](./claude-code/README.md): Build adapter (`adapter.mjs`) generating native Claude Code plugins under `dist/plugins/<plugin>/` and `.claude-plugin/marketplace.json`.
+- [`antigravity`](./antigravity/README.md): Build adapter (`adapter.mjs`), standalone bash + `jq` hook shim (`hook-shim.sh`), and tool mapping table (`tools.json`) generating native Antigravity plugins under `dist/antigravity/plugins/`, each with its own `.antigravity-plugin/plugin.json`.
+- [`claude-code`](./claude-code/README.md): Build adapter (`adapter.mjs`) generating native Claude Code plugins under `dist/claude-code/plugins/<plugin>/` and `.claude-plugin/marketplace.json`.
 - [`codex`](./codex/README.md): Build adapter (`adapter.mjs`) generating native Codex plugins under `dist/codex/plugins/<plugin>/` (`codex-skills/`, never a `commands/` folder) and `.agents/plugins/marketplace.json`.
 - [`lib`](./lib/README.md): Self-contained Node.js hook input translator (`hook-input.mjs`) and process-group hook runner (`hook-runner.mjs`) copied into generated `opencode` and `pi` packages and reused at build time.
-- [`opencode`](./opencode/README.md): Build adapter (`adapter.mjs`), OpenCode V2 plugin runtime (`runtime.mjs`), and tool mapping table (`tools.mjs`) generating OpenCode V2 plugin packages under `dist/plugins/<plugin>/`.
-- [`pi`](./pi/README.md): Build adapter (`adapter.mjs`), Pi extension runtime (`runtime.mjs`), and tool mapping table (`tools.mjs`) generating Pi packages under `dist/plugins/<plugin>/`.
+- [`opencode`](./opencode/README.md): Build adapter (`adapter.mjs`), OpenCode V2 plugin runtime (`runtime.mjs`), and tool mapping table (`tools.mjs`) generating OpenCode V2 plugin packages under `dist/opencode/plugins/<plugin>/`.
+- [`pi`](./pi/README.md): Build adapter (`adapter.mjs`), Pi extension runtime (`runtime.mjs`), and tool mapping table (`tools.mjs`) generating Pi packages under `dist/pi/plugins/<plugin>/`.
 
 ## Invariants
-- Canonical plugin resources (`skills/`, `commands/`, `agents/`, `hooks/`, `templates/`) are authored once in Claude Code format at the repository root; harness adapters and runtimes are strictly responsible for translating them without hand-editing `dist/`.
+- Canonical plugin resources (`skills/<plugin>/<skill>/`, `agents/`, `hooks/`, `templates/`) are authored once in Claude Code format at the repository root; harness adapters and runtimes are strictly responsible for translating them without hand-editing `dist/`.
 - Across all harness runtimes and shims (`lib/hook-runner.mjs`, `antigravity/hook-shim.sh`, `opencode/runtime.mjs`, `pi/runtime.mjs`), only hook exit code `2` blocks an action; missing scripts, crashes, invalid matchers, or timeouts never block tool calls or sessions.
 - Runtime files copied into generated packages (`harnesses/lib/*`, `harnesses/antigravity/hook-shim.sh`, `harnesses/opencode/runtime.mjs`, `harnesses/pi/runtime.mjs`) must remain self-contained with zero dependencies on the rest of this repository.
 
