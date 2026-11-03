@@ -52,7 +52,7 @@ Plugin versions live in `registry.json` and are emitted to:
 - `.claude-plugin/marketplace.json`
 - `.agents/plugins/marketplace.json`
 - `dist/plugins/<plugin-name>/.claude-plugin/plugin.json`
-- `dist/plugins/<plugin-name>/.codex-plugin/plugin.json`
+- `dist/codex/plugins/<plugin-name>/.codex-plugin/plugin.json`
 - `dist/plugins/<plugin-name>/plugin.json`
 - `dist/plugins/<plugin-name>/package.json`
 - `dist/antigravity/plugins/<plugin-name>/.antigravity-plugin/plugin.json`

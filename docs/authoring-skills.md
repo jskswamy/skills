@@ -10,7 +10,7 @@ resources and `registry.json` into that harness's install tree under `dist/`:
 | Pi | `dist/plugins/<plugin-name>/` (`package.json#pi`, `prompts/`, `runtime/pi/`) |
 | Antigravity | `dist/antigravity/plugins/<plugin-name>/` and `dist/plugins/<plugin-name>/plugin.json` |
 | OpenCode | `dist/plugins/<plugin-name>/` (`package.json`, `index.js`, `.opencode/plugins/index.js`, `runtime/opencode/`) |
-| Codex | `dist/plugins/<plugin-name>/` (`.codex-plugin/plugin.json`, `codex-skills/`), `.agents/plugins/marketplace.json` |
+| Codex | `dist/codex/plugins/<plugin-name>/` (`.codex-plugin/plugin.json`, `codex-skills/`), `.agents/plugins/marketplace.json` |
 
 `npm run build` writes this into a temp dir and prints it; only the release
 (`npm run build:release`) writes it into the repo. Edit canonical resources,

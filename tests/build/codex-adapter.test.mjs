@@ -117,15 +117,15 @@ test("codex adapter writes .agents/plugins/marketplace.json, .codex-plugin/plugi
   assert.equal(marketplace.name, "skills");
   assert.equal(marketplace.plugins.length, 1);
   assert.equal(marketplace.plugins[0].name, "sample");
-  assert.equal(marketplace.plugins[0].source, "./dist/plugins/sample");
+  assert.equal(marketplace.plugins[0].source, "./dist/codex/plugins/sample");
 
-  const manifest = JSON.parse(await readFile(join(repoRoot, "dist/plugins/sample/.codex-plugin/plugin.json"), "utf8"));
+  const manifest = JSON.parse(await readFile(join(repoRoot, "dist/codex/plugins/sample/.codex-plugin/plugin.json"), "utf8"));
   assert.equal(manifest.name, "sample");
   assert.equal(manifest.version, "1.2.3");
   assert.equal(manifest.skills, "./codex-skills");
   assert.equal(manifest.hooks, "./codex-hooks.json");
 
-  const codexHooks = JSON.parse(await readFile(join(repoRoot, "dist/plugins/sample/codex-hooks.json"), "utf8"));
+  const codexHooks = JSON.parse(await readFile(join(repoRoot, "dist/codex/plugins/sample/codex-hooks.json"), "utf8"));
   assert.deepEqual(codexHooks, {
     hooks: {
       SessionStart: [
@@ -144,15 +144,26 @@ test("codex adapter writes .agents/plugins/marketplace.json, .codex-plugin/plugi
     },
   });
 
-  await access(join(repoRoot, "dist/plugins/sample/codex-skills/sample-skill/SKILL.md"));
-  await access(join(repoRoot, "dist/plugins/sample/codex-skills/sample-cmd-do/SKILL.md"));
-  await access(join(repoRoot, "dist/plugins/sample/hooks/session-reminder.sh"));
-  await access(join(repoRoot, "dist/plugins/sample/.mcp.json"));
-  await assert.rejects(access(join(repoRoot, "dist/plugins/sample/commands")), "commands are converted to skills");
-  await assert.rejects(access(join(repoRoot, "dist/plugins/sample/agents")), "agents are excluded");
-  await assert.rejects(access(join(repoRoot, "dist/plugins/sample/hooks/hooks.json")), "Claude hooks.json is not copied in standalone codex build");
+  await access(join(repoRoot, "dist/codex/plugins/sample/codex-skills/sample-skill/SKILL.md"));
+  await access(join(repoRoot, "dist/codex/plugins/sample/codex-skills/sample-cmd-do/SKILL.md"));
+  await access(join(repoRoot, "dist/codex/plugins/sample/hooks/session-reminder.sh"));
+  await access(join(repoRoot, "dist/codex/plugins/sample/.mcp.json"));
+  await assert.rejects(access(join(repoRoot, "dist/codex/plugins/sample/commands")), "commands are converted to skills");
+  await assert.rejects(access(join(repoRoot, "dist/codex/plugins/sample/agents")), "agents are excluded");
+  await assert.rejects(access(join(repoRoot, "dist/codex/plugins/sample/hooks/hooks.json")), "Claude hooks.json is not copied in standalone codex build");
 
   assert.deepEqual(await codex.validate({ repoRoot, outRoot: repoRoot, plugin: PLUGIN }), []);
+});
+
+test("codex validate rejects a commands/ folder, which Codex would convert into duplicate skills", async (t) => {
+  const { repoRoot, registry } = await fixture();
+  t.after(() => rm(repoRoot, { recursive: true, force: true }));
+
+  await runAdapters({ repoRoot, registry, adapters: [codex] });
+  await write(join(repoRoot, "dist/codex/plugins/sample/commands/do.md"), "x");
+  const errors = await codex.validate({ repoRoot, outRoot: repoRoot, plugin: PLUGIN });
+  assert.equal(errors.length, 1);
+  assert.match(errors[0], /commands\/ must not ship/);
 });
 
 test("codex adapter generates a fallback statusMessage when missing and writes empty codex-hooks.json when all hooks are skipped", async (t) => {
@@ -171,12 +182,12 @@ test("codex adapter generates a fallback statusMessage when missing and writes e
   const fallbackReport = await runAdapters({ repoRoot, registry, adapters: [codex] });
   assert.deepEqual(fallbackReport.errors(), []);
   assert.ok(fallbackReport.entries.some((e) => e.kind === "hooks" && e.status === "degraded" && /statusMessage/.test(e.reason)));
-  const fallbackHooks = JSON.parse(await readFile(join(repoRoot, "dist/plugins/sample/codex-hooks.json"), "utf8"));
+  const fallbackHooks = JSON.parse(await readFile(join(repoRoot, "dist/codex/plugins/sample/codex-hooks.json"), "utf8"));
   assert.equal(fallbackHooks.hooks.SessionStart[0].hooks[0].statusMessage, "sample session-start:session-reminder");
 
   // validate rejects a codex-hooks.json whose statusMessage was stripped.
   await write(
-    join(repoRoot, "dist/plugins/sample/codex-hooks.json"),
+    join(repoRoot, "dist/codex/plugins/sample/codex-hooks.json"),
     JSON.stringify({
       hooks: {
         SessionStart: [{ hooks: [{ type: "command", command: "bash ${CLAUDE_PLUGIN_ROOT}/hooks/session-reminder.sh" }] }],
@@ -210,9 +221,9 @@ test("codex adapter generates a fallback statusMessage when missing and writes e
   );
   const skippedReport = await runAdapters({ repoRoot, registry, adapters: [codex] });
   assert.deepEqual(skippedReport.errors(), []);
-  const manifest = JSON.parse(await readFile(join(repoRoot, "dist/plugins/sample/.codex-plugin/plugin.json"), "utf8"));
+  const manifest = JSON.parse(await readFile(join(repoRoot, "dist/codex/plugins/sample/.codex-plugin/plugin.json"), "utf8"));
   assert.equal(manifest.hooks, "./codex-hooks.json");
-  const codexHooks = JSON.parse(await readFile(join(repoRoot, "dist/plugins/sample/codex-hooks.json"), "utf8"));
+  const codexHooks = JSON.parse(await readFile(join(repoRoot, "dist/codex/plugins/sample/codex-hooks.json"), "utf8"));
   assert.deepEqual(codexHooks, { hooks: {} });
   assert.deepEqual(await codex.validate({ repoRoot, outRoot: repoRoot, plugin: PLUGIN }), []);
 });
@@ -230,25 +241,25 @@ test("real plugins build isolated codex-hooks.json and execute carried hooks cle
   }
 
   // codebase carries only SessionStart; PreToolUse (Grep|Glob) is excluded.
-  const codebaseHooks = JSON.parse(await readFile(join(outRoot, "dist/plugins/codebase/codex-hooks.json"), "utf8"));
+  const codebaseHooks = JSON.parse(await readFile(join(outRoot, "dist/codex/plugins/codebase/codex-hooks.json"), "utf8"));
   assert.deepEqual(Object.keys(codebaseHooks.hooks), ["SessionStart"]);
   assert.equal(codebaseHooks.hooks.SessionStart[0].hooks[0].statusMessage, "Load codebase knowledge graph protocol");
 
   // devenv skips PostToolUse (Write|Edit) and emits an empty codex-hooks.json so Codex does not load hooks/hooks.json.
-  const devenvHooks = JSON.parse(await readFile(join(outRoot, "dist/plugins/devenv/codex-hooks.json"), "utf8"));
+  const devenvHooks = JSON.parse(await readFile(join(outRoot, "dist/codex/plugins/devenv/codex-hooks.json"), "utf8"));
   assert.deepEqual(devenvHooks, { hooks: {} });
 
   // commit-tools carries SessionStart and PreToolUse (Bash|mcp__.*git.*commit), and routing-reminder.sh resolves codex-skills in standalone builds.
-  const commitHooks = JSON.parse(await readFile(join(outRoot, "dist/plugins/commit-tools/codex-hooks.json"), "utf8"));
+  const commitHooks = JSON.parse(await readFile(join(outRoot, "dist/codex/plugins/commit-tools/codex-hooks.json"), "utf8"));
   assert.deepEqual(Object.keys(commitHooks.hooks), ["SessionStart", "PreToolUse"]);
-  const { stdout: routingOut } = await execFileP("bash", [join(outRoot, "dist/plugins/commit-tools/hooks/scripts/routing-reminder.sh")]);
+  const { stdout: routingOut } = await execFileP("bash", [join(outRoot, "dist/codex/plugins/commit-tools/hooks/scripts/routing-reminder.sh")]);
   assert.match(routingOut, /codex-skills\/commit-action\/SKILL\.md/);
 
   // codebase session-reminder.sh detects codebase-memory-mcp configured in CODEX_HOME/config.toml even without the binary on PATH.
   const codexHome = await mkdtemp(join(tmpdir(), "codex-home-"));
   t.after(() => rm(codexHome, { recursive: true, force: true }));
   await writeFile(join(codexHome, "config.toml"), '[mcp_servers.codebase-memory-mcp]\ncommand = "/opt/bin/codebase-memory-mcp"\n');
-  const { stdout: reminderOut } = await execFileP("bash", [join(outRoot, "dist/plugins/codebase/hooks/session-reminder.sh")], {
+  const { stdout: reminderOut } = await execFileP("bash", [join(outRoot, "dist/codex/plugins/codebase/hooks/session-reminder.sh")], {
     cwd: codexHome,
     env: { ...process.env, HOME: codexHome, CODEX_HOME: codexHome, PATH: "/usr/bin:/bin" },
   });

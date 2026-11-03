@@ -101,9 +101,11 @@ export async function generate({ repoRoot, outRoot, model, report }) {
       description: model.description,
     });
     if (model.commands.length > 0) {
-      await writeJson(join(sharedRoot, "skills.json"), {
-        entries: [{ path: "codex-skills", include_only: model.commands.map((c) => commandSkillName(model.name, c.name)) }],
-      });
+      for (const c of model.commands) {
+        const name = commandSkillName(model.name, c.name);
+        await copyResourceTree({ from: join(pluginRoot, "skills", name), to: join(sharedRoot, "agy-skills", name) });
+      }
+      await writeJson(join(sharedRoot, "skills.json"), { entries: [{ path: "agy-skills" }] });
     }
     if (model.agents.length > 0) {
       await copyResourceTree({ from: join(pluginRoot, "agents"), to: join(sharedRoot, "agy-agents") });

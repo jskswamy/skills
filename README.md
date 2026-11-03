@@ -179,10 +179,11 @@ harnesses/lib/       # Hook runner and tool translation shared by harness runtim
 harnesses/<id>/      # One folder per harness: adapter, runtime or shim, tool table, docs
 
 # Generated at release
-dist/plugins/        # Unified per-plugin bundles for claude-code, codex, pi, opencode and antigravity
+dist/plugins/        # Unified per-plugin bundles for claude-code, pi, opencode and antigravity
+dist/codex/plugins/  # Codex bundles (separate: Codex converts a commands/ folder into duplicate skills)
 dist/antigravity/    # Standalone Antigravity bulk-install tree (agy plugin install dist/antigravity)
 .claude-plugin/      # Claude Code marketplace, pointing into dist/plugins
-.agents/plugins/     # Codex marketplace, pointing into dist/plugins
+.agents/plugins/     # Codex marketplace, pointing into dist/codex/plugins
 ```
 
 Edit canonical root resources, then run `npm run build`, which writes every

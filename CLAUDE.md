@@ -23,8 +23,9 @@ package.json                          # Repository dev/test script runner
 
 # Generated (written only by the release: npm run build:release)
 .claude-plugin/marketplace.json       # Claude Code marketplace; sources point into dist/plugins
-.agents/plugins/marketplace.json      # Codex marketplace; sources point into dist/plugins
-dist/plugins/<plugin>/                # Unified per-plugin bundles (Claude Code, Codex, Pi, OpenCode, Antigravity)
+.agents/plugins/marketplace.json      # Codex marketplace; sources point into dist/codex/plugins
+dist/plugins/<plugin>/                # Unified per-plugin bundles (Claude Code, Pi, OpenCode, Antigravity discovery)
+dist/codex/plugins/<plugin>/          # Codex bundles; no commands/ (Codex would convert them into duplicate skills)
 dist/antigravity/plugins/<plugin>/    # Standalone Antigravity bulk-install plugins
 ```
 

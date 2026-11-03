@@ -1,15 +1,17 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { commandSkillName } from "../antigravity/adapter.mjs";
-import { ensureDir, pathExists, readJson, removeDir, writeJson } from "../../scripts/lib/fs-utils.mjs";
+import { ensureDir, pathExists, readJson, writeJson } from "../../scripts/lib/fs-utils.mjs";
 import { copyLayout, wrapperLayout } from "../../scripts/lib/layout.mjs";
 import { commandToSkill } from "../../scripts/lib/transforms/command-to-skill.mjs";
 import { canonicalPluginPaths } from "../../scripts/lib/transforms/paths.mjs";
 import { carryHooks } from "../../scripts/lib/transforms/policy.mjs";
 import { CLAUDE_EVENTS, rewriteMatcher } from "../../scripts/lib/transforms/tools.mjs";
 
-// One folder per plugin under this; changed-plugins and eval read it.
-export const pluginsDir = "dist/plugins";
+// One folder per plugin under this; changed-plugins and eval read it. Codex
+// gets its own bundle because it turns a plugin's commands/ into skills at
+// install, which would list every command twice next to ours.
+export const pluginsDir = "dist/codex/plugins";
 const SKILLS_DIR = "codex-skills";
 const HOOKS_FILE = "codex-hooks.json";
 
@@ -35,7 +37,6 @@ export const capabilities = {
 // The marketplace lists every plugin with codex enabled. Codex CLI and
 // Skillshare read .agents/plugins/marketplace.json at the root.
 export async function generateRoot({ outRoot, registry, plugins }) {
-  await removeDir(join(outRoot, "dist/codex"));
   await writeJson(join(outRoot, ".agents", "plugins", "marketplace.json"), {
     name: registry.marketplace.name,
     owner: registry.marketplace.owner,
@@ -59,14 +60,10 @@ export async function generate({ repoRoot, outRoot, model, report }) {
 
   // Codex reads codex-skills/, codex-hooks.json, and optional .mcp.json/.app.json;
   // commands are converted into skills below, while agents are not supported.
-  const hasShared = await pathExists(join(pluginRoot, ".claude-plugin/plugin.json"));
+  // A commands/ folder here would make Codex convert them a second time.
   const fullLayout = wrapperLayout(model);
   const layout = fullLayout
-    .filter(({ kind, from }) =>
-      hasShared
-        ? kind === "skills"
-        : !["commands", "agents"].includes(kind) && !(kind === "hooks" && from.endsWith("hooks.json")),
-    )
+    .filter(({ kind, from }) => !["commands", "agents"].includes(kind) && !(kind === "hooks" && from.endsWith("hooks.json")))
     .map((entry) => (entry.kind === "skills" ? { ...entry, to: entry.to.replace(/^skills\//, `${SKILLS_DIR}/`) } : entry));
   await copyLayout({ repoRoot, layout, to: pluginRoot });
 
@@ -143,6 +140,9 @@ export async function validate({ repoRoot, outRoot = repoRoot, plugin }) {
   if (!manifest) return [`${label}: missing .codex-plugin/plugin.json; run npm run build`];
 
   const errors = [];
+  if (await pathExists(join(out, "commands"))) {
+    errors.push(`${label}: commands/ must not ship; Codex would convert it into duplicate source-command-* skills`);
+  }
   for (const field of ["name", "version", "description"]) {
     if (typeof manifest[field] !== "string" || manifest[field].trim() === "") {
       errors.push(`${label}: .codex-plugin/plugin.json missing ${field}`);

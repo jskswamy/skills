@@ -228,7 +228,7 @@ test("all adapters co-exist in dist/plugins/<plugin> without manifest or skill c
   assert.ok(pkg.keywords.includes("opencode-plugin") && pkg.keywords.includes("pi-package"));
 
   await access(join(root, ".claude-plugin/plugin.json"));
-  await access(join(root, ".codex-plugin/plugin.json"));
+  await assert.rejects(access(join(root, ".codex-plugin")), "Codex has its own bundle");
   await access(join(root, "plugin.json"));
   await access(join(root, ".opencode/plugins/index.js"));
   await access(join(root, "runtime/opencode/hooks.manifest.json"));
@@ -236,5 +236,8 @@ test("all adapters co-exist in dist/plugins/<plugin> without manifest or skill c
   await access(join(root, "runtime/antigravity/hooks.manifest.json"));
 
   assert.deepEqual(await readdir(join(root, "skills")), ["codebase-explore"]);
-  assert.deepEqual((await readdir(join(root, "codex-skills"))).sort(), ["codebase-cmd-ask", "codebase-explore"]);
+  assert.deepEqual((await readdir(join(root, "agy-skills"))).sort(), ["codebase-cmd-ask"]);
+  const codexRoot = join(repoRoot, "dist/codex/plugins/codebase");
+  assert.deepEqual((await readdir(join(codexRoot, "codex-skills"))).sort(), ["codebase-cmd-ask", "codebase-explore"]);
+  await assert.rejects(access(join(codexRoot, "commands")), "Codex converts commands/ into duplicate skills");
 });
