@@ -2,7 +2,86 @@
 
 All notable changes to this skills/plugins collection will be documented in this file.
 
+## [3.0.0] - 2026-11-03
+
+### Added
+
+- Add harness dictionary and research notes
+
+harness_dictionary.md settles the vocabulary used across the five
+harnesses (Claude Code, Codex, Antigravity, OpenCode, Pi) and records,
+per harness, how a skill is named, run and shown in a picker, with each
+statement marked as documented or observed. Section 8 holds the results
+of the spikes run against the real harness CLIs.
+
+docs/harness-research.md consolidates the raw first-round research
+behind it, one section per harness, so later work can check a claim
+against the original output instead of repeating the research.
+- Add skill invocation design spec
+
+Record why a skill looked different on each harness and the design that
+makes the typed name and the hint consistent: skills as the only
+authored file, a generated tree per harness, plugin-skill names where a
+harness cannot namespace, and a short picker line per runnable skill.
+
+The spec keeps the decisions with the alternatives they were chosen
+over, the harness behavior each decision relies on, what is still
+unobserved, and the verification the release depends on. The file sits
+under docs/superpowers, which is ignored, so it is added explicitly.
+
+### Changed
+
+- Rename skills and generate a tree per harness
+
+Skills are now the only authored file for a capability. The 23
+hand-written command files are deleted and 26 of the 36 plugin skills
+drop their plugin prefix, so a user runs craft:backlog where they used
+to see craft:craft-backlog. Skills move to skills/<plugin>/<skill>/ and
+the registry lists them as plugin/skill.
+
+Each harness now reads only its own generated tree under
+dist/<harness>/plugins/<plugin>/. The shared dist/plugins tree, the
+Antigravity manifest written into it and the <plugin>-cmd-<name> skills
+are gone. Pi and OpenCode cannot namespace plugin skills, so each
+runnable skill gets a prompt or command named plugin-skill there, and
+references in text are rewritten per harness (plugin-skill on Pi and
+OpenCode, $plugin:skill on Codex).
+
+Every runnable skill carries a picker line of at most 120 characters in
+metadata.short-description. Claude Code shows it as the description and
+keeps the trigger text in when_to_use; Antigravity puts it first in the
+description; Pi and OpenCode use it for the wrapper description.
+
+This is a breaking change with no aliases. MIGRATION-v3.md lists every
+old and new name and the new install paths. The committed dist/ and the
+marketplace files change only at the next release.
+
+### Other
+
+- Ship Codex as its own bundle without commands/
+
+Codex turns a plugin's commands/ folder into source-command-* skills
+when it installs the plugin. Codex used to share dist/plugins with
+the other harnesses, which keep commands/, so every command was listed
+twice: once as our <plugin>-cmd-<command> skill and once as Codex's
+own conversion.
+
+Build the Codex output into dist/codex/plugins/<plugin>/ instead. That
+bundle never carries commands/, the Claude hooks.json or agents, and
+validate fails if a commands/ folder appears. The Codex marketplace
+now points at the new path, and the docs name it.
+
+The Antigravity discovery manifest in the shared bundle used to point
+at codex-skills, which no longer exists there. Copy the command
+skills into agy-skills/ in the shared bundle and point skills.json at
+that folder.
 ## [2.4.1] - 2026-10-27
+
+### Changed
+
+- Update CHANGELOG for v2.4.1
+
+Document all changes included in the v2.4.1 release. by @jskswamy
 
 ### Other
 
@@ -24,7 +103,7 @@ plugin are skipped so Codex never falls back to hooks/hooks.json.
 Add non-empty statusMessage labels to all canonical hook handlers so
 Codex displays descriptive hook names, and update the codebase and
 commit-tools SessionStart scripts to resolve Codex config and skill
-paths.
+paths. by @jskswamy
 - Release v2.4.1
 
 Bump codebase, commit-tools, craft, and devenv versions in
@@ -32,7 +111,7 @@ registry.json for isolated Codex hook manifests and statusMessage
 labels.
 
 Write every harness's output via npm run build:release and refresh the
-Claude snapshot.
+Claude snapshot. by @jskswamy
 ## [2.4.0] - 2026-10-26
 
 ### Changed
@@ -3618,6 +3697,7 @@ as a dependency.
 ### Removed
 
 - Remove welcome message from shell hook by @jskswamy
+[3.0.0]: https://github.com/jskswamy/skills/compare/v2.4.1..v3.0.0
 [2.4.1]: https://github.com/jskswamy/skills/compare/v2.4.0..v2.4.1
 [2.4.0]: https://github.com/jskswamy/skills/compare/v2.3.0..v2.4.0
 [2.3.0]: https://github.com/jskswamy/skills/compare/v2.2.1..v2.3.0
