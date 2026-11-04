@@ -1,6 +1,6 @@
 {
   "name": "sketch-note",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Generate visual sketch notes in Excalidraw format from conversations, code architecture, or custom content",
   "author": {
     "name": "Krishnaswamy Subramanian"

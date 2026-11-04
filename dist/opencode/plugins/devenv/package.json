@@ -1,6 +1,6 @@
 {
-  "name": "@jskswamy/devenv",
-  "version": "2.0.0",
+  "name": "devenv",
+  "version": "2.0.1",
   "description": "Initialize and manage Nix flake development environments with auto-detection and security tooling",
   "type": "module",
   "main": ".opencode/plugins/index.js",

@@ -13,20 +13,24 @@ Pi and OpenCode have no namespace and use `/codebase-*`:
 
 | Workflow | Claude Code | Pi and OpenCode |
 |----------|-------------|-----------------|
-| Index | `/codebase-index [--mode full|moderate|fast]` | `/codebase-index [--mode full|moderate|fast]` |
+| Index | `/codebase-index [--mode full\|moderate\|fast\|cross-repo-intelligence] [--link <project\|*>]` | `/codebase-index [--mode full\|moderate\|fast\|cross-repo-intelligence] [--link <project\|*>]` |
 | Ask | `/codebase-ask <question>` | `/codebase-ask <question>` |
 | Impact | `/codebase-impact [--base <sha>]` | `/codebase-impact [--base <sha>]` |
 | Graph | `/codebase-graph <symbol> ...` | `/codebase-graph <symbol> ...` |
+| Capabilities | `/codebase-capabilities [<capability>] [--project <name>...] [--depth 1-5]` | `/codebase-capabilities [<capability>] [--project <name>...] [--depth 1-5]` |
+| Seams | `/codebase-seams [<source> [<target>]] [--project <name>...]` | `/codebase-seams [<source> [<target>]] [--project <name>...]` |
 | Explore | auto-triggered skill | auto-triggered skill |
 
-### `/codebase-index [--mode full|moderate|fast]`
+### `/codebase-index [--mode full|moderate|fast|cross-repo-intelligence] [--link <project|*>]`
 
-Index or re-index the codebase. Run this first after installing the plugin.
+Index, re-index, or link the codebase across repositories. Run this first after installing the plugin.
 
 ```
 /codebase-index                  # moderate mode (default)
 /codebase-index --mode full      # all semantic signals, slowest
 /codebase-index --mode fast      # structural only, fastest
+/codebase-index --link *         # link cross-repo service calls across all indexed projects
+/codebase-index --link billing-service
 ```
 
 ### `/codebase-ask <question>`
@@ -57,6 +61,28 @@ Explore a symbol's callers, callees, and relationships.
 /codebase-graph writeJSON
 /codebase-graph ValidateToken --depth 3
 /codebase-graph HandleGet --direction inbound
+```
+
+### `/codebase-capabilities [<capability>] [--project <name>[,<name>...]] [--depth 1-5]`
+
+Discover all functional capabilities (high-cohesion clusters anchored to entry points) or trace a specific capability's execution corridor across one or more indexed projects.
+
+```
+/codebase-capabilities
+/codebase-capabilities authentication
+/codebase-capabilities checkout --depth 4
+/codebase-capabilities billing --project api-gateway,billing-service
+```
+
+### `/codebase-seams [<source> [<target>]] [--project <name>[,<name>...]]`
+
+Inspect architectural seams, module boundaries, instability metrics, and enabling points within a codebase or across multiple indexed repositories.
+
+```
+/codebase-seams
+/codebase-seams internal/auth
+/codebase-seams internal/api internal/db
+/codebase-seams api-gateway billing-service
 ```
 
 ## Explore Skill

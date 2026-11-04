@@ -1,6 +1,6 @@
 {
-  "name": "@jskswamy/bivouac",
-  "version": "1.0.0",
+  "name": "bivouac",
+  "version": "1.0.1",
   "description": "Safe workflows for disposable remote coding-agent sessions with bivouac",
   "type": "module",
   "main": ".opencode/plugins/index.js",

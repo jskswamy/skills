@@ -3,19 +3,19 @@
     {
       "id": "codebase-explore",
       "name": "codebase-explore",
-      "description": "Use when gathering background codebase context as part of a larger workflow, such as the brainstorming or planning explore step, or before modifying unfamiliar code to understand architecture and structure. Not for a direct one-off question (use codebase-ask), a named symbol's callers/callees (use codebase-graph), or the effect of a diff (use codebase-impact).",
+      "description": "Use when gathering background codebase context as part of a larger workflow, such as the brainstorming or planning explore step, or before modifying unfamiliar code to understand architecture and structure. Not for a direct one-off question (use codebase-ask), a named symbol's callers/callees (use codebase-graph), the effect of a diff (use codebase-impact), capability mapping (use codebase-capabilities), or boundary/seam inspection (use codebase-seams).",
       "path": "skills/explore/SKILL.md"
     },
     {
       "id": "codebase-ask",
       "name": "codebase-ask",
-      "description": "Use when the user asks a direct natural-language question about the codebase: 'where does X happen', 'how does X work', 'anything similar to X', 'what should I know before adding X'. Not for ambient context during brainstorming/planning (use codebase-explore), call graphs of a named symbol (use codebase-graph), or what a diff affects (use codebase-impact).",
+      "description": "Use when the user asks a direct natural-language question about the codebase: 'where does X happen', 'how does X work', 'anything similar to X', 'what should I know before adding X'. Not for ambient context during brainstorming/planning (use codebase-explore), call graphs of a named symbol (use codebase-graph), what a diff affects (use codebase-impact), capability mapping (use codebase-capabilities), or boundary/seam inspection (use codebase-seams).",
       "path": "skills/ask/SKILL.md"
     },
     {
       "id": "codebase-index",
       "name": "codebase-index",
-      "description": "Use when the codebase index must be built or refreshed: 'index this repo', 'reindex', 'index is stale', or when other codebase skills report no index. This only builds the index; to answer questions use codebase-ask, codebase-graph, or codebase-impact.",
+      "description": "Use when the codebase index must be built, refreshed, or linked across repositories: 'index this repo', 'reindex', 'index is stale', 'link repos', or when other codebase skills report no index. This only builds or links the index; to answer questions use codebase-ask, codebase-graph, codebase-impact, codebase-capabilities, or codebase-seams.",
       "path": "skills/index/SKILL.md"
     },
     {
@@ -29,6 +29,18 @@
       "name": "codebase-graph",
       "description": "Use when the user names a specific symbol and wants its relationships: 'who calls X', 'what does X call', 'call graph for X', 'dependencies of X'. Supports depth and direction. Not for general how/where questions (use codebase-ask) or diff-based impact (use codebase-impact).",
       "path": "skills/graph/SKILL.md"
+    },
+    {
+      "id": "codebase-capabilities",
+      "name": "codebase-capabilities",
+      "description": "Use when the user wants to discover or inspect functional capabilities in one or more codebases: 'what capabilities exist', 'map capabilities', 'how is capability X structured', 'trace capability X across repos', 'compare capabilities between project A and B'. Not for a single symbol's immediate callers/callees (use codebase-graph) or boundary coupling inspection (use codebase-seams).",
+      "path": "skills/capabilities/SKILL.md"
+    },
+    {
+      "id": "codebase-seams",
+      "name": "codebase-seams",
+      "description": "Use when the user wants to identify, inspect, or audit architectural seams and boundaries within a codebase or across indexed repositories: 'what are the seams', 'find leaky seams', 'show the boundary between X and Y', 'where can we split or decouple X', 'how does repo A integrate with repo B'. Not for tracing a single symbol's call tree (use codebase-graph) or diff blast radius (use codebase-impact).",
+      "path": "skills/seams/SKILL.md"
     }
   ],
   "commands": [
@@ -39,7 +51,7 @@
     },
     {
       "name": "codebase-index",
-      "description": "Build or refresh the codebase index. [--mode full|moderate|fast]",
+      "description": "Build, refresh, or link the codebase index. [--mode full|moderate|fast|cross-repo-intelligence] [--link <project|*>]",
       "path": "runtime/opencode/commands/codebase-index.md"
     },
     {
@@ -51,6 +63,16 @@
       "name": "codebase-graph",
       "description": "Show a symbol's callers and callees. <symbol> [--depth 1-5] [--direction inbound|outbound|both]",
       "path": "runtime/opencode/commands/codebase-graph.md"
+    },
+    {
+      "name": "codebase-capabilities",
+      "description": "Map functional capabilities and execution corridors. [<capability>] [--project <name>...] [--depth 1-5]",
+      "path": "runtime/opencode/commands/codebase-capabilities.md"
+    },
+    {
+      "name": "codebase-seams",
+      "description": "Inspect architectural seams and coupling across packages or repos. [<source> [<target>]] [--project <name>...]",
+      "path": "runtime/opencode/commands/codebase-seams.md"
     }
   ],
   "agents": []
