@@ -2,6 +2,49 @@
 
 All notable changes to this skills/plugins collection will be documented in this file.
 
+## [3.1.0] - 2026-11-04
+
+### Added
+
+- Add capabilities and seams skills to codebase
+
+Introduce two user-invocable skills in the codebase plugin and extend
+indexing to support multi-repository architectural analysis powered by
+codebase-memory-mcp:
+
+- Add codebase:capabilities to recover functional capability maps from
+  high-cohesion symbol clusters or trace a targeted capability's
+  execution corridor across one or more indexed projects.
+- Add codebase:seams to inspect package and cross-service boundaries,
+  compute Martin's instability metric, classify Feathers seam types and
+  boundary health, and locate concrete enabling points.
+- Extend codebase:index with --mode cross-repo-intelligence and
+  --link <project|*> to materialize cross-service call and channel edges
+  across indexed repositories.
+- Route capability and seam queries in codebase:ask and codebase:explore
+  and update plugin registry, documentation, and build tests.
+
+### Other
+
+- Advertise Pi and OpenCode builds in root catalogs
+
+Skillshare discovers per-harness plugin trees only through root
+marketplace catalogs and merges entries across catalogs when their
+plugin name matches. Splitting dist/plugins into per-harness trees in
+v3.0.0 left Pi and OpenCode unlisted, and scoped @jskswamy/<plugin>
+names in package.json caused Skillshare to drop those targets with
+catalogNameDiffers.
+
+Emit marketplace.json for Pi and .plugin/marketplace.json for OpenCode
+from their adapters, use unscoped plugin names in generated
+package.json files, and document and test Skillshare catalog discovery.
+- Release v3.1.0
+
+Bump plugin versions: codebase 1.0.0 -> 1.1.0, bivouac 1.0.0 -> 1.0.1,
+commit-tools 2.0.0 -> 2.0.1, craft 2.0.0 -> 2.0.1, devenv 2.0.0 ->
+2.0.1, jot 3.0.0 -> 3.0.1, refactor 1.0.0 -> 1.0.1, sketch-note 2.0.0
+-> 2.0.1, study 2.0.0 -> 2.0.1, typst-notes 2.0.0 -> 2.0.1.
+Write every harness's output via npm run build:release.
 ## [3.0.0] - 2026-11-03
 
 ### Added
@@ -16,7 +59,7 @@ of the spikes run against the real harness CLIs.
 
 docs/harness-research.md consolidates the raw first-round research
 behind it, one section per harness, so later work can check a claim
-against the original output instead of repeating the research.
+against the original output instead of repeating the research. by @jskswamy
 - Add skill invocation design spec
 
 Record why a skill looked different on each harness and the design that
@@ -27,7 +70,7 @@ harness cannot namespace, and a short picker line per runnable skill.
 The spec keeps the decisions with the alternatives they were chosen
 over, the harness behavior each decision relies on, what is still
 unobserved, and the verification the release depends on. The file sits
-under docs/superpowers, which is ignored, so it is added explicitly.
+under docs/superpowers, which is ignored, so it is added explicitly. by @jskswamy
 
 ### Changed
 
@@ -54,7 +97,11 @@ description; Pi and OpenCode use it for the wrapper description.
 
 This is a breaking change with no aliases. MIGRATION-v3.md lists every
 old and new name and the new install paths. The committed dist/ and the
-marketplace files change only at the next release.
+marketplace files change only at the next release. by @jskswamy
+- Update CHANGELOG and README for v3.0.0
+
+Document all changes included in the v3.0.0 release.
+Regenerate plugins section in README from registry.json. by @jskswamy
 
 ### Other
 
@@ -74,7 +121,19 @@ now points at the new path, and the docs name it.
 The Antigravity discovery manifest in the shared bundle used to point
 at codex-skills, which no longer exists there. Copy the command
 skills into agy-skills/ in the shared bundle and point skills.json at
-that folder.
+that folder. by @jskswamy
+- Release v3.0.0
+
+Bump every plugin by a major version because each renames at least one
+skill and the command files are gone: bivouac 0.3.0 → 1.0.0, devenv
+1.6.1 → 2.0.0, commit-tools 1.3.1 → 2.0.0, jot 2.2.0 → 3.0.0, craft
+1.2.1 → 2.0.0, sketch-note 1.5.0 → 2.0.0, typst-notes 1.3.0 → 2.0.0,
+codebase 0.4.1 → 1.0.0, study 1.2.0 → 2.0.0, refactor 0.3.0 → 1.0.0.
+
+Write every harness's output via npm run build:release. Each harness now
+installs from its own tree under dist/<harness>/plugins, and the shared
+dist/plugins tree is removed. The marketplace files point at the new
+trees. Old skill names stop working; MIGRATION-v3.md lists the renames. by @jskswamy
 ## [2.4.1] - 2026-10-27
 
 ### Changed
@@ -3697,6 +3756,7 @@ as a dependency.
 ### Removed
 
 - Remove welcome message from shell hook by @jskswamy
+[3.1.0]: https://github.com/jskswamy/skills/compare/v3.0.0..v3.1.0
 [3.0.0]: https://github.com/jskswamy/skills/compare/v2.4.1..v3.0.0
 [2.4.1]: https://github.com/jskswamy/skills/compare/v2.4.0..v2.4.1
 [2.4.0]: https://github.com/jskswamy/skills/compare/v2.3.0..v2.4.0
