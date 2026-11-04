@@ -1,6 +1,6 @@
 ---
 name: ask
-description: "Use when the user asks a direct natural-language question about the codebase: 'where does X happen', 'how does X work', 'anything similar to X', 'what should I know before adding X'. Not for ambient context during brainstorming/planning (use codebase:explore), call graphs of a named symbol (use codebase:graph), or what a diff affects (use codebase:impact)."
+description: "Use when the user asks a direct natural-language question about the codebase: 'where does X happen', 'how does X work', 'anything similar to X', 'what should I know before adding X'. Not for ambient context during brainstorming/planning (use codebase:explore), call graphs of a named symbol (use codebase:graph), what a diff affects (use codebase:impact), capability mapping (use codebase:capabilities), or boundary/seam inspection (use codebase:seams)."
 argument-hint: "<question>"
 metadata:
   short-description: "Ask a question about the codebase. <question>"
@@ -76,6 +76,8 @@ Read the user's question and classify it into one of these intents. This is a ju
 | **Location** | "where does", "find", "which file", "locate" | Go to Step 3a |
 | **Understanding** | "how does", "explain", "walk me through", "what does X do" | Go to Step 3b |
 | **Impact** | "what's affected", "blast radius", "what breaks", "what depends on" | Follow the `codebase:impact` skill workflow. In Claude Code, `/codebase:impact` remains the convenience command for more options. |
+| **Capabilities** | "what capabilities", "capability map", "execution corridor of" | Follow the `codebase:capabilities` skill workflow. In Claude Code, `/codebase:capabilities` remains the convenience command for more options. |
+| **Seams** | "what are the seams", "leaky seams", "boundary between", "coupling between" | Follow the `codebase:seams` skill workflow. In Claude Code, `/codebase:seams` remains the convenience command for more options. |
 | **Similarity** | "anything similar to", "what else does", "duplicates of", "related to" | Go to Step 3c |
 | **Onboarding** | "I want to add", "what should I know about", "getting started with", "new to" | Go to Step 3d |
 

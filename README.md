@@ -41,6 +41,8 @@ that harness's install tree under `dist/`. Only a release writes `dist/`, so
 | If you want to... | Use... |
 | --- | --- |
 | Ask where something happens in a codebase | `codebase:ask` |
+| Map functional capabilities and execution corridors | `codebase:capabilities` |
+| Inspect architectural seams and boundary coupling | `codebase:seams` |
 | See the impact of recent changes | `codebase:impact` |
 | Make a clean commit | `commit-tools:commit` |
 | Clean up commits before pushing | `commit-tools:review-commits` |
@@ -237,6 +239,8 @@ codebase:ask
 codebase:index
 codebase:impact
 codebase:graph
+codebase:capabilities
+codebase:seams
 ```
 [View documentation](./templates/codebase/README.md)
 

@@ -15,8 +15,8 @@ const skills = models.flatMap((model) => model.skills.map((skill) => ({ ...skill
 const runnable = skills.filter((skill) => skill.userInvocable);
 
 test("every runnable skill has a picker line of at most 120 characters, model-only skills need none", () => {
-  assert.equal(skills.length, 36);
-  assert.equal(runnable.length, 26);
+  assert.equal(skills.length, 38);
+  assert.equal(runnable.length, 28);
   for (const skill of runnable) {
     assert.ok(skill.pickerLine, `${skill.plugin}:${skill.name} has a picker line`);
     assert.ok(skill.pickerLine.length <= 120, `${skill.plugin}:${skill.name} line is ${skill.pickerLine.length} characters`);

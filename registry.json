@@ -502,7 +502,9 @@
           "codebase/ask",
           "codebase/index",
           "codebase/impact",
-          "codebase/graph"
+          "codebase/graph",
+          "codebase/capabilities",
+          "codebase/seams"
         ],
         "agents": [],
         "hooks": [

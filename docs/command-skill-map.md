@@ -38,6 +38,8 @@ plugin name. Model-only skills (`user-invocable: false`) have no entry.
 | `/codebase:index` | `$codebase:index` | `/codebase-index` |
 | `/codebase:impact` | `$codebase:impact` | `/codebase-impact` |
 | `/codebase:graph` | `$codebase:graph` | `/codebase-graph` |
+| `/codebase:capabilities` | `$codebase:capabilities` | `/codebase-capabilities` |
+| `/codebase:seams` | `$codebase:seams` | `/codebase-seams` |
 | `/study:coach` | `$study:coach` | `/study-coach` |
 | `/study:recall` | `$study:recall` | `/study-recall` |
 | `/study:setup` | `$study:setup` | `/study-setup` |
