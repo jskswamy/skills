@@ -4,6 +4,8 @@ import { cp, mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { spawnSync } from "node:child_process";
+import { withTempBuild } from "../../scripts/lib/adapters/index.mjs";
+import { loadRegistry } from "../../scripts/lib/registry.mjs";
 
 const available = !spawnSync("skillshare", ["--version"], { encoding: "utf8" }).error;
 
@@ -44,3 +46,60 @@ test("Skillshare still blocks arbitrary Python subprocess calls", { skip: !avail
     assert.ok(report.results.some((r) => r.findings.some((f) => f.ruleId === "shell-execution-0" && f.severity === "HIGH")), result.stdout);
   }
 });
+
+test(
+  "Skillshare discovers Claude, Codex, Pi, and OpenCode targets for every plugin from the generated catalogs",
+  { skip: !available && "skillshare is not installed" },
+  async () => {
+    const repoRoot = process.cwd();
+    const registry = await loadRegistry(join(repoRoot, "registry.json"));
+    await withTempBuild({ repoRoot, registry }, async ({ outRoot }) => {
+      const result = spawnSync("skillshare", ["plugin", "discover", outRoot, "--json", "--no-tui"], { encoding: "utf8" });
+      assert.equal(result.status, 0, `${result.stdout}${result.stderr}`);
+      const { candidates = [] } = JSON.parse(result.stdout);
+      for (const plugin of registry.plugins) {
+        const entry = candidates.find((p) => p.name === plugin.name);
+        assert.ok(entry, `missing candidate ${plugin.name}`);
+        const targets = entry.targets ?? [];
+        for (const target of ["claude", "codex", "pi", "opencode"]) {
+          assert.ok(targets.includes(target), `${plugin.name} missing target ${target}: ${targets.join(", ")}`);
+        }
+        assert.equal(entry.targetInfo?.claude?.path, `dist/claude-code/plugins/${plugin.name}`);
+        assert.equal(entry.targetInfo?.codex?.manifest, ".codex-plugin/plugin.json");
+        assert.equal(entry.path, `dist/codex/plugins/${plugin.name}`);
+        assert.equal(entry.targetInfo?.pi?.path, `dist/pi/plugins/${plugin.name}`);
+        assert.equal(entry.targetInfo?.pi?.problem, undefined);
+        assert.equal(entry.targetInfo?.opencode?.path, `dist/opencode/plugins/${plugin.name}`);
+        assert.equal(entry.targetInfo?.opencode?.problem, undefined);
+      }
+
+      const home = await mkdtemp(join(tmpdir(), "skillshare-home-"));
+      try {
+        const env = {
+          ...process.env,
+          HOME: home,
+          XDG_CONFIG_HOME: join(home, "config"),
+          XDG_STATE_HOME: join(home, "state"),
+          XDG_DATA_HOME: join(home, "data"),
+        };
+        const add = spawnSync(
+          "skillshare",
+          ["plugin", "add", outRoot, "--plugin", "bivouac", "--name", "bivouac", "--target", "pi", "--target", "opencode", "--dry-run", "--json", "--no-tui", "-g"],
+          { env, encoding: "utf8" },
+        );
+        assert.equal(add.status, 0, `${add.stdout}${add.stderr}`);
+        const plan = JSON.parse(add.stdout);
+        assert.equal(plan.blocked, false);
+        assert.deepEqual(
+          plan.changes.map(({ target, action }) => ({ target, action })),
+          [
+            { target: "opencode", action: "install" },
+            { target: "pi", action: "install" },
+          ],
+        );
+      } finally {
+        await rm(home, { recursive: true, force: true });
+      }
+    });
+  },
+);

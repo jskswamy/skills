@@ -3,18 +3,18 @@
 ## Overview
 Build adapter, OpenCode V2 plugin runtime, and tool-mapping table that package each enabled registry plugin into a self-contained OpenCode V2 plugin under `dist/opencode/plugins/<name>/`. Registers skills, one command per runnable skill, and subagents through OpenCode's transform APIs and bridges canonical Claude Code hooks to OpenCode tool, session context, and session execution events.
 
-The release build (`npm run build:release`) writes one OpenCode (V2) plugin
+The release build (`npm run build:release`) writes `.plugin/marketplace.json` at the repository root and one OpenCode (V2) plugin
 package per plugin with `harnesses.opencode.enabled` to
 `dist/opencode/plugins/<name>/` (after the next release; the last release shipped `dist/plugins/<name>/`); `npm run build` writes the same into a temp dir. Each
 package is self-contained: it runs without the rest of this repository. Do not
-edit the packages by hand. The packages target the OpenCode V2 plugin API and
-were tested with OpenCode 2.1.1; V1 is not supported.
+edit the packages or `.plugin/marketplace.json` by hand. The packages target the OpenCode V2 plugin API and
+were tested with OpenCode 2.1.1 and Skillshare 0.28.2; V1 is not supported.
 
 ## Interface
 - `id` (`adapter.mjs`): Harness identifier `"opencode"`.
 - `pluginsDir` (`adapter.mjs`): Output directory `"dist/opencode/plugins"`.
 - `capabilities` (`adapter.mjs`): Declares `skills` (`native`), `agents` (`native`), and `hooks` (`shim` for `session-start`, `subagent-start`, `pre-tool`, `post-tool`, `stop`).
-- `generateRoot({ outRoot, plugins })` (`adapter.mjs`): Removes `<outRoot>/dist/opencode` and returns `{ pairs }`, the `plugin:skill` and `plugin:agent` pairs (`referencePairs`) used to rewrite references.
+- `generateRoot({ outRoot, registry, plugins })` (`adapter.mjs`): Removes `<outRoot>/dist/opencode`, writes `<outRoot>/.plugin/marketplace.json` with `source: ./dist/opencode/plugins/<name>` for Skillshare discovery, and returns `{ pairs }`, the `plugin:skill` and `plugin:agent` pairs (`referencePairs`) used to rewrite references.
 - `generate({ repoRoot, outRoot, model, state, report })` (`adapter.mjs`): Copies the canonical wrapper layout and shared runtime into `<outRoot>/dist/opencode/plugins/<plugin>/`, rewrites `plugin:skill` references to `plugin-skill` in skills, agents, templates and scripts (`copyRewrittenSkills`), registers each skill as `plugin-skill` (`derivedId`) with a command of the same id for every runnable skill (no command for `user-invocable: false`), maps agents to `opencode-agents/`, validates payloads, rewrites hook commands to `"${OPENCODE_PLUGIN_ROOT}"`, and writes `resources.json`, `runtime/opencode/hooks.manifest.json`, `package.json`, `index.js`, and `.opencode/plugins/index.js`.
 - `canCarry(entry)` (`adapter.mjs`): Verifies `pre-tool` and `post-tool` hook matchers can be rewritten via `OPENCODE_TOOLS`.
 - `validate({ repoRoot, outRoot = repoRoot, plugin })` (`adapter.mjs`): Verifies generated `package.json`, runtime files, `resources.json` payloads, and `runtime/opencode/hooks.manifest.json` script targets exist and are valid.
@@ -25,13 +25,14 @@ were tested with OpenCode 2.1.1; V1 is not supported.
 - `OPENCODE_TOOLS` (`tools.mjs`): Maps Claude tool names and input parameters to OpenCode 2.1.1 tool names (`shell`, `read`, `edit`, `write`, `glob`, `grep`, `subagent`, `skill`, `webfetch`, `websearch`, `question`, `todowrite`), skips Code Mode's `"execute"` wrapper, and translates `<server>_<tool>` MCP tool names.
 
 ## Invariants
+- Each OpenCode-enabled plugin gets `"name": "<plugin>"` (unscoped) in `dist/opencode/plugins/<plugin>/package.json` so Skillshare matches it to the `.plugin/marketplace.json` catalog entry without triggering `catalogNameDiffers`. The OpenCode output directory must never carry a Copilot manifest because `.plugin/marketplace.json` is also a Copilot catalog path in Skillshare.
 - Every skill, command, and agent payload is validated by `payloadErrors` both at build time (`adapter.mjs`) and load time (`runtime.mjs`) because a single invalid payload causes OpenCode to disable the entire plugin.
 - `execute.before` tool hooks in `runtime.mjs` catch all internal errors and throw an `Error(result.reason)` *only* when a hook script exits with code `2` (`result.blocked === true`).
 - Agent IDs are prefixed with `<plugin>-` unless already prefixed, and `ctx.agent.transform` never overwrites an existing user-defined agent with the same ID.
 - Code Mode's `execute` wrapper tool is always skipped in `toolCall` because individual MCP tool calls inside it trigger their own hooks.
 
 ## Side Effects
-- `generateRoot` and `generate` remove `<outRoot>/dist/opencode/` and write plugin packages under `<outRoot>/dist/opencode/plugins/`.
+- `generateRoot` and `generate` remove `<outRoot>/dist/opencode/`, write `<outRoot>/.plugin/marketplace.json`, and write plugin packages under `<outRoot>/dist/opencode/plugins/`.
 - At runtime, `createPlugin` reads `runtime/opencode/hooks.manifest.json`, `resources.json`, and Markdown resource files from disk, sets `OPENCODE_PLUGIN_ROOT` in hook environments, registers OpenCode tool/session/skill/command/agent hooks and transforms on `ctx`, subscribes to `ctx.event`, and spawns canonical hook scripts via [`../lib/hook-runner.mjs`](../lib/README.md).
 
 ## Verification

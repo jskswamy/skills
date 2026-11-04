@@ -149,14 +149,24 @@ test("dist/pi/plugins/<plugin> emits per-plugin packages and omits runtime when 
   await assert.rejects(access(join(repoRoot, "dist/pi/plugins/off")), "a plugin without Pi does not ship to Pi");
 
   const onePkg = JSON.parse(await readFile(join(oneDist, "package.json"), "utf8"));
-  assert.equal(onePkg.name, "@jskswamy/one");
+  assert.equal(onePkg.name, "one");
   assert.equal(onePkg.version, "1.0.0");
   assert.ok(onePkg.keywords.includes("pi-package"));
   assert.deepEqual(onePkg.pi, { skills: ["./skills"], prompts: ["./prompts"], extensions: ["./runtime/pi/runtime.mjs"] });
 
   const twoPkg = JSON.parse(await readFile(join(twoDist, "package.json"), "utf8"));
-  assert.equal(twoPkg.name, "@jskswamy/two");
+  assert.equal(twoPkg.name, "two");
   assert.deepEqual(twoPkg.pi, {});
+
+  const catalog = JSON.parse(await readFile(join(repoRoot, "marketplace.json"), "utf8"));
+  assert.equal(catalog.name, "mp");
+  assert.deepEqual(
+    catalog.plugins.map(({ name, source }) => ({ name, source })),
+    [
+      { name: "one", source: "./dist/pi/plugins/one" },
+      { name: "two", source: "./dist/pi/plugins/two" },
+    ],
+  );
 });
 
 test("dist/pi/plugins/<plugin> is self-contained, even under a path with spaces", async (t) => {

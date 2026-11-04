@@ -128,6 +128,16 @@ Claude Code "command", OpenCode "command", Pi "prompt template", Codex
     `origin: top-level` while its prompts report `package`. (O)
 9.  Frontmatter keys one harness reads are silently ignored by the others, so a
     single `SKILL.md` can carry all of them. (O in all five)
+10. **Skillshare discovers per-harness trees only through root catalogs and
+    requires unscoped `package.json` names.** Skillshare (0.28.2) does not walk
+    `dist/`; it reads `.agents/plugins/marketplace.json` (Codex),
+    `.claude-plugin/marketplace.json` (Claude Code), `.plugin/marketplace.json`
+    (OpenCode), and `marketplace.json` (Pi) in order and merges entries whose
+    plugin `name` matches. If `dist/pi/plugins/<name>/package.json` or
+    `dist/opencode/plugins/<name>/package.json` uses a scoped `"name":
+    "@jskswamy/<name>"`, Skillshare normalizes it to `jskswamy-<name>`, flags
+    `catalogNameDiffers`, and silently drops the Pi and OpenCode targets on
+    merge. Keep per-plugin `package.json` `"name"` equal to `"<name>"`. (O)
 
 ## 8. Verified during the design review (2026-11-02)
 

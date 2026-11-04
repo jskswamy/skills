@@ -7,9 +7,9 @@ resources and `registry.json` into that harness's install tree under `dist/`:
 | Harness | Generated output |
 | --- | --- |
 | Claude Code | `dist/claude-code/plugins/<plugin-name>/`, `.claude-plugin/marketplace.json` |
-| Pi | `dist/pi/plugins/<plugin-name>/` (`package.json#pi`, `prompts/`, `runtime/pi/`) |
+| Pi | `dist/pi/plugins/<plugin-name>/` (`package.json#pi`, `prompts/`, `runtime/pi/`), `marketplace.json` |
 | Antigravity | `dist/antigravity/plugins/<plugin-name>/` (each with `.antigravity-plugin/plugin.json`) |
-| OpenCode | `dist/opencode/plugins/<plugin-name>/` (`package.json`, `index.js`, `.opencode/plugins/index.js`, `runtime/opencode/`) |
+| OpenCode | `dist/opencode/plugins/<plugin-name>/` (`package.json`, `index.js`, `.opencode/plugins/index.js`, `runtime/opencode/`), `.plugin/marketplace.json` |
 | Codex | `dist/codex/plugins/<plugin-name>/` (`.codex-plugin/plugin.json`, `codex-skills/`), `.agents/plugins/marketplace.json` |
 
 Each harness reads only its own tree; no adapter writes into another's.
@@ -18,8 +18,36 @@ These paths exist after the next release (the last release shipped
 
 `npm run build` writes this into a temp dir and prints it; only the release
 (`npm run build:release`) writes it into the repo. Edit canonical resources,
-build, and read the report. Never commit `dist/` or `.claude-plugin/` outside
-a release.
+build, and read the report. Never commit `dist/`, `.claude-plugin/`,
+`.agents/`, `.plugin/`, or `marketplace.json` outside a release.
+
+## Skillshare Discovery and Catalogs
+
+Skillshare does not walk `dist/`; it only inspects plugin directories
+referenced by root marketplace catalog files and merges entries across catalogs
+when their plugin `name` matches:
+
+| Root catalog | Target tree | Purpose |
+| --- | --- | --- |
+| `.agents/plugins/marketplace.json` | `./dist/codex/plugins/<name>` | Codex CLI and Skillshare Codex discovery |
+| `.claude-plugin/marketplace.json` | `./dist/claude-code/plugins/<name>` | Claude Code and Skillshare Claude/Antigravity discovery |
+| `.plugin/marketplace.json` | `./dist/opencode/plugins/<name>` | Skillshare OpenCode discovery (`package.json#main`) |
+| `marketplace.json` | `./dist/pi/plugins/<name>` | Skillshare Pi discovery (`package.json#pi`) |
+
+Keep these invariants whenever changing adapter layouts or manifests:
+
+- **Unscoped plugin `package.json` names:** Generated `dist/pi/plugins/<name>/package.json`
+  and `dist/opencode/plugins/<name>/package.json` must use `"name": "<name>"`
+  (not `@jskswamy/<name>`). Skillshare normalizes `@jskswamy/<name>` to
+  `jskswamy-<name>`, flags `catalogNameDiffers` against the catalog's `<name>`,
+  and silently drops the Pi and OpenCode targets on catalog merge. (The root
+  `package.json` is not a plugin catalog entry and keeps `@jskswamy/skills`.)
+- **No Copilot manifest in OpenCode output:** `.plugin/marketplace.json` is
+  also a Copilot catalog path in Skillshare. It is safe for OpenCode only
+  because `dist/opencode/plugins/<name>/` carries no Copilot manifest.
+- **No `.omp-plugin/`, `.cursor-plugin/`, or `.github/plugin/` catalogs:** Do
+  not add those root catalog paths, as they advertise or steal unrelated agent
+  targets in Skillshare.
 
 ## Canonical Resource Directories
 

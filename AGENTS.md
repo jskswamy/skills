@@ -24,11 +24,12 @@ truth. `scripts/build.mjs` runs one adapter per harness
 
 Skills are the only authored entry; there is no `commands/` folder. Each
 harness gets its own generated tree, `dist/<harness>/plugins/<plugin>/`.
-Everything under `dist/`, plus `.claude-plugin/marketplace.json`, is
-generated and must not be edited by hand. Only the release writes it
-(`npm run build:release`); never commit it otherwise. Edit the canonical
-source, then run `npm run build` (writes to a temp dir and prints it),
-`npm run validate` and `npm test`.
+Everything under `dist/`, plus `.claude-plugin/marketplace.json`,
+`.agents/plugins/marketplace.json`, `.plugin/marketplace.json`, and
+`marketplace.json`, is generated and must not be edited by hand. Only the
+release writes it (`npm run build:release`); never commit it otherwise. Edit
+the canonical source, then run `npm run build` (writes to a temp dir and
+prints it), `npm run validate` and `npm test`.
 
 ## Landing the Plane (Session Completion)
 

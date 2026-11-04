@@ -35,8 +35,26 @@ const RUNTIME = {
   "harnesses/lib/hook-input.mjs": "runtime/lib/hook-input.mjs",
 };
 
-export async function generateRoot({ outRoot, registry }) {
+// Skillshare reads marketplace.json at the repo root to discover Pi packages
+// under dist/pi/plugins/<name>/.
+export async function generateRoot({ outRoot, registry, plugins }) {
   await removeDir(join(outRoot, "dist/pi"));
+  await writeJson(join(outRoot, "marketplace.json"), {
+    name: registry.marketplace.name,
+    owner: registry.marketplace.owner,
+    metadata: {
+      description: registry.marketplace.description,
+    },
+    plugins: plugins.map((plugin) => ({
+      name: plugin.name,
+      description: plugin.description,
+      version: plugin.version,
+      author: plugin.author,
+      source: `./${pluginsDir}/${plugin.name}`,
+      category: plugin.category,
+      tags: plugin.tags ?? [],
+    })),
+  });
   return { pairs: referencePairs(registry) };
 }
 
@@ -94,7 +112,7 @@ export async function generate({ repoRoot, outRoot, model, state, report }) {
   const keywords = [...new Set([...(existing.keywords ?? []), "pi-package", ...(model.tags ?? [])])];
   await writeJson(pkgPath, {
     ...existing,
-    name: `@jskswamy/${model.name}`,
+    name: model.name,
     version: model.version,
     private: true,
     type: "module",

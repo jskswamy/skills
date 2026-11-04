@@ -23,13 +23,15 @@ package.json                          # Repository dev/test script runner
 # Generated (written only by the release: npm run build:release)
 .claude-plugin/marketplace.json       # Claude Code marketplace; sources point into dist/claude-code/plugins
 .agents/plugins/marketplace.json      # Codex marketplace; sources point into dist/codex/plugins
+.plugin/marketplace.json              # Skillshare OpenCode catalog; sources point into dist/opencode/plugins
+marketplace.json                      # Skillshare Pi catalog; sources point into dist/pi/plugins
 dist/<harness>/plugins/<plugin>/      # One generated tree per harness: claude-code, codex, antigravity, opencode, pi
 ```
 
 ## Source-of-Truth Rules
 
-- Edit sources, never generated output. Everything under `dist/` and `.claude-plugin/marketplace.json` is generated.
-- `npm run build` writes into a temp dir and prints it; it never writes into the repo. Only the release (`npm run build:release`) writes `dist/` and `.claude-plugin/`, so never commit those outside a release. `main` therefore always installs the last release.
+- Edit sources, never generated output. Everything under `dist/`, `.claude-plugin/marketplace.json`, `.agents/plugins/marketplace.json`, `.plugin/marketplace.json`, and `marketplace.json` is generated.
+- `npm run build` writes into a temp dir and prints it; it never writes into the repo. Only the release (`npm run build:release`) writes `dist/` and the root marketplace catalogs, so never commit those outside a release. `main` therefore always installs the last release.
 - Update `registry.json` when adding/removing plugin resources, changing plugin metadata, or enabling a harness (`harnesses.<id>.enabled`).
 - A hook a harness cannot carry fails the build unless `harnesses.<id>.optional` names it with a reason.
 - Run `npm run build` after registry or canonical resource changes, and read its report of what each harness degrades.

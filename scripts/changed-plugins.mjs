@@ -13,7 +13,12 @@ import { loadRegistry } from "./lib/registry.mjs";
 
 // Manifests that carry the plugin version.
 const VERSIONED = new Set(["plugin.json", "package.json"]);
-const MARKETPLACES = [".claude-plugin/marketplace.json", ".agents/plugins/marketplace.json"];
+const MARKETPLACES = [
+  ".claude-plugin/marketplace.json",
+  ".agents/plugins/marketplace.json",
+  ".plugin/marketplace.json",
+  "marketplace.json",
+];
 
 // Compares every adapter that keeps one folder per plugin (pluginsDir).
 export async function changedPlugins({ repoRoot, outRoot, adapters = ADAPTERS }) {

@@ -160,9 +160,19 @@ test("each plugin becomes a self-contained package that OpenCode can load by pat
   await run();
   const out = join(repoRoot, PLUGINS, "one");
   const pkg = JSON.parse(await readFile(join(out, "package.json"), "utf8"));
+  assert.equal(pkg.name, "one");
   assert.equal(pkg.main, ".opencode/plugins/index.js");
   assert.deepEqual(pkg.exports, { ".": "./index.js" });
   assert.equal(pkg.type, "module");
+  const catalog = JSON.parse(await readFile(join(repoRoot, ".plugin/marketplace.json"), "utf8"));
+  assert.equal(catalog.name, "mp");
+  assert.deepEqual(
+    catalog.plugins.map(({ name, source }) => ({ name, source })),
+    [
+      { name: "one", source: "./dist/opencode/plugins/one" },
+      { name: "two", source: "./dist/opencode/plugins/two" },
+    ],
+  );
   assert.match(await readFile(join(out, "index.js"), "utf8"), /createPlugin\(\{ id: "one"/);
   assert.match(await readFile(join(out, ".opencode/plugins/index.js"), "utf8"), /export \{ default \} from "\.\.\/\.\.\/index\.js"/);
   assert.deepEqual((await readdir(join(out, "runtime/lib"))).sort(), ["hook-input.mjs", "hook-runner.mjs"]);

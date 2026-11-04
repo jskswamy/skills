@@ -217,12 +217,17 @@ test("all adapters co-exist in dist/<harness>/plugins/<plugin> without manifest 
   const report = await runAdapters({ repoRoot, outRoot, registry: registry([allEnabled]) });
   assert.deepEqual(report.errors(), []);
 
-  // no adapter writes outside dist/<harness>/ except the two marketplace files
+  // no adapter writes outside dist/<harness>/ except the four marketplace files
   const files = (await readdir(outRoot, { recursive: true, withFileTypes: true }))
     .filter((e) => e.isFile())
     .map((e) => join(e.parentPath, e.name).slice(outRoot.length + 1));
   const outside = files.filter((f) => !/^dist\/(claude-code|antigravity|opencode|pi|codex)\//.test(f));
-  assert.deepEqual(outside.sort(), [".agents/plugins/marketplace.json", ".claude-plugin/marketplace.json"]);
+  assert.deepEqual(outside.sort(), [
+    ".agents/plugins/marketplace.json",
+    ".claude-plugin/marketplace.json",
+    ".plugin/marketplace.json",
+    "marketplace.json",
+  ]);
 
   const tree = (harness) => join(outRoot, "dist", harness, "plugins/codebase");
   await access(join(tree("claude-code"), ".claude-plugin/plugin.json"));

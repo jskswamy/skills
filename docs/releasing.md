@@ -1,11 +1,11 @@
 # Releasing
 
 This repository is git-tree-first for harnesses that install directly from git.
-Generated output for every harness lives in `dist/` (plus the Claude and Codex
-marketplaces at `.claude-plugin/marketplace.json` and
-`.agents/plugins/marketplace.json`) and is committed, because Claude Code, Pi,
-Antigravity, OpenCode and Codex install from the repository tree and do not run
-this repository's build script during install.
+Generated output for every harness lives in `dist/` (plus the root marketplace
+catalogs at `.claude-plugin/marketplace.json`, `.agents/plugins/marketplace.json`,
+`.plugin/marketplace.json`, and `marketplace.json`) and is committed, because
+Claude Code, Pi, Antigravity, OpenCode and Codex install from the repository
+tree and do not run this repository's build script during install.
 
 Only the release writes that output. Day-to-day work changes sources only;
 `npm run build` writes to a temp dir. So `main` always installs the last
@@ -51,6 +51,8 @@ Plugin versions live in `registry.json` and are emitted to:
 
 - `.claude-plugin/marketplace.json`
 - `.agents/plugins/marketplace.json`
+- `.plugin/marketplace.json`
+- `marketplace.json`
 - `dist/claude-code/plugins/<plugin-name>/.claude-plugin/plugin.json`
 - `dist/codex/plugins/<plugin-name>/.codex-plugin/plugin.json`
 - `dist/pi/plugins/<plugin-name>/package.json`
@@ -149,7 +151,7 @@ agy 1.4.1, OpenCode 2.1.1):
 Stage the registry and all generated output:
 
 ```bash
-git add registry.json .claude-plugin .agents dist
+git add registry.json .claude-plugin .agents .plugin marketplace.json dist
 ```
 
 For the v3 release, `git rm -r dist/plugins` first (see above).
