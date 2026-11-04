@@ -16,7 +16,7 @@ Each target harness directory (`claude-code`, `antigravity`, `opencode`, `pi`, `
 ## Subdirectories & Boundaries
 - [`antigravity`](./antigravity/README.md): Build adapter (`adapter.mjs`), standalone bash + `jq` hook shim (`hook-shim.sh`), and tool mapping table (`tools.json`) generating native Antigravity plugins under `dist/antigravity/plugins/`, each with its own `.antigravity-plugin/plugin.json`.
 - [`claude-code`](./claude-code/README.md): Build adapter (`adapter.mjs`) generating native Claude Code plugins under `dist/claude-code/plugins/<plugin>/` and `.claude-plugin/marketplace.json`.
-- [`codex`](./codex/README.md): Build adapter (`adapter.mjs`) generating native Codex plugins under `dist/codex/plugins/<plugin>/` (`codex-skills/`, never a `commands/` folder) and `.agents/plugins/marketplace.json`.
+- [`codex`](./codex/README.md): Build adapter (`adapter.mjs`) generating native Codex plugins under `dist/codex/plugins/<plugin>/` (`codex-skills/`, `codex-hooks.json`, never a `commands/` folder) and `.agents/plugins/marketplace.json`.
 - [`lib`](./lib/README.md): Self-contained Node.js hook input translator (`hook-input.mjs`) and process-group hook runner (`hook-runner.mjs`) copied into generated `opencode` and `pi` packages and reused at build time.
 - [`opencode`](./opencode/README.md): Build adapter (`adapter.mjs`), OpenCode V2 plugin runtime (`runtime.mjs`), and tool mapping table (`tools.mjs`) generating OpenCode V2 plugin packages under `dist/opencode/plugins/<plugin>/` and `.plugin/marketplace.json`.
 - [`pi`](./pi/README.md): Build adapter (`adapter.mjs`), Pi extension runtime (`runtime.mjs`), and tool mapping table (`tools.mjs`) generating Pi packages under `dist/pi/plugins/<plugin>/` and `marketplace.json`.

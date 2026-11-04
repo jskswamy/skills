@@ -68,12 +68,12 @@ that harness's install tree under `dist/`. Only a release writes `dist/`, so
 Skills run as `/<plugin>:<skill>`, for example `/commit-tools:commit`,
 `/jot:capture`, `/sketch-note:sketch` and `/typst-notes:publish`. See
 [Invocation forms](docs/command-skill-map.md) for every harness. Plugins install
-from `dist/claude-code/plugins/<plugin>` after the next release.
+from `dist/claude-code/plugins/<plugin>`.
 
 ### Pi
 
-Each plugin is a self-contained Pi package under `dist/pi/plugins/<name>/`
-(after the next release). From a checkout, install the packages you want:
+Each plugin is a self-contained Pi package under `dist/pi/plugins/<name>/`.
+From a checkout, install the packages you want:
 
 ```bash
 pi install <checkout>/dist/pi/plugins/<plugin-name>
@@ -106,7 +106,7 @@ for a single plugin), not the repository root. Skills run as
 ### OpenCode
 
 Each plugin is a self-contained OpenCode V2 package under
-`dist/opencode/plugins/<name>/` (after the next release). From a checkout, list
+`dist/opencode/plugins/<name>/`. From a checkout, list
 the packages you want in `opencode.json`:
 
 ```json
@@ -120,8 +120,7 @@ Loading by path is the tested route. See
 
 ### Codex
 
-Each plugin is packaged under `dist/codex/plugins/<name>/` (after the next
-release) and indexed by
+Each plugin is packaged under `dist/codex/plugins/<name>/` and indexed by
 `.agents/plugins/marketplace.json`. Install via skillshare:
 
 ```bash
@@ -141,8 +140,8 @@ it can carry:
 | Skills | native | native | native | native, registered by the plugin runtime | native |
 | Entry for a skill | the skill, `/plugin:skill` | prompt template, `/plugin-skill` | the skill, `/plugin:skill` | command, `/plugin-skill` | the skill, `$plugin:skill` |
 | Agents | native | not available | native, name and description only | native, with plugin-prefixed ids | not available |
-| Hooks | native | runtime shim | `hooks.json` plus a shim | runtime shim | not available |
-| Hook events | all five | session-start, pre-tool, post-tool, stop | session-start, pre-tool, post-tool, stop | all five | none |
+| Hooks | native | runtime shim | `hooks.json` plus a shim | runtime shim | native (`codex-hooks.json`) |
+| Hook events | all five | session-start, pre-tool, post-tool, stop | session-start, pre-tool, post-tool, stop | all five | session-start, pre-tool, post-tool, stop |
 
 The five hook events are session-start, subagent-start, pre-tool, post-tool
 and stop. Every shim runs the canonical hook scripts under Claude Code's
@@ -164,8 +163,11 @@ What `npm run build` reports as degraded or skipped:
 - **OpenCode**: devenv's `.mcp.json` is not read; add the server to
   `opencode.json`. The jot `capture` agent has no frontmatter, so it is not
   registered (Antigravity gives it a generic description).
-- **Codex**: plugin agents and hooks are not available in Codex's
-  `.codex-plugin` format; canonical skills are carried natively.
+- **Codex**: plugin agents and `subagent-start` hooks do not apply in Codex's
+  `.codex-plugin` format. Canonical skills and supported lifecycle hooks
+  (`codex-hooks.json`) are carried natively; codebase's `discovery-augment`
+  (no Grep/Glob tool) and devenv's `nix-tools` (edits use `apply_patch`) are
+  marked optional in `registry.json`.
 
 Tested with Claude Code, Pi 1.4.0, agy 1.4.1, OpenCode 2.1.1 and Codex.
 
@@ -185,11 +187,13 @@ harnesses/<id>/      # One folder per harness: adapter, runtime or shim, tool ta
 
 # Generated at release
 dist/<harness>/plugins/<plugin>/  # One generated tree per harness: claude-code, codex, antigravity, opencode, pi
-.claude-plugin/      # Claude Code marketplace, pointing into dist/claude-code/plugins
-.agents/plugins/     # Codex marketplace, pointing into dist/codex/plugins
+.claude-plugin/marketplace.json   # Claude Code marketplace, pointing into dist/claude-code/plugins
+.agents/plugins/marketplace.json  # Codex marketplace, pointing into dist/codex/plugins
+.plugin/marketplace.json          # OpenCode marketplace, pointing into dist/opencode/plugins
+marketplace.json                  # Pi marketplace, pointing into dist/pi/plugins
 ```
 
-Edit canonical root resources, then run `npm run build`, which writes every
+See [harnesses/README.md](harnesses/README.md) and [scripts/README.md](scripts/README.md) for the build pipeline and harness adapter contracts. Edit canonical root resources, then run `npm run build`, which writes every
 harness into a temp dir and reports what each one degrades. For details, see
 [Authoring Skills and Plugins](docs/authoring-skills.md) and
 [Contributing](CONTRIBUTING.md). To support another harness, see

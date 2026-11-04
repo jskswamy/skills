@@ -7,7 +7,7 @@ Pure and file-backed transformation utilities that convert canonical Claude-form
 - `mapAgent(text, { keep = [], rename = {}, set = {}, trimExamples = false })` (`agents.mjs`): Parses an agent Markdown document, filters or renames YAML frontmatter keys, optionally strips `<example>...</example>` blocks from `description`, merges `set` fields, and serializes the result.
 - `parseDocument(text)` (`frontmatter.mjs`): Splits a Markdown document with optional YAML frontmatter into `{ frontmatter, body }`.
 - `writeDocument({ frontmatter, body })` (`frontmatter.mjs`): Serializes `{ frontmatter, body }` back to Markdown with YAML frontmatter (plain or JSON-quoted scalars, `|` block scalars for multiline strings, and raw array lines).
-- `parseHooks(hooksJson)` (`hooks.mjs`): Flattens a Claude-format `hooks.json` object into normalized hook entries `{ id, event, matcher?, command, timeoutMs? }` with timeouts converted from seconds to milliseconds.
+- `parseHooks(hooksJson)` (`hooks.mjs`): Flattens a Claude-format `hooks.json` object into normalized hook entries `{ id, event, matcher?, command, timeoutMs?, statusMessage? }` with timeouts converted from seconds to milliseconds.
 - `hookId(event, command, index)` (`hooks.mjs`): Computes a stable hook identifier (`<event>:<script-basename>` or `<event>:<index>`) used by `registry.json` optional hook markers.
 - `loadPluginHooks({ repoRoot, hooks })` (`hooks.mjs`): Reads and parses all `hooks.json` files listed in a plugin model's `hooks` array from `repoRoot`.
 - `derivedId(plugin, name)` (`names.mjs`): The id a skill or agent has on Pi and OpenCode, `plugin-name`, without repeating a plugin prefix the name already has.

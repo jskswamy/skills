@@ -15,7 +15,7 @@ the same tree into a temp dir for local testing. Tested with agy 1.4.1.
 - `pluginsDir` (`adapter.mjs`): Output directory `"dist/antigravity/plugins"`.
 - `capabilities` (`adapter.mjs`): Declares `skills` (`native`), `agents` (`native`), and `hooks` (`shim` for `session-start`, `pre-tool`, `post-tool`, `stop`).
 - `generateRoot({ outRoot })` (`adapter.mjs`): Removes `<outRoot>/dist/antigravity/plugins` before generating enabled plugins.
-- `generate({ repoRoot, outRoot, model, report })` (`adapter.mjs`): Generates `.antigravity-plugin/plugin.json`, copies skills/templates/hook scripts, adds `disable-slash-command: true` to a model-only skill (`user-invocable: false`), maps agents, and emits `hooks.json`, `runtime/antigravity/hooks.manifest.json`, `hook-shim.sh`, and `tools.json`.
+- `generate({ repoRoot, outRoot, model, report })` (`adapter.mjs`): Generates `.antigravity-plugin/plugin.json`, copies skills/templates/hook scripts, adds `disable-slash-command: true` to a model-only skill (`user-invocable: false`) or prepends `skill.pickerLine` to `description` via `restatePicker(..., "prefix")` for a runnable skill, maps agents, and emits `hooks.json`, `runtime/antigravity/hooks.manifest.json`, `runtime/antigravity/hook-shim.sh`, and `runtime/antigravity/tools.json`.
 - `splitMatcher(entry)` (`adapter.mjs`): Splits pipe-delimited `pre-tool`/`post-tool` matchers into mappable and unmappable entries so known tool guards are carried while unknown parts go through hook policy reporting.
 - `canCarry(entry)` (`adapter.mjs`): Evaluates whether a hook entry is supported on Antigravity based on event type, `startup` session matcher compatibility, and `tools.json` tool mappings.
 - `validate({ repoRoot, outRoot = repoRoot, plugin })` (`adapter.mjs`): Runs `agy plugin validate <dir> --json --strict` (when `agy` is on `PATH`) in an isolated temporary `HOME`/`XDG_*_HOME` and verifies component counts (`skills`, `agents`, `hooks`).
@@ -49,8 +49,7 @@ agy plugin install <checkout>/dist/antigravity
 Point agy at `dist/antigravity`, not the repository root. `dist/antigravity`
 is a folder of plugin folders, not a plugin: agy installs every plugin under its
 `plugins/`, each with its own `.antigravity-plugin/plugin.json`. To install one
-plugin, point agy at `<checkout>/dist/antigravity/plugins/<plugin>`. These paths
-exist after the next release.
+plugin, point agy at `<checkout>/dist/antigravity/plugins/<plugin>`.
 
 Run a skill as `/<plugin>:<skill>`, for example `/commit-tools:commit`.
 

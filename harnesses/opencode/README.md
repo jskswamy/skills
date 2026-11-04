@@ -5,7 +5,7 @@ Build adapter, OpenCode V2 plugin runtime, and tool-mapping table that package e
 
 The release build (`npm run build:release`) writes `.plugin/marketplace.json` at the repository root and one OpenCode (V2) plugin
 package per plugin with `harnesses.opencode.enabled` to
-`dist/opencode/plugins/<name>/` (after the next release; the last release shipped `dist/plugins/<name>/`); `npm run build` writes the same into a temp dir. Each
+`dist/opencode/plugins/<name>/`; `npm run build` writes the same into a temp dir. Each
 package is self-contained: it runs without the rest of this repository. Do not
 edit the packages or `.plugin/marketplace.json` by hand. The packages target the OpenCode V2 plugin API and
 were tested with OpenCode 2.1.1 and Skillshare 0.28.2; V1 is not supported.
@@ -15,7 +15,7 @@ were tested with OpenCode 2.1.1 and Skillshare 0.28.2; V1 is not supported.
 - `pluginsDir` (`adapter.mjs`): Output directory `"dist/opencode/plugins"`.
 - `capabilities` (`adapter.mjs`): Declares `skills` (`native`), `agents` (`native`), and `hooks` (`shim` for `session-start`, `subagent-start`, `pre-tool`, `post-tool`, `stop`).
 - `generateRoot({ outRoot, registry, plugins })` (`adapter.mjs`): Removes `<outRoot>/dist/opencode`, writes `<outRoot>/.plugin/marketplace.json` with `source: ./dist/opencode/plugins/<name>` for Skillshare discovery, and returns `{ pairs }`, the `plugin:skill` and `plugin:agent` pairs (`referencePairs`) used to rewrite references.
-- `generate({ repoRoot, outRoot, model, state, report })` (`adapter.mjs`): Copies the canonical wrapper layout and shared runtime into `<outRoot>/dist/opencode/plugins/<plugin>/`, rewrites `plugin:skill` references to `plugin-skill` in skills, agents, templates and scripts (`copyRewrittenSkills`), registers each skill as `plugin-skill` (`derivedId`) with a command of the same id for every runnable skill (no command for `user-invocable: false`), maps agents to `opencode-agents/`, validates payloads, rewrites hook commands to `"${OPENCODE_PLUGIN_ROOT}"`, and writes `resources.json`, `runtime/opencode/hooks.manifest.json`, `package.json`, `index.js`, and `.opencode/plugins/index.js`.
+- `generate({ repoRoot, outRoot, model, state, report })` (`adapter.mjs`): Copies the canonical wrapper layout and shared runtime into `<outRoot>/dist/opencode/plugins/<plugin>/`, rewrites `plugin:skill` references to `plugin-skill` in skills, agents, templates and scripts (`copyRewrittenSkills`), registers each skill as `plugin-skill` (`derivedId`) with a command of the same id for every runnable skill (`skill.pickerLine ?? skill.frontmatter.description`; no command for `user-invocable: false`), maps agents to `opencode-agents/`, validates payloads, rewrites hook commands to `"${OPENCODE_PLUGIN_ROOT}"`, and writes `resources.json`, `runtime/opencode/hooks.manifest.json`, `package.json`, `index.js`, and `.opencode/plugins/index.js`.
 - `canCarry(entry)` (`adapter.mjs`): Verifies `pre-tool` and `post-tool` hook matchers can be rewritten via `OPENCODE_TOOLS`.
 - `validate({ repoRoot, outRoot = repoRoot, plugin })` (`adapter.mjs`): Verifies generated `package.json`, runtime files, `resources.json` payloads, and `runtime/opencode/hooks.manifest.json` script targets exist and are valid.
 - `payloadErrors(kind, payload)` (`runtime.mjs`): Validates required non-empty string fields for `skills`, `commands`, and `agents` payloads.
@@ -66,7 +66,7 @@ yourself instead.
 | `package.json`, `index.js` | Plugin entry: `export default { id, setup }` |
 | `runtime/` | Copy of `runtime.mjs`, `tools.mjs` and `harnesses/lib/` |
 | `resources.json` | Skills, commands and agents the runtime registers |
-| `hooks.manifest.json` | Canonical hooks the runtime runs |
+| `runtime/opencode/hooks.manifest.json` | Canonical hooks the runtime runs |
 | `skills/`, `agents/`, `hooks/`, ... | Claude wrapper layout; hook scripts find their files through it |
 | `opencode-agents/` | Agents with OpenCode frontmatter (`description`, `mode: subagent`) |
 
