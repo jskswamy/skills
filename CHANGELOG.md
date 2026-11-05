@@ -2,6 +2,68 @@
 
 All notable changes to this skills/plugins collection will be documented in this file.
 
+## [3.2.0] - 2026-11-05
+
+### Added
+
+- Add Agent Plugins 1.0.0 harness
+
+Add the agent-plugins adapter, which writes one portable tree per
+plugin under dist/agent-plugins/plugins: a root plugin.json with the
+1.0.0 $schema, skills/, and an mcp.json converted from the plugin's
+.mcp.json. Hooks and agents have no place in the standard, so they are
+reported as not-applicable and degraded.
+
+It is a separate tree because the native ones cannot carry a root
+manifest. Observed with codex-cli 0.166.0: a root plugin.json makes
+Codex ignore .codex-plugin/, which drops codex-skills/ and every hook,
+and OpenCode only loads a directory that has a package.json. Claude
+Code and Antigravity ignore the root files, so they gain nothing.
+
+validate checks the $schema, the name rules, the closed manifest, one
+SKILL.md per skill, stray hooks and agents directories, and the
+mcp.json shape. All ten plugins opt in through registry.json.
+
+### Other
+
+- Sync harness and script READMEs with v3.1.0
+
+Update the root, harness, and script README contracts to match the
+v3.1.0 implementation:
+
+- Document native Codex hook generation (codex-hooks.json), CODEX_TOOLS
+  matcher checks, and fallback statusMessage synthesis
+- Document picker-line restatement (restatePicker) and skill.pickerLine
+  handling across Claude Code, Antigravity, OpenCode, Pi, and
+  scripts/lib
+- Include .plugin/marketplace.json and marketplace.json in scripts/
+  and root layout documentation
+- Remove pre-v3.0 "after the next release" caveats now that per-harness
+  dist/<harness>/plugins/ trees are published
+- Load devenv MCP servers on Antigravity
+
+agy never reads Claude Code's .mcp.json, so the nixos server of devenv
+was never started on Antigravity. Emit mcp_config.json instead, with
+the servers wrapped in mcpServers as agy requires, and report a
+degraded entry when a server uses ${CLAUDE_PLUGIN_ROOT}, which agy does
+not expand.
+
+agy 1.4.12 also began reporting a missing logo as a note, and --strict
+turned it into a validation error for every plugin. A logo is
+cosmetic, so validate now ignores note-severity findings and keeps
+failing on warnings and errors. It also checks the MCP server count.
+- Release v3.2.0
+
+Bump every plugin by a minor version: bivouac 1.0.1 -> 1.1.0, codebase
+1.1.0 -> 1.2.0, commit-tools 2.0.1 -> 2.1.0, craft 2.0.1 -> 2.1.0,
+devenv 2.0.1 -> 2.1.0, jot 3.0.1 -> 3.1.0, refactor 1.0.1 -> 1.1.0,
+sketch-note 2.0.1 -> 2.1.0, study 2.0.1 -> 2.1.0, typst-notes 2.0.1 ->
+2.1.0. Each gains a dist/agent-plugins tree, and Claude Code caches by
+version, so the bump is what delivers it.
+
+devenv on Antigravity now ships mcp_config.json instead of .mcp.json.
+Write every harness's output via npm run build:release and regenerate
+the Claude snapshot fixture, whose only changes are version hashes.
 ## [3.1.0] - 2026-11-04
 
 ### Added
@@ -22,7 +84,13 @@ codebase-memory-mcp:
   --link <project|*> to materialize cross-service call and channel edges
   across indexed repositories.
 - Route capability and seam queries in codebase:ask and codebase:explore
-  and update plugin registry, documentation, and build tests.
+  and update plugin registry, documentation, and build tests. by @jskswamy
+
+### Changed
+
+- Update CHANGELOG for v3.1.0
+
+Document all changes included in the v3.1.0 release. by @jskswamy
 
 ### Other
 
@@ -37,14 +105,14 @@ catalogNameDiffers.
 
 Emit marketplace.json for Pi and .plugin/marketplace.json for OpenCode
 from their adapters, use unscoped plugin names in generated
-package.json files, and document and test Skillshare catalog discovery.
+package.json files, and document and test Skillshare catalog discovery. by @jskswamy
 - Release v3.1.0
 
 Bump plugin versions: codebase 1.0.0 -> 1.1.0, bivouac 1.0.0 -> 1.0.1,
 commit-tools 2.0.0 -> 2.0.1, craft 2.0.0 -> 2.0.1, devenv 2.0.0 ->
 2.0.1, jot 3.0.0 -> 3.0.1, refactor 1.0.0 -> 1.0.1, sketch-note 2.0.0
 -> 2.0.1, study 2.0.0 -> 2.0.1, typst-notes 2.0.0 -> 2.0.1.
-Write every harness's output via npm run build:release.
+Write every harness's output via npm run build:release. by @jskswamy
 ## [3.0.0] - 2026-11-03
 
 ### Added
@@ -3756,6 +3824,7 @@ as a dependency.
 ### Removed
 
 - Remove welcome message from shell hook by @jskswamy
+[3.2.0]: https://github.com/jskswamy/skills/compare/v3.1.0..v3.2.0
 [3.1.0]: https://github.com/jskswamy/skills/compare/v3.0.0..v3.1.0
 [3.0.0]: https://github.com/jskswamy/skills/compare/v2.4.1..v3.0.0
 [2.4.1]: https://github.com/jskswamy/skills/compare/v2.4.0..v2.4.1
