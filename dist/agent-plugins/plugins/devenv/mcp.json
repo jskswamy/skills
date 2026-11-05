@@ -1,0 +1,15 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
+  "mcpServers": {
+    "nixos": {
+      "type": "stdio",
+      "command": "nix-shell",
+      "args": [
+        "-p",
+        "uv",
+        "--run",
+        "uvx mcp-nixos"
+      ]
+    }
+  }
+}
