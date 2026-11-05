@@ -25,7 +25,7 @@ package.json                          # Repository dev/test script runner
 .agents/plugins/marketplace.json      # Codex marketplace; sources point into dist/codex/plugins
 .plugin/marketplace.json              # Skillshare OpenCode catalog; sources point into dist/opencode/plugins
 marketplace.json                      # Skillshare Pi catalog; sources point into dist/pi/plugins
-dist/<harness>/plugins/<plugin>/      # One generated tree per harness: claude-code, codex, antigravity, opencode, pi
+dist/<harness>/plugins/<plugin>/      # One generated tree per harness: claude-code, codex, antigravity, opencode, pi, agent-plugins (portable skills + MCP only)
 ```
 
 ## Source-of-Truth Rules

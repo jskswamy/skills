@@ -54,6 +54,9 @@
         },
         "codex": {
           "enabled": true
+        },
+        "agent-plugins": {
+          "enabled": true
         }
       }
     },
@@ -119,6 +122,9 @@
           "optional": {
             "post-tool:nix-tools": "Codex edits files via apply_patch diffs, not Write or Edit file_path inputs"
           }
+        },
+        "agent-plugins": {
+          "enabled": true
         }
       }
     },
@@ -186,6 +192,9 @@
           "enabled": true
         },
         "codex": {
+          "enabled": true
+        },
+        "agent-plugins": {
           "enabled": true
         }
       }
@@ -263,6 +272,9 @@
         },
         "codex": {
           "enabled": true
+        },
+        "agent-plugins": {
+          "enabled": true
         }
       }
     },
@@ -333,6 +345,9 @@
         },
         "codex": {
           "enabled": true
+        },
+        "agent-plugins": {
+          "enabled": true
         }
       }
     },
@@ -399,6 +414,9 @@
           "enabled": true
         },
         "codex": {
+          "enabled": true
+        },
+        "agent-plugins": {
           "enabled": true
         }
       }
@@ -476,6 +494,9 @@
         },
         "codex": {
           "enabled": true
+        },
+        "agent-plugins": {
+          "enabled": true
         }
       }
     },
@@ -542,6 +563,9 @@
           "optional": {
             "pre-tool:discovery-augment": "Codex has no Grep or Glob tool"
           }
+        },
+        "agent-plugins": {
+          "enabled": true
         }
       }
     },
@@ -600,6 +624,9 @@
         },
         "codex": {
           "enabled": true
+        },
+        "agent-plugins": {
+          "enabled": true
         }
       }
     },
@@ -656,6 +683,9 @@
           "enabled": true
         },
         "codex": {
+          "enabled": true
+        },
+        "agent-plugins": {
           "enabled": true
         }
       }

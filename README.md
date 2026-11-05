@@ -147,6 +147,11 @@ The five hook events are session-start, subagent-start, pre-tool, post-tool
 and stop. Every shim runs the canonical hook scripts under Claude Code's
 contract: only exit code 2 blocks, and a broken or slow script never does.
 
+`dist/agent-plugins` is not a harness install: it is the portable
+[Agent Plugins](https://agent-plugins.org) 1.0.0 package (`plugin.json`,
+`skills/`, `mcp.json`), for clients that read that standard. It carries no
+hooks or agents. See [harnesses/agent-plugins](harnesses/agent-plugins/README.md).
+
 What `npm run build` reports as degraded or skipped:
 
 - **Pi**: plugin agents are not available, since Pi has no sub-agents, and
@@ -186,7 +191,7 @@ harnesses/lib/       # Hook runner and tool translation shared by harness runtim
 harnesses/<id>/      # One folder per harness: adapter, runtime or shim, tool table, docs
 
 # Generated at release
-dist/<harness>/plugins/<plugin>/  # One generated tree per harness: claude-code, codex, antigravity, opencode, pi
+dist/<harness>/plugins/<plugin>/  # One generated tree per harness: claude-code, codex, antigravity, opencode, pi, agent-plugins (portable skills + MCP only)
 .claude-plugin/marketplace.json   # Claude Code marketplace, pointing into dist/claude-code/plugins
 .agents/plugins/marketplace.json  # Codex marketplace, pointing into dist/codex/plugins
 .plugin/marketplace.json          # OpenCode marketplace, pointing into dist/opencode/plugins
