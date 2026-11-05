@@ -40,7 +40,7 @@ const ONE = {
     agents: ["one/helper.md", "one/bare.md"],
     hooks: ["one/hooks.json", "one/context.sh", "one/missing.sh", "one/hang.sh", "one/grep.sh", "one/stop.sh"],
     templates: ["one/note.md"],
-    extra: [{ from: "templates/one/styles", to: "styles" }],
+    extra: [{ from: "templates/one/styles", to: "styles" }, { from: "templates/one/.mcp.json", to: ".mcp.json" }],
   },
   harnesses: { antigravity: { enabled: true, optional: { "pre-tool:grep": "no grep tool on agy" } } },
 };
@@ -80,6 +80,7 @@ async function fixture(t, plugins) {
   await write(join(repoRoot, "agents/one/bare.md"), "## No frontmatter\n");
   await write(join(repoRoot, "templates/one/note.md"), "note\n");
   await write(join(repoRoot, "templates/one/styles/a.css"), "a\n");
+  await write(join(repoRoot, "templates/one/.mcp.json"), JSON.stringify({ srv: { command: "sh", args: ["-x"] } }));
   await write(join(repoRoot, "hooks/one/hooks.json"), JSON.stringify(ONE_HOOKS));
   await write(join(repoRoot, "hooks/one/context.sh"), `echo '{"hookSpecificOutput":{"additionalContext":"one context"}}'\n`);
   await write(join(repoRoot, "hooks/one/missing.sh"), "exit 2\n");
@@ -125,7 +126,8 @@ test("plugin tree: manifest, skills without tests, picker flag, mapped agents, t
   assert.match(await readFile(out("one", "agents/bare.md"), "utf8"), /^---\nname: bare\ndescription: The bare agent of the one plugin\.\n---\n## No frontmatter/);
   assert.equal(await readFile(out("one", "templates/note.md"), "utf8"), "note\n");
   assert.equal(await readFile(out("one", "styles/a.css"), "utf8"), "a\n");
-  for (const absent of ["commands", "hooks/hooks.json", ".claude-plugin"]) assert.equal(existsSync(out("one", absent)), false, absent);
+  assert.deepEqual(await readJson(out("one", "mcp_config.json")), { mcpServers: { srv: { command: "sh", args: ["-x"] } } });
+  for (const absent of ["commands", "hooks/hooks.json", ".claude-plugin", ".mcp.json"]) assert.equal(existsSync(out("one", absent)), false, absent);
 });
 
 test("hooks.json uses agy's schema: named hooks, no description, mapped matchers", async (t) => {

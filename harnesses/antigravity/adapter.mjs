@@ -34,6 +34,7 @@ const RUNTIME = {
 };
 const SHIM = "bash runtime/antigravity/hook-shim.sh";
 const MANIFEST = "runtime/antigravity/hooks.manifest.json";
+const MCP_SOURCE = ".mcp.json";
 const ROOT_TOKEN = '"${ANTIGRAVITY_PLUGIN_ROOT}"';
 // agy 1.4.1 tool names and argument fields, keyed by Claude tool name. Only
 // tools whose declaration name matches a CORTEX_STEP_TYPE_* step are listed,
@@ -68,9 +69,19 @@ export async function generate({ repoRoot, outRoot, model, report }) {
 
   // agy reads hooks only from the root hooks.json; agents are mapped below.
   const layout = wrapperLayout(model).filter(
-    ({ kind, from }) => kind !== "agents" && !(kind === "hooks" && from.endsWith("hooks.json")),
+    ({ kind, from, to }) => kind !== "agents" && !(kind === "hooks" && from.endsWith("hooks.json")) && !(kind === "extra" && to === MCP_SOURCE),
   );
   await copyLayout({ repoRoot, layout, to: pluginRoot });
+
+  // agy never loads Claude's .mcp.json; its own mcp_config.json wraps the servers in mcpServers.
+  const mcp = model.extra.find(({ to }) => to === MCP_SOURCE);
+  if (mcp) {
+    const source = await readJson(join(repoRoot, mcp.from));
+    await writeJson(join(pluginRoot, "mcp_config.json"), { mcpServers: source.mcpServers ?? source });
+    if (JSON.stringify(source).includes("CLAUDE_PLUGIN_ROOT")) {
+      report.add({ kind: "extra", resource: MCP_SOURCE, status: "degraded", reason: "agy does not expand ${CLAUDE_PLUGIN_ROOT} in MCP servers" });
+    }
+  }
 
   // The picker shows the start of the description, so the picker line goes first.
   for (const skill of model.skills.filter(({ userInvocable, pickerLine }) => userInvocable && pickerLine !== undefined)) {
@@ -192,6 +203,7 @@ export async function validate({ repoRoot, outRoot = repoRoot, plugin }) {
     agents: (await readdir(join(dir, "agents")).catch(() => [])).filter((name) => name.endsWith(".md")).length,
     // One named hook per manifest entry; hooks.json itself is what is checked.
     hooks: Object.keys((await readJson(join(dir, MANIFEST)).catch(() => ({}))).entries ?? {}).length,
+    mcpServers: Object.keys((await readJson(join(dir, "mcp_config.json")).catch(() => ({}))).mcpServers ?? {}).length,
   };
 
   // agy writes state under HOME, so it gets a throwaway one.
@@ -206,7 +218,8 @@ export async function validate({ repoRoot, outRoot = repoRoot, plugin }) {
     } catch {
       return [`${label}: agy plugin validate failed: ${(run.stderr || run.stdout || "").trim()}`];
     }
-    const errors = (result.findings ?? []).map((finding) => `${label}: ${typeof finding === "string" ? finding : JSON.stringify(finding)}`);
+    // A note is cosmetic (a missing logo); --strict would make it an error.
+    const errors = (result.findings ?? []).filter((finding) => finding.severity !== "note").map((finding) => `${label}: ${typeof finding === "string" ? finding : JSON.stringify(finding)}`);
     for (const [kind, count] of Object.entries(expected)) {
       const found = result.components?.[kind] ?? 0;
       if (found !== count) errors.push(`${label}: agy sees ${found} ${kind}, expected ${count}`);
