@@ -2,6 +2,33 @@
 
 All notable changes to this skills/plugins collection will be documented in this file.
 
+## [3.3.0] - 2026-11-07
+
+### Other
+
+- Redesign craft plugin around four workshop verbs
+
+Replace the ten-skill craft surface with four focused workshop verbs
+(park, debug, shape, and build) and a single batched issue-writer
+agent. The previous commands duplicated CLI plumbing, copied verbose
+specification payloads into issue records, and required heavy multi-step
+ceremony for routine bug fixes and feature slicing.
+
+- park captures ephemeral thoughts with promote, drop, and review
+  subcommands instead of polluting the main backlog
+- debug traces callers to isolate root causes and offers four exits:
+  inline fix, backlog promotion, shaping, or discard
+- shape turns specifications or Socratic discovery into thin vertical
+  user stories linked to source sections by anchor
+- build adds a swimlane picker, adaptive scope checks, TDD execution,
+  and post-story diff refactoring and commit review with inline
+  fallbacks when optional companion plugins are absent
+- Release v3.3.0
+
+Bump plugin versions: craft 2.1.0 -> 3.0.0, commit-tools 2.1.0 ->
+2.1.1, refactor 1.1.0 -> 1.1.1. Update MIGRATION-v3.md for the four
+craft workshop skills, write every harness's output via npm run
+build:release, and regenerate the Claude snapshot fixture.
 ## [3.2.0] - 2026-11-05
 
 ### Added
@@ -22,7 +49,13 @@ Code and Antigravity ignore the root files, so they gain nothing.
 
 validate checks the $schema, the name rules, the closed manifest, one
 SKILL.md per skill, stray hooks and agents directories, and the
-mcp.json shape. All ten plugins opt in through registry.json.
+mcp.json shape. All ten plugins opt in through registry.json. by @jskswamy
+
+### Changed
+
+- Update CHANGELOG for v3.2.0
+
+Generate the v3.2.0 entry with git-cliff. README is unchanged. by @jskswamy
 
 ### Other
 
@@ -39,7 +72,7 @@ v3.1.0 implementation:
 - Include .plugin/marketplace.json and marketplace.json in scripts/
   and root layout documentation
 - Remove pre-v3.0 "after the next release" caveats now that per-harness
-  dist/<harness>/plugins/ trees are published
+  dist/<harness>/plugins/ trees are published by @jskswamy
 - Load devenv MCP servers on Antigravity
 
 agy never reads Claude Code's .mcp.json, so the nixos server of devenv
@@ -51,7 +84,7 @@ not expand.
 agy 1.4.12 also began reporting a missing logo as a note, and --strict
 turned it into a validation error for every plugin. A logo is
 cosmetic, so validate now ignores note-severity findings and keeps
-failing on warnings and errors. It also checks the MCP server count.
+failing on warnings and errors. It also checks the MCP server count. by @jskswamy
 - Release v3.2.0
 
 Bump every plugin by a minor version: bivouac 1.0.1 -> 1.1.0, codebase
@@ -63,7 +96,7 @@ version, so the bump is what delivers it.
 
 devenv on Antigravity now ships mcp_config.json instead of .mcp.json.
 Write every harness's output via npm run build:release and regenerate
-the Claude snapshot fixture, whose only changes are version hashes.
+the Claude snapshot fixture, whose only changes are version hashes. by @jskswamy
 ## [3.1.0] - 2026-11-04
 
 ### Added
@@ -3824,6 +3857,7 @@ as a dependency.
 ### Removed
 
 - Remove welcome message from shell hook by @jskswamy
+[3.3.0]: https://github.com/jskswamy/skills/compare/v3.2.0..v3.3.0
 [3.2.0]: https://github.com/jskswamy/skills/compare/v3.1.0..v3.2.0
 [3.1.0]: https://github.com/jskswamy/skills/compare/v3.0.0..v3.1.0
 [3.0.0]: https://github.com/jskswamy/skills/compare/v2.4.1..v3.0.0
