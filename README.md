@@ -28,7 +28,7 @@ that harness's install tree under `dist/`. Only a release writes `dist/`, so
 | --- | --- | --- |
 | **Codebase understanding** | `codebase:*` | Ask questions, build semantic indexes, trace symbols, inspect change impact |
 | **Commit hygiene** | `commit-tools:*` | Write atomic commits, clean branch history, prevent AI co-author and tracker-ID leaks |
-| **Craft workflow** | `craft:*` | Understand tasks, decompose work, execute subagent batches, park follow-ups |
+| **Craft workflow** | `craft:*` | Park wisps, debug root causes, shape specs into thin stories, build with subagents |
 | **Remote agent workspaces** | `bivouac:session` | Start, monitor, retrieve, and merge disposable cloud coding-agent sessions |
 | **Knowledge capture** | `jot:*` | Capture notes, ideas, session summaries, and source material |
 | **Study workflows** | `study:*` | Coach through new material and run recall sessions |
@@ -47,9 +47,10 @@ that harness's install tree under `dist/`. Only a release writes `dist/`, so
 | Make a clean commit | `commit-tools:commit` |
 | Clean up commits before pushing | `commit-tools:review-commits` |
 | Validate history before pushing | `commit-tools:validate-commits` |
-| Explore a task before decomposing it | `craft:understand` |
-| Decompose work into issues | `craft:decompose` |
-| Park a follow-up idea without derailing flow | `craft:park` |
+| Park a follow-up idea as a wisp without derailing flow | `craft:park` |
+| Investigate a bug root cause in a diagnostic wisp | `craft:debug` |
+| Shape an idea or spec into an epic and thin stories | `craft:shape` |
+| Build or resume a beads story or epic | `craft:build` |
 | Capture notes or source material | `jot:capture` |
 | Generate a PDF from content | `typst-notes:publish` |
 | Create sketch notes | `sketch-note:sketch` |
@@ -276,7 +277,7 @@ commit-tools:validate-commits
 
 ### craft
 
-The craft of building software end-to-end: capture ideas, understand problems, decompose work into structured units, dispatch subagents to execute them, and commit with full task context
+Spec-driven development workshop with beads wisps and thin stories: park, debug, shape, and build
 
 **Claude Code:**
 
@@ -286,15 +287,10 @@ The craft of building software end-to-end: capture ideas, understand problems, d
 **Skills:**
 
 ```text
-craft:decompose
-craft:execute
 craft:park
-craft:parked
-craft:task-commit
-craft:understand
-craft:backlog
-craft:deps
-# plus 2 more skills in registry.json
+craft:debug
+craft:shape
+craft:build
 ```
 [View documentation](./templates/craft/README.md)
 

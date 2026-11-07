@@ -15,8 +15,8 @@ const skills = models.flatMap((model) => model.skills.map((skill) => ({ ...skill
 const runnable = skills.filter((skill) => skill.userInvocable);
 
 test("every runnable skill has a picker line of at most 120 characters, model-only skills need none", () => {
-  assert.equal(skills.length, 38);
-  assert.equal(runnable.length, 28);
+  assert.equal(skills.length, 32);
+  assert.equal(runnable.length, 24);
   for (const skill of runnable) {
     assert.ok(skill.pickerLine, `${skill.plugin}:${skill.name} has a picker line`);
     assert.ok(skill.pickerLine.length <= 120, `${skill.plugin}:${skill.name} line is ${skill.pickerLine.length} characters`);
@@ -102,7 +102,7 @@ test("each harness carries the picker line in the field it reads", async () => {
       const resources = JSON.parse(await readFile(join(outRoot, "dist/opencode/plugins", skill.plugin, "resources.json"), "utf8"));
       assert.equal(resources.commands.find((command) => command.name === id).description, skill.pickerLine);
     }
-    const codexTree = await readdir(join(outRoot, "dist/codex/plugins/craft/codex-skills/backlog"));
+    const codexTree = await readdir(join(outRoot, "dist/codex/plugins/craft/codex-skills/shape"));
     assert.ok(!codexTree.includes("agents"), "no agents/openai.yaml is written for Codex");
   });
 });

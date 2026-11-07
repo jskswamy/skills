@@ -201,7 +201,7 @@ test("applyHookPolicy rejects a hook that quotes the plugin-root token", () => {
 
 test("derivedId joins plugin and name without repeating the plugin prefix", async () => {
   const { derivedId } = await import("../../scripts/lib/transforms/names.mjs");
-  assert.equal(derivedId("craft", "backlog"), "craft-backlog");
-  assert.equal(derivedId("craft", "craft-task"), "craft-task");
+  assert.equal(derivedId("craft", "shape"), "craft-shape");
+  assert.equal(derivedId("craft", "craft-build"), "craft-build");
   assert.equal(derivedId("commit-tools", "commit"), "commit-tools-commit");
 });

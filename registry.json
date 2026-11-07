@@ -280,7 +280,7 @@
     },
     {
       "name": "craft",
-      "description": "The craft of building software end-to-end: capture ideas, understand problems, decompose work into structured units, dispatch subagents to execute them, and commit with full task context",
+      "description": "Spec-driven development workshop with beads wisps and thin stories: park, debug, shape, and build",
       "version": "2.1.0",
       "author": {
         "name": "Krishnaswamy Subramanian"
@@ -290,33 +290,23 @@
         "craft",
         "work",
         "build",
-        "planning",
-        "decomposition",
-        "execution",
-        "subagents",
-        "review",
-        "tasks",
+        "shape",
+        "debug",
+        "park",
+        "wisps",
+        "stories",
         "epics",
-        "parking",
         "workflow"
       ],
       "resources": {
         "skills": [
-          "craft/decompose",
-          "craft/execute",
           "craft/park",
-          "craft/parked",
-          "craft/task-commit",
-          "craft/understand",
-          "craft/backlog",
-          "craft/deps",
-          "craft/epic",
-          "craft/task"
+          "craft/debug",
+          "craft/shape",
+          "craft/build"
         ],
         "agents": [
-          "craft/issue-writer.md",
-          "craft/quality-reviewer.md",
-          "craft/spec-reviewer.md"
+          "craft/issue-writer.md"
         ],
         "hooks": [
           "craft/hooks.json",

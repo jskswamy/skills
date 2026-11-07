@@ -76,7 +76,7 @@ arguments placed as Claude places them. A command name another plugin or
 OpenCode itself uses is not an issue: every skill and command id is `plugin-skill`
 (`/jot-setup`, `/commit-tools-commit`). Agents are
 added through `ctx.agent.transform` (`update` creates a missing agent) with
-plugin-prefixed ids (`craft-spec-reviewer`); an existing agent with the same
+plugin-prefixed ids (`craft-issue-writer`); an existing agent with the same
 id is left alone.
 
 One invalid payload makes OpenCode disable the whole plugin, hooks included,

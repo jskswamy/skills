@@ -85,8 +85,8 @@ Instructions here.
 ```
 
 Use lowercase hyphenated names. The `name` equals the folder name, and it
-must not start with the plugin name: the skill `backlog` in the `craft`
-plugin is `craft:backlog`, not `craft-backlog`. A skill that belongs to no
+must not start with the plugin name: the skill `shape` in the `craft`
+plugin is `craft:shape`, not `craft-shape`. A skill that belongs to no
 plugin (such as `release`) sits directly under `skills/<skill-name>/`.
 
 A skill is runnable by name unless its frontmatter has `user-invocable: false`,

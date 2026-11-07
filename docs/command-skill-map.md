@@ -24,14 +24,10 @@ plugin name. Model-only skills (`user-invocable: false`) have no entry.
 | `/jot:capture` | `$jot:capture` | `/jot-capture` |
 | `/jot:configure` | `$jot:configure` | `/jot-configure` |
 | `/jot:setup` | `$jot:setup` | `/jot-setup` |
-| `/craft:decompose` | `$craft:decompose` | `/craft-decompose` |
-| `/craft:execute` | `$craft:execute` | `/craft-execute` |
 | `/craft:park` | `$craft:park` | `/craft-park` |
-| `/craft:parked` | `$craft:parked` | `/craft-parked` |
-| `/craft:backlog` | `$craft:backlog` | `/craft-backlog` |
-| `/craft:deps` | `$craft:deps` | `/craft-deps` |
-| `/craft:epic` | `$craft:epic` | `/craft-epic` |
-| `/craft:task` | `$craft:task` | `/craft-task` |
+| `/craft:debug` | `$craft:debug` | `/craft-debug` |
+| `/craft:shape` | `$craft:shape` | `/craft-shape` |
+| `/craft:build` | `$craft:build` | `/craft-build` |
 | `/sketch-note:sketch` | `$sketch-note:sketch` | `/sketch-note-sketch` |
 | `/typst-notes:publish` | `$typst-notes:publish` | `/typst-notes-publish` |
 | `/codebase:ask` | `$codebase:ask` | `/codebase-ask` |

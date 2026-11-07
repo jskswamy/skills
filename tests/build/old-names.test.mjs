@@ -12,6 +12,7 @@ const EXCLUDED = [
   "MIGRATION-v2.md",
   "MIGRATION-v3.md",
   "docs/specs/",
+  "docs/designs/",
   "docs/superpowers/",
   "docs/harness-research.md",
   "harness_dictionary.md",
