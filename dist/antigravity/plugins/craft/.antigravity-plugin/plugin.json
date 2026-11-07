@@ -1,5 +1,5 @@
 {
   "name": "craft",
-  "version": "2.1.0",
-  "description": "The craft of building software end-to-end: capture ideas, understand problems, decompose work into structured units, dispatch subagents to execute them, and commit with full task context"
+  "version": "3.0.0",
+  "description": "Spec-driven development workshop with beads wisps and thin stories: park, debug, shape, and build"
 }

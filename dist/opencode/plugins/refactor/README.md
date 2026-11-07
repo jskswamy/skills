@@ -7,7 +7,7 @@ Semantic refactoring opportunity detection for Claude Code. On demand (for examp
 - **codebase-memory-mcp** — Semantic code index. Available through a configured MCP server or the installed CLI on `PATH`. Scans and scanner agents prefer MCP and automatically fall back to `codebase-memory-mcp cli` when MCP is missing or unreachable.
 - **codebase plugin** — Index management. The refactor plugin calls `/codebase-index` to ensure the index is fresh.
 - **beads plugin** — Issue tracker. The validator creates beads issues for confirmed opportunities.
-- **craft plugin** (optional) — Run `/refactor-scan` after tasks close; there is no automatic hook yet.
+- **craft plugin** (optional) — `/craft-build` automatically runs `/refactor-scan --scope diff` before closing a story, or you can run `/refactor-scan` manually at any time.
 
 ## Usage
 
@@ -18,9 +18,9 @@ Semantic refactoring opportunity detection for Claude Code. On demand (for examp
 /refactor-scan --base abc1234    # scan changes since specific SHA
 ```
 
-### After craft tasks
+### During `/craft-build`
 
-No automatic hook exists. Run `/refactor-scan` after a craft task closes.
+`/craft-build` runs `/refactor-scan --scope diff` on the story's commit range, filters candidates with `ponytail`, and lets you fix findings immediately or park them as wisps via `/craft-park`.
 
 ## What It Detects
 
@@ -111,4 +111,4 @@ Use `--fresh` to force a new scan instead of resuming. Use `--clean` to remove c
 
 The codebase-wide scan covers the cross-codebase subset of Fowler's refactoring catalog (https://refactoring.com/catalog/). For the full pass-by-pass mapping, see the design spec at `docs/superpowers/specs/2026-05-05-codebase-wide-refactor-scan-design.md`.
 
-Single-file refactorings (extract variable, rename, decompose conditional, etc.) are out of scope — they belong to `quality-reviewer`.
+Single-file refactorings (extract variable, rename, decompose conditional, etc.) are out of scope — they belong to code review during implementation.

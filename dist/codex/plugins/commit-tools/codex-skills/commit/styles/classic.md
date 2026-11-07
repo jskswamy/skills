@@ -158,7 +158,7 @@ Commit messages are for humans reading git history. They must be clean of intern
 **Agent workflow artifacts:**
 - Workflow phase labels ("Phase 1", "Step 2 of 4", "Part 3/5")
 - Agent dispatch metadata ("dispatched to subagent", "batch 2 of 3")
-- Tool invocation traces ("ran bd create", "used $craft:decompose")
+- Tool invocation traces ("ran bd create", "used $craft:shape")
 - Acceptance criteria checklists copied verbatim from task trackers
 - Verification command output ("$ npm test → 24 passed")
 

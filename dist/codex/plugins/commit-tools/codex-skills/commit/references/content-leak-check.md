@@ -15,7 +15,7 @@
 2. **Workflow Phase Labels & Agent Artifacts:**
    - "Phase 1", "Phase 2", "Step 2 of 4", "Part 3/5" etc. used as structural labels
    - Agent dispatch metadata: "dispatched to subagent", "batch 2 of 3"
-   - Tool invocation traces: "ran bd create", "used $craft:decompose", "invoked $commit-tools:commit"
+   - Tool invocation traces: "ran bd create", "used $craft:shape", "invoked $commit-tools:commit"
    - Decomposition plan references: "from decomposition plan", "per task specification"
    - **Allowed:** Technical terms like "two-phase commit", "multi-phase migration"
 

@@ -1,37 +1,45 @@
 #!/usr/bin/env bash
+# Check for active parked-idea wisps in .beads-wisp/ when a session ends.
+
 set -euo pipefail
 
-# Check if bd is available
-command -v bd >/dev/null 2>&1 || exit 0
-
-# Check if we're in a bd workspace
-if ! bd list --status=open --json >/dev/null 2>&1; then
+WISP_JSON=$(bd mol wisp list --json 2>/dev/null) || exit 0
+if [ -z "$WISP_JSON" ] || [ "$WISP_JSON" = "[]" ] || [ "$WISP_JSON" = "null" ]; then
   exit 0
 fi
 
-# Get the most recent commit message
-COMMIT_MSG=$(git log -1 --pretty=format:"%B" 2>/dev/null) || exit 0
+python3 -c '
+import json, sys
 
-# Look for beads task ID patterns in the commit message
-TASK_ID=$(echo "$COMMIT_MSG" | grep -oE '[a-z]+-[a-z0-9]+(\.[0-9]+)?' | head -1) || true
+try:
+    data = json.load(sys.stdin)
+except Exception:
+    sys.exit(0)
 
-if [ -z "$TASK_ID" ]; then
-  exit 0
-fi
+items = (
+    data if isinstance(data, list)
+    else (data.get("wisps") or data.get("issues") or []) if isinstance(data, dict)
+    else []
+)
 
-# Check for parked ideas
-PARKED=$(bd list --status=deferred -l parked-idea --json 2>/dev/null) || exit 0
+parked = []
+for i in items:
+    if not isinstance(i, dict):
+        continue
+    if i.get("status") in ("closed", "tombstone"):
+        continue
+    labels = i.get("labels") or ([i["label"]] if i.get("label") else [])
+    if "parked-idea" in labels and "debug-wisp" not in labels:
+        parked.append(i)
 
-if [ -z "$PARKED" ] || [ "$PARKED" = "[]" ] || [ "$PARKED" = "null" ]; then
-  exit 0
-fi
+if not parked:
+    sys.exit(0)
 
-# Stop output reaches the user only as JSON; plain stdout is never shown.
-echo "$PARKED" | python3 -c '
-import sys, json
-items = json.load(sys.stdin)
-if items:
-    lines = [f"You have {len(items)} parked idea(s). Review with: /craft:parked list"]
-    lines += ["  - " + str(i.get("id", "?")) + ": " + str(i.get("title", "untitled")) for i in items]
-    print(json.dumps({"systemMessage": "\n".join(lines)}))
-' 2>/dev/null || exit 0
+lines = [f"  - {i.get(\"id\", \"?\")}: {i.get(\"title\", \"Untitled\")} (P{i.get(\"priority\", 2)})" for i in parked]
+msg = (
+    f"You have {len(parked)} parked wisp(s) in .beads-wisp/:\n"
+    + "\n".join(lines)
+    + "\nRun /craft:park review or /craft:park promote <id> --shape to triage them."
+)
+print(json.dumps({"systemMessage": msg}))
+' <<< "$WISP_JSON" 2>/dev/null || exit 0

@@ -52,7 +52,7 @@
     {
       "name": "commit-tools",
       "description": "End-to-end commit hygiene: write atomic commits with style enforcement, review and consolidate them before push, validate the final history",
-      "version": "2.1.0",
+      "version": "2.1.1",
       "author": {
         "name": "Krishnaswamy Subramanian"
       },
@@ -102,8 +102,8 @@
     },
     {
       "name": "craft",
-      "description": "The craft of building software end-to-end: capture ideas, understand problems, decompose work into structured units, dispatch subagents to execute them, and commit with full task context",
-      "version": "2.1.0",
+      "description": "Spec-driven development workshop with beads wisps and thin stories: park, debug, shape, and build",
+      "version": "3.0.0",
       "author": {
         "name": "Krishnaswamy Subramanian"
       },
@@ -113,14 +113,12 @@
         "craft",
         "work",
         "build",
-        "planning",
-        "decomposition",
-        "execution",
-        "subagents",
-        "review",
-        "tasks",
+        "shape",
+        "debug",
+        "park",
+        "wisps",
+        "stories",
         "epics",
-        "parking",
         "workflow"
       ]
     },
@@ -206,7 +204,7 @@
     {
       "name": "refactor",
       "description": "Semantic refactoring opportunity detection. Scans committed code for structural duplication (Fowler catalog), code smells (Fowler/Beck), GoF design pattern opportunities, SOLID/DRY principle violations, and language-idiomatic anti-patterns (Go, Python, TypeScript). Creates beads issues with TDD-first refactoring plans. Run on demand with /refactor:scan.",
-      "version": "1.1.0",
+      "version": "1.1.1",
       "author": {
         "name": "Krishnaswamy Subramanian"
       },

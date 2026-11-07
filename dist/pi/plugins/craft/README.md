@@ -1,76 +1,39 @@
 # craft
 
-The craft of building software end-to-end. Capture ideas before they
-escape, understand problems deeply before planning, decompose work into
-units that can actually be executed, dispatch subagents to do the work,
-and commit with full task context.
+Spec-driven development workshop backed by `beads` (`bd`) wisps and thin vertical-slice stories. Capture side thoughts as ephemeral wisps without breaking flow, isolate bug root causes before deciding whether to fix inline or promote, shape specifications into thin stories with `--spec-id` pointers, and build stories just-in-time with subagents, Ponytail proportion checks, refactor scans, and commit hygiene.
 
-## Commands
-
-### Capture and explore
+## Workshop Commands
 
 | Command | Purpose |
 |---------|---------|
-| `/craft-park` | Quick-capture an idea while in flow without breaking it; minimal metadata, fast path |
-| `/craft-parked` | List, filter, and manage previously parked ideas |
-| `/craft-parked` | On-demand review of the parking lot |
-| `/understand` | Structured questioning to deeply explore a task before planning |
+| `/craft-park` | Park a quick thought as an ephemeral wisp (`-l parked-idea`), or `list`, `promote [--shape]`, `drop`, and `review` parked wisps |
+| `/craft-debug` | Diagnose a bug symptom or issue in a diagnostic wisp (`-l debug-wisp`) with root-cause and caller tracing |
+| `/craft-shape` | Shape an idea, promoted wisp, or design doc into a spec, epic, and thin vertical-slice stories in `.beads/` |
+| `/craft-build` | Pick, plan just-in-time, execute, refactor-scan, and polish commits for a story or epic |
 
-### Plan and structure
+## Swimlanes
 
-| Command | Purpose |
-|---------|---------|
-| `/craft-decompose` | Transform a complex task into structured units with dependencies, supports configurable frameworks (built-in, superpowers, speckit, bmad) |
-| `/craft-epic` | Create and manage epics, add/remove tasks, track progress |
-| `/craft-task` | Single-task operations: create, start, complete, view |
-| `/craft-deps` | Manage and visualize dependencies |
-| `/craft-backlog` | Dashboard views with filtering and statistics |
+Stories move across four hyphenated swimlanes (`bd set-state <id> status=<lane>`):
 
-### Execute and commit
+- `status:backlog` — Parked wisps in `.beads-wisp/`, promoted unshaped ideas, or stories blocked by upstream dependencies
+- `status:ready` — Shaped stories (`--spec-id` attached) with zero open blockers (`bd ready`)
+- `status:in-progress` — Claimed by `/craft-build` (`Plan: <path> | Base: <sha>`)
+- `closed` — Implemented, verified, refactor-scanned, and committed (`bd close`)
 
-| Command | Purpose |
-|---------|---------|
-| `/craft-execute` | Dispatch subagents to work through ready tasks with batch processing and dual-stage review |
-| `/task-commit` | Create rich commit messages by combining task context with code changes |
+## Skills & Agents
 
-## Skills
-
-- `decompose` — The decomposition engine: planning frameworks, dependency graph generation
-- `craft-park` — Frictionless idea capture
-- `craft-parked` — Periodic and on-demand triage
-- `task-commit` — Task-context-aware commit message authoring
-- `understand` — Pre-planning exploration
-- `craft-execute` — Subagent dispatch with two-stage review
-
-## Agents
-
-- `issue-writer` — Creates well-structured issues from a decomposition plan
-- `quality-reviewer` — Reviews implementation against quality standards
-- `spec-reviewer` — Reviews implementation against the spec it implements
+- `craft-park` — Ephemeral wisp capture and triage (`list`, `promote`, `drop`, `review`)
+- `craft-debug` — Diagnostic wisp investigation, caller blast-radius trace, and resolution routing
+- `craft-shape` — Spec acquisition (`egm`, `superpowers`, `grill-me`, or Socratic fallback), Ponytail critique, and thin story slicing
+- `craft-build` — Swimlane picker, adaptive scope check, JIT TDD planning, subagent execution, post-story `refactor-scan` + Ponytail filter, and `commit-tools-review-commits` polish
+- `craft-issue-writer` — Batched `bd` graph creation agent (`--dolt-auto-commit=batch` + `bd swarm validate`)
 
 ## Hook
 
-A `Stop` hook periodically reminds you to triage parked ideas so they
-don't accumulate forever. Auto-rebases via `${CLAUDE_PLUGIN_ROOT}` to
-the plugin's installed location.
-
-## Backend
-
-`craft` currently uses [beads](https://github.com/steveyegge/beads) as
-the task store backend. The backend is an implementation detail; the
-plugin's surface is the developer-facing capability ("decompose this
-work, execute it, commit it") and the backend can swap without changing
-how you use the plugin.
+A `Stop` hook (`hooks/craft/scripts/check-parked-ideas.sh`) checks `.beads-wisp/` for open `parked-idea` wisps at session end and reminds you to run `/craft-park review` or `/craft-park promote <id> --shape`.
 
 ## Install
 
-```
+```text
 /plugin install craft@skills
 ```
-
-## History
-
-`craft` is the v2.0.0 consolidation of the former `task-decomposer`
-and `task-executor` plugins. Command names and behavior are unchanged;
-only the package they ship in changed. See `MIGRATION-v2.md` at the
-repo root for upgrade steps.

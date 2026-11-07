@@ -54,14 +54,10 @@ OpenCode have no namespace, so every entry is `plugin-skill`, for example
 | `jot:capture` | `/jot:capture` | `$jot:capture` | `/jot-capture` | `/capture` |
 | `jot:configure` | `/jot:configure` | `$jot:configure` | `/jot-configure` | `/configure` |
 | `jot:setup` | `/jot:setup` | `$jot:setup` | `/jot-setup` | `/jot-setup` |
-| `craft:decompose` | `/craft:decompose` | `$craft:decompose` | `/craft-decompose` | `/decompose` |
-| `craft:execute` | `/craft:execute` | `$craft:execute` | `/craft-execute` | `/execute` |
 | `craft:park` | `/craft:park` | `$craft:park` | `/craft-park` | `/park` |
-| `craft:parked` | `/craft:parked` | `$craft:parked` | `/craft-parked` | `/parked` |
-| `craft:backlog` | `/craft:backlog` | `$craft:backlog` | `/craft-backlog` | `/backlog` |
-| `craft:deps` | `/craft:deps` | `$craft:deps` | `/craft-deps` | `/deps` |
-| `craft:epic` | `/craft:epic` | `$craft:epic` | `/craft-epic` | `/epic` |
-| `craft:task` | `/craft:task` | `$craft:task` | `/craft-task` | `/task` |
+| `craft:debug` | `/craft:debug` | `$craft:debug` | `/craft-debug` | none (new in craft 3.0.0) |
+| `craft:shape` | `/craft:shape` | `$craft:shape` | `/craft-shape` | `/decompose`, `/understand`, `/epic` |
+| `craft:build` | `/craft:build` | `$craft:build` | `/craft-build` | `/execute`, `/backlog`, `/deps`, `/task` |
 | `sketch-note:sketch` | `/sketch-note:sketch` | `$sketch-note:sketch` | `/sketch-note-sketch` | `/sketch` |
 | `typst-notes:publish` | `/typst-notes:publish` | `$typst-notes:publish` | `/typst-notes-publish` | `/publish` |
 | `codebase:ask` | `/codebase:ask` | `$codebase:ask` | `/codebase-ask` | `/ask` |

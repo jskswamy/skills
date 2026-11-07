@@ -34,7 +34,7 @@ Restart or reload Pi after updating the installed package.
   unstaged files are left alone. Known-published commits and other authors'
   commits cannot be amended. Published-state checks use local cached refs;
   there is no implicit fetch.
-- `task-commit` gathers task context and delegates to `commit-tools:commit`.
+- `$craft:build` and `$craft:debug` gather story or bug context and delegate commits to `commit-tools:commit` and `commit-tools:review-commits`.
 - `review-commits` plans history changes, then delegates full-message validation
   and approval to `commit-tools:commit`. Replay uses its shared executor. Unattended
   review returns `confirmation-required` without approval of the exact plan.
