@@ -281,7 +281,7 @@
     {
       "name": "craft",
       "description": "Spec-driven development workshop with beads wisps and thin stories: park, debug, shape, and build",
-      "version": "3.0.0",
+      "version": "3.0.1",
       "author": {
         "name": "Krishnaswamy Subramanian"
       },
