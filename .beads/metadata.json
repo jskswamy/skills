@@ -1,7 +1,0 @@
-{
-  "database": "dolt",
-  "backend": "dolt",
-  "dolt_mode": "server",
-  "dolt_database": "claude_plugins",
-  "project_id": "d414144a-11cd-426a-86fc-716eab28e221"
-}
