@@ -2,7 +2,32 @@
 
 All notable changes to this skills/plugins collection will be documented in this file.
 
+## [3.3.1] - 2026-11-09
+
+### Other
+
+- Stop tracking local issue-store files
+
+Keep issue data, configuration and hook wrappers out of source control.
+The local database remains available with independent remote sync.
+
+Existing files remain on disk; remove only their tracked copies.
+- Ground Craft workflows in architecture evidence
+
+Reuse current capability and seam evidence when shaping specs and
+validating new or resumed build scopes, so implementation follows
+approved ownership and contracts without repeating unchanged analysis.
+
+Persist explicit review depth and approval records, validate complete
+bundles, and preserve saved review baselines during resume. Add
+instruction and packaging checks with the corresponding snapshot update.
 ## [3.3.0] - 2026-11-07
+
+### Changed
+
+- Update CHANGELOG for v3.3.0
+
+Document all changes included in the v3.3.0 release. by @jskswamy
 
 ### Other
 
@@ -22,13 +47,13 @@ ceremony for routine bug fixes and feature slicing.
   user stories linked to source sections by anchor
 - build adds a swimlane picker, adaptive scope checks, TDD execution,
   and post-story diff refactoring and commit review with inline
-  fallbacks when optional companion plugins are absent
+  fallbacks when optional companion plugins are absent by @jskswamy
 - Release v3.3.0
 
 Bump plugin versions: craft 2.1.0 -> 3.0.0, commit-tools 2.1.0 ->
 2.1.1, refactor 1.1.0 -> 1.1.1. Update MIGRATION-v3.md for the four
 craft workshop skills, write every harness's output via npm run
-build:release, and regenerate the Claude snapshot fixture.
+build:release, and regenerate the Claude snapshot fixture. by @jskswamy
 ## [3.2.0] - 2026-11-05
 
 ### Added
@@ -3857,6 +3882,7 @@ as a dependency.
 ### Removed
 
 - Remove welcome message from shell hook by @jskswamy
+[3.3.1]: https://github.com/jskswamy/skills/compare/v3.3.0..v3.3.1
 [3.3.0]: https://github.com/jskswamy/skills/compare/v3.2.0..v3.3.0
 [3.2.0]: https://github.com/jskswamy/skills/compare/v3.1.0..v3.2.0
 [3.1.0]: https://github.com/jskswamy/skills/compare/v3.0.0..v3.1.0
