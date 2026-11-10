@@ -1,8 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { mkdtemp, mkdir, writeFile } from "node:fs/promises";
+import { mkdtemp, mkdir, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { rewriteTree } from "../../scripts/lib/layout.mjs";
+import { rewriteReferences } from "../../scripts/lib/transforms/names.mjs";
 import { parseDocument, writeDocument } from "../../scripts/lib/transforms/frontmatter.mjs";
 import { mapAgent } from "../../scripts/lib/transforms/agents.mjs";
 import { rewritePluginRoot } from "../../scripts/lib/transforms/paths.mjs";
@@ -204,4 +206,18 @@ test("derivedId joins plugin and name without repeating the plugin prefix", asyn
   assert.equal(derivedId("craft", "shape"), "craft-shape");
   assert.equal(derivedId("craft", "craft-build"), "craft-build");
   assert.equal(derivedId("commit-tools", "commit"), "commit-tools-commit");
+});
+
+test("rewriteReferences keeps slash references only when asked", async () => {
+  const pairs = new Set(["craft:park", "commit-tools:commit"]);
+  const text = "Run /craft:park, then load commit-tools:commit; leave other:thing.";
+  assert.equal(rewriteReferences(text, pairs), "Run /craft-park, then load commit-tools-commit; leave other:thing.");
+  const kept = "Run /craft:park, then load commit-tools-commit; leave other:thing.";
+  assert.equal(rewriteReferences(text, pairs, { keepSlash: true }), kept);
+
+  const dir = await mkdtemp(join(tmpdir(), "keepslash-"));
+  const file = join(dir, "SKILL.md");
+  await writeFile(file, text);
+  await rewriteTree(file, { pairs, join: "-", exts: [".md"], keepSlash: true });
+  assert.equal(await readFile(file, "utf8"), kept);
 });

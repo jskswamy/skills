@@ -38,30 +38,25 @@ export async function copyLayout({ repoRoot, layout, to }) {
 
 // Reads, rewrites and writes every file with a listed extension under dir (or the file itself, when
 // dir is a file). A missing path is skipped.
-export async function rewriteTree(dir, { pairs, join: joiner, sigil, exts }) {
+export async function rewriteTree(dir, { pairs, join: joiner, sigil, exts, keepSlash }) {
   if (!(await pathExists(dir))) return;
-  if (!(await stat(dir)).isDirectory()) {
-    const text = await readFile(dir, "utf8");
-    const rewritten = rewriteReferences(text, pairs, { join: joiner, sigil });
-    if (rewritten !== text) await writeFile(dir, rewritten);
-    return;
-  }
+  const rewriteFile = async (path) => {
+    const text = await readFile(path, "utf8");
+    const rewritten = rewriteReferences(text, pairs, { join: joiner, sigil, keepSlash });
+    if (rewritten !== text) await writeFile(path, rewritten);
+  };
+  if (!(await stat(dir)).isDirectory()) return rewriteFile(dir);
   for (const entry of await readdir(dir, { withFileTypes: true })) {
     const path = join(dir, entry.name);
-    if (entry.isDirectory()) {
-      await rewriteTree(path, { pairs, join: joiner, sigil, exts });
-    } else if (exts.includes(extname(entry.name))) {
-      const text = await readFile(path, "utf8");
-      const rewritten = rewriteReferences(text, pairs, { join: joiner, sigil });
-      if (rewritten !== text) await writeFile(path, rewritten);
-    }
+    if (entry.isDirectory()) await rewriteTree(path, { pairs, join: joiner, sigil, exts, keepSlash });
+    else if (exts.includes(extname(entry.name))) await rewriteFile(path);
   }
 }
 
 // Pi and OpenCode cannot namespace: copy the skills, point each frontmatter name at plugin-skill,
 // and rewrite plugin:skill references to plugin-skill in the skills and, where present, the
 // agents, templates and hook scripts already copied into the same tree.
-export async function copyRewrittenSkills({ repoRoot, model, to, pairs }) {
+export async function copyRewrittenSkills({ repoRoot, model, to, pairs, keepSlash = false }) {
   for (const skill of model.skills) {
     const source = join(repoRoot, skill.path);
     const dest = join(to, "skills", skill.name);
@@ -70,11 +65,11 @@ export async function copyRewrittenSkills({ repoRoot, model, to, pairs }) {
     await writeFile(file, setNameLine(await readFile(file, "utf8"), derivedId(model.name, skill.name)));
   }
   const md = [".md", ".yaml"];
-  await rewriteTree(join(to, "skills"), { pairs, join: "-", exts: [...md, ".sh"] });
-  await rewriteTree(join(to, "agents"), { pairs, join: "-", exts: md });
-  await rewriteTree(join(to, "templates"), { pairs, join: "-", exts: md });
-  await rewriteTree(join(to, "hooks"), { pairs, join: "-", exts: [".sh"] });
-  await rewriteTree(join(to, "README.md"), { pairs, join: "-", exts: md });
+  await rewriteTree(join(to, "skills"), { pairs, join: "-", exts: [...md, ".sh"], keepSlash });
+  await rewriteTree(join(to, "agents"), { pairs, join: "-", exts: md, keepSlash });
+  await rewriteTree(join(to, "templates"), { pairs, join: "-", exts: md, keepSlash });
+  await rewriteTree(join(to, "hooks"), { pairs, join: "-", exts: [".sh"], keepSlash });
+  await rewriteTree(join(to, "README.md"), { pairs, join: "-", exts: md, keepSlash });
 }
 
 // Line-level frontmatter edits. writeDocument re-serializes the whole block (it drops comments and

@@ -25,11 +25,13 @@ const NAME = "[a-z0-9]+(?:-[a-z0-9]+)*";
 const REFERENCE = new RegExp(`(?<![A-Za-z0-9_.\\-/:])(/?)(${NAME}):(${NAME})(?![A-Za-z0-9_-])`, "g");
 
 // join "-" (Pi, OpenCode): plugin:skill becomes plugin-skill, a leading `/` stays.
+// keepSlash with join "-" (omp): /plugin:skill is left alone, because a command
+// wrapper already provides that slash name; only bare references are rewritten.
 // join ":" with sigil (Codex): the name keeps its colon and a leading `/` becomes the sigil.
-export function rewriteReferences(text, pairs, { join = "-", sigil } = {}) {
+export function rewriteReferences(text, pairs, { join = "-", sigil, keepSlash = false } = {}) {
   return text.replace(REFERENCE, (match, slash, plugin, name) => {
     if (!pairs.has(`${plugin}:${name}`)) return match;
-    if (join === "-") return `${slash}${plugin}-${name}`;
+    if (join === "-") return slash && keepSlash ? match : `${slash}${plugin}-${name}`;
     return slash && sigil ? `${sigil}${plugin}:${name}` : match;
   });
 }
