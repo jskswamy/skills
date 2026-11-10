@@ -121,3 +121,19 @@ function registryWithResources(resources) {
     ],
   };
 }
+
+test("validateRegistryShape requires omp on every plugin or none", () => {
+  const plugin = (name, harnesses) => ({
+    name,
+    version: "1.0.0",
+    description: name,
+    resources: { skills: [], agents: [], hooks: [], templates: [], extra: [] },
+    harnesses,
+  });
+  const registry = (plugins) => ({ marketplace: { name: "x", description: "x", owner: { name: "x" } }, plugins });
+  assert.deepEqual(validateRegistryShape(registry([plugin("a", { omp: { enabled: true } }), plugin("b", { omp: { enabled: true } })])), []);
+  assert.deepEqual(validateRegistryShape(registry([plugin("a", {}), plugin("b", {})])), []);
+  assert.deepEqual(validateRegistryShape(registry([plugin("a", { omp: { enabled: true } }), plugin("b", {})])), [
+    "harnesses.omp must be enabled for every plugin or for none (1 of 2 enable it)",
+  ]);
+});

@@ -5,12 +5,13 @@ import * as agentPlugins from "../../../harnesses/agent-plugins/adapter.mjs";
 import * as antigravity from "../../../harnesses/antigravity/adapter.mjs";
 import * as claudeCode from "../../../harnesses/claude-code/adapter.mjs";
 import * as codex from "../../../harnesses/codex/adapter.mjs";
+import * as omp from "../../../harnesses/omp/adapter.mjs";
 import * as opencode from "../../../harnesses/opencode/adapter.mjs";
 import * as pi from "../../../harnesses/pi/adapter.mjs";
 import { removeDir } from "../fs-utils.mjs";
 import { loadPluginModel } from "../model.mjs";
 
-export const ADAPTERS = [claudeCode, antigravity, opencode, pi, codex, agentPlugins];
+export const ADAPTERS = [claudeCode, antigravity, opencode, pi, omp, codex, agentPlugins];
 
 // Claude Code stays on unless disabled; every other harness is opt-in.
 export function isEnabled(plugin, id) {

@@ -55,6 +55,13 @@ export function validateRegistryShape(registry) {
     return errors;
   }
 
+  // omp prefers .omp-plugin/marketplace.json over the Claude catalog, so a
+  // catalog listing only some plugins would hide the rest from omp users.
+  const ompEnabled = registry.plugins.filter((plugin) => plugin?.harnesses?.omp?.enabled === true).length;
+  if (ompEnabled > 0 && ompEnabled < registry.plugins.length) {
+    errors.push(`harnesses.omp must be enabled for every plugin or for none (${ompEnabled} of ${registry.plugins.length} enable it)`);
+  }
+
   const seenNames = new Set();
   const derivedIds = new Map();
   for (const [index, plugin] of registry.plugins.entries()) {
