@@ -14,6 +14,8 @@ async function scripts() {
     "plain.sh": "echo 'plain reminder'\n",
     "hang.sh": "sleep 30\n",
     "crash.sh": "echo boom >&2\nexit 1\n",
+    "notice.sh": "echo '{\"continue\": true, \"systemMessage\": \"Ran nixfmt on flake.nix\"}'\n",
+    "continue.sh": "echo '{\"continue\": true}'\n",
   };
   for (const [name, body] of Object.entries(files)) await writeFile(join(dir, name), `#!/bin/bash\n${body}`);
   return dir;
@@ -106,4 +108,26 @@ test("a spent time budget skips the remaining hooks and cuts the running one sho
   assert.ok(Date.now() - started < 5000, "returned promptly");
   assert.match(lines.join("\n"), /timed out after \d+ms/);
   assert.match(lines.join("\n"), /time budget spent/);
+});
+
+test("systemMessage on stdout is returned as a notice, and other fields are ignored", async () => {
+  const dir = await scripts();
+  assert.deepEqual(await runHook({ command: `bash ${dir}/notice.sh`, input: {} }), { blocked: false, notice: "Ran nixfmt on flake.nix" });
+  assert.deepEqual(await runHook({ command: `bash ${dir}/continue.sh`, input: {} }), { blocked: false });
+});
+
+test("runEvent collects notices only when a hook sends one, including before a block", async () => {
+  const dir = await scripts();
+  const entries = [
+    { event: "post-tool", command: `bash ${dir}/notice.sh` },
+    { event: "post-tool", command: `bash ${dir}/block.sh` },
+    { event: "stop", command: `bash ${dir}/continue.sh` },
+  ];
+  assert.deepEqual(await runEvent({ entries, event: "post-tool", input: {} }), {
+    blocked: true,
+    reason: "use /commit instead",
+    context: [],
+    notices: ["Ran nixfmt on flake.nix"],
+  });
+  assert.deepEqual(await runEvent({ entries, event: "stop", input: {} }), { blocked: false, context: [] });
 });

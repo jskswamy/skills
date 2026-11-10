@@ -10,8 +10,8 @@ Self-contained runtime helpers shared by non-Claude harnesses (`opencode`, `pi`)
 - `DEFAULT_TIMEOUT_MS` (`hook-runner.mjs`): Default per-hook execution timeout (`10_000` ms).
 - `START_BUDGET_MS` (`hook-runner.mjs`): Total cumulative time budget (`20_000` ms) across all `session-start` or `subagent-start` hooks in a session.
 - `matchesClaude(matcher, name)` (`hook-runner.mjs`): Tests whether `name` matches a Claude regex `matcher` (empty or `"*"` matches all; otherwise anchored as `^(?:${matcher})$`).
-- `runHook({ command, input, cwd, env, timeoutMs = DEFAULT_TIMEOUT_MS, plainStdoutIsContext = false, log })` (`hook-runner.mjs`): Spawns `sh -c <command>` with `JSON.stringify(input)` on stdin and returns `{ blocked: boolean, reason?: string, context?: string }`.
-- `runEvent({ entries, event, target = "", input, cwd, env, log, budgetMs = Infinity })` (`hook-runner.mjs`): Sequentially runs all `entries` matching `event` and `target` within `budgetMs`, accumulating `context` strings and stopping early on the first blocking hook (`{ blocked, reason?, context }`).
+- `runHook({ command, input, cwd, env, timeoutMs = DEFAULT_TIMEOUT_MS, plainStdoutIsContext = false, log })` (`hook-runner.mjs`): Spawns `sh -c <command>` with `JSON.stringify(input)` on stdin and returns `{ blocked: boolean, reason?: string, context?: string, notice?: string }`; `notice` is a JSON `systemMessage`, which Claude shows to the user.
+- `runEvent({ entries, event, target = "", input, cwd, env, log, budgetMs = Infinity })` (`hook-runner.mjs`): Sequentially runs all `entries` matching `event` and `target` within `budgetMs`, accumulating `context` strings and stopping early on the first blocking hook (`{ blocked, reason?, context, notices? }`; `notices` only when a hook sent one).
 
 ## Invariants
 - Must remain self-contained with zero dependencies outside Node.js built-ins so harness adapters can copy `harnesses/lib/` directly into generated standalone plugin packages.
