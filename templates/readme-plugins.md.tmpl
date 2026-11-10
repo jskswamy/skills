@@ -3,11 +3,11 @@
   Uses registry.json as the data source.
 */ -}}
 
-Every plugin below ships to Claude Code, Pi, Antigravity, OpenCode and Codex. See
+Every plugin below ships to Claude Code, Pi, omp, Antigravity, OpenCode and Codex. See
 [Install](#install) for each harness and [Harness support](#harness-support)
 for what each one carries. Skills are written `plugin:skill` below. Claude Code
-and Antigravity run them as `/plugin:skill`, Codex as `$plugin:skill`, and Pi and
-OpenCode as `/plugin-skill`; see the [invocation forms](docs/command-skill-map.md).
+omp and Antigravity run them as `/plugin:skill`, Codex as `$plugin:skill`, and Pi
+and OpenCode as `/plugin-skill`; see the [invocation forms](docs/command-skill-map.md).
 Model-only skills have no entry.
 
 {{- $registry := (datasource "marketplace") -}}

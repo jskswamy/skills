@@ -1,14 +1,14 @@
 # Multi-Harness Targets & Runtimes (`harnesses`)
 
 ## Overview
-Target-specific build adapters, runtime hook shims, tool-mapping tables, and shared hook execution libraries that package canonical repository skills, agents, and Claude-format hooks for each supported coding agent harness (`claude-code`, `antigravity`, `opencode`, `pi`, and `codex`).
+Target-specific build adapters, runtime hook shims, tool-mapping tables, and shared hook execution libraries that package canonical repository skills, agents, and Claude-format hooks for each supported coding agent harness (`claude-code`, `antigravity`, `opencode`, `pi`, `omp`, and `codex`).
 
 ## Interface
-Each target harness directory (`claude-code`, `antigravity`, `opencode`, `pi`, `codex`) exposes an `adapter.mjs` module conforming to the harness adapter contract consumed by [`../scripts/lib/adapters/index.mjs`](../scripts/lib/adapters/README.md):
-- `id`: Unique harness identifier (`"claude-code"`, `"antigravity"`, `"opencode"`, `"pi"`, `"codex"`).
+Each target harness directory (`claude-code`, `antigravity`, `opencode`, `pi`, `omp`, `codex`) exposes an `adapter.mjs` module conforming to the harness adapter contract consumed by [`../scripts/lib/adapters/index.mjs`](../scripts/lib/adapters/README.md):
+- `id`: Unique harness identifier (`"claude-code"`, `"antigravity"`, `"opencode"`, `"pi"`, `"omp"`, `"codex"`).
 - `capabilities`: Capability descriptor object for `skills`, `agents`, and `hooks`.
-- `pluginsDir`: Relative per-plugin output directory, `dist/<id>/plugins` for each harness (`dist/claude-code/plugins`, `dist/codex/plugins`, `dist/antigravity/plugins`, `dist/opencode/plugins`, `dist/pi/plugins`). Nothing is written into another harness's tree.
-- `generateRoot({ repoRoot, outRoot, registry, plugins, report })`: Cleans the harness's build output and initializes root manifests or cross-plugin state (Pi, OpenCode and Codex return the `plugin:skill` reference pairs).
+- `pluginsDir`: Relative per-plugin output directory, `dist/<id>/plugins` for each harness (`dist/claude-code/plugins`, `dist/codex/plugins`, `dist/antigravity/plugins`, `dist/opencode/plugins`, `dist/pi/plugins`, `dist/omp/plugins`). Nothing is written into another harness's tree.
+- `generateRoot({ repoRoot, outRoot, registry, plugins, report })`: Cleans the harness's build output and initializes root manifests or cross-plugin state (Pi, omp, OpenCode and Codex return the `plugin:skill` reference pairs).
 - `generate({ repoRoot, outRoot, model, plugin, state, report })`: Emits converted resources, manifests, and runtime shims for a single enabled plugin.
 - `finish({ repoRoot, outRoot, registry, plugins, state, report })` (optional): Finalizes post-plugin steps after all plugins are generated.
 - `validate({ repoRoot, outRoot, plugin })`: Verifies generated package structure, payloads, and external CLI validators.
@@ -20,6 +20,7 @@ Each target harness directory (`claude-code`, `antigravity`, `opencode`, `pi`, `
 - [`lib`](./lib/README.md): Self-contained Node.js hook input translator (`hook-input.mjs`) and process-group hook runner (`hook-runner.mjs`) copied into generated `opencode` and `pi` packages and reused at build time.
 - [`opencode`](./opencode/README.md): Build adapter (`adapter.mjs`), OpenCode V2 plugin runtime (`runtime.mjs`), and tool mapping table (`tools.mjs`) generating OpenCode V2 plugin packages under `dist/opencode/plugins/<plugin>/` and `.plugin/marketplace.json`.
 - [`pi`](./pi/README.md): Build adapter (`adapter.mjs`), Pi extension runtime (`runtime.mjs`), and tool mapping table (`tools.mjs`) generating Pi packages under `dist/pi/plugins/<plugin>/` and `marketplace.json`.
+- [`omp`](./omp/README.md): Build adapter (`adapter.mjs`), omp extension runtime forked from Pi's (`runtime.mjs`) and tool mapping table (`tools.mjs`) generating omp plugins under `dist/omp/plugins/<plugin>/` (`.omp-plugin/plugin.json`, `commands/` wrappers, `runtime/omp/`) and the root `.omp-plugin/marketplace.json`.
 
 ## Invariants
 - Canonical plugin resources (`skills/<plugin>/<skill>/`, `agents/`, `hooks/`, `templates/`) are authored once in Claude Code format at the repository root; harness adapters and runtimes are strictly responsible for translating them without hand-editing `dist/`.

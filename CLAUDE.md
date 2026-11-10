@@ -24,19 +24,20 @@ package.json                          # Repository dev/test script runner
 .claude-plugin/marketplace.json       # Claude Code marketplace; sources point into dist/claude-code/plugins
 .agents/plugins/marketplace.json      # Codex marketplace; sources point into dist/codex/plugins
 .plugin/marketplace.json              # Skillshare OpenCode catalog; sources point into dist/opencode/plugins
+.omp-plugin/marketplace.json          # omp and Skillshare omp catalog; sources point into dist/omp/plugins
 marketplace.json                      # Skillshare Pi catalog; sources point into dist/pi/plugins
-dist/<harness>/plugins/<plugin>/      # One generated tree per harness: claude-code, codex, antigravity, opencode, pi, agent-plugins (portable skills + MCP only)
+dist/<harness>/plugins/<plugin>/      # One generated tree per harness: claude-code, codex, antigravity, opencode, pi, omp, agent-plugins (portable skills + MCP only)
 ```
 
 ## Source-of-Truth Rules
 
-- Edit sources, never generated output. Everything under `dist/`, `.claude-plugin/marketplace.json`, `.agents/plugins/marketplace.json`, `.plugin/marketplace.json`, and `marketplace.json` is generated.
+- Edit sources, never generated output. Everything under `dist/`, `.claude-plugin/marketplace.json`, `.agents/plugins/marketplace.json`, `.plugin/marketplace.json`, `.omp-plugin/marketplace.json`, and `marketplace.json` is generated.
 - `npm run build` writes into a temp dir and prints it; it never writes into the repo. Only the release (`npm run build:release`) writes `dist/` and the root marketplace catalogs, so never commit those outside a release. `main` therefore always installs the last release.
 - Update `registry.json` when adding/removing plugin resources, changing plugin metadata, or enabling a harness (`harnesses.<id>.enabled`).
 - A hook a harness cannot carry fails the build unless `harnesses.<id>.optional` names it with a reason.
 - Run `npm run build` after registry or canonical resource changes, and read its report of what each harness degrades.
 - Run `npm run validate` before committing structural changes. It checks a fresh temp build, not the committed `dist/`.
-- Generated output stays committed because Claude Code, Antigravity, OpenCode and Pi install from a git tree and do not run build scripts.
+- Generated output stays committed because Claude Code, Antigravity, OpenCode, Pi and omp install from a git tree and do not run build scripts.
 
 ## Creating or Updating a Plugin
 
@@ -71,7 +72,7 @@ Pi package:
 pi -e <dir>/dist/pi/plugins/<plugin-name>
 ```
 
-Antigravity and OpenCode: see `harnesses/antigravity/README.md` and `harnesses/opencode/README.md`. To add a harness, see `docs/authoring-skills.md#adding-a-harness`.
+Antigravity, OpenCode and omp: see `harnesses/antigravity/README.md`, `harnesses/opencode/README.md` and `harnesses/omp/README.md`. To add a harness, see `docs/authoring-skills.md#adding-a-harness`.
 
 ## Evals
 

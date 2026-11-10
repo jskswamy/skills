@@ -5,7 +5,7 @@ understanding codebases, keeping commits clean, planning and executing work,
 capturing knowledge, publishing notes, and setting up development
 environments.
 
-The same canonical skills, agents and hooks work in Claude Code, Pi,
+The same canonical skills, agents and hooks work in Claude Code, Pi, omp,
 Antigravity, OpenCode and Codex. Each harness's install tree is generated into
 `dist/` from one source, at release.
 
@@ -89,6 +89,21 @@ skillshare plugin add <checkout> --plugin <plugin-name> --target pi -g
 Each runnable skill is a prompt template named `/<plugin>-<skill>`, such as
 `/commit-tools-commit`; `/skill:<plugin>-<skill>` also works. See [harnesses/pi](harnesses/pi/README.md).
 
+### omp
+
+Each plugin is packaged under `dist/omp/plugins/<name>/` and indexed by
+`.omp-plugin/marketplace.json`. Install via skillshare:
+
+```bash
+skillshare plugin add <checkout> --plugin <plugin-name> --target omp -g
+```
+
+or natively with `omp plugin marketplace add <checkout>` and
+`omp plugin install <plugin-name>@skills`. Each runnable skill has a command
+`/<plugin>:<skill>`, as in Claude Code; `/skill:<plugin>-<skill>` also works.
+An earlier `--target omp` install holds the Claude tree, which omp loads
+without hooks; remove it and add it again. See [harnesses/omp](harnesses/omp/README.md).
+
 ### Antigravity
 
 Clone the repository, then install every plugin at once, where `<checkout>`
@@ -136,13 +151,13 @@ Skills run as `$<plugin>:<skill>`. See
 Each harness has an adapter at `harnesses/<id>/adapter.mjs` that declares what
 it can carry:
 
-| | Claude Code | Pi | Antigravity | OpenCode | Codex |
-| --- | --- | --- | --- | --- | --- |
-| Skills | native | native | native | native, registered by the plugin runtime | native |
-| Entry for a skill | the skill, `/plugin:skill` | prompt template, `/plugin-skill` | the skill, `/plugin:skill` | command, `/plugin-skill` | the skill, `$plugin:skill` |
-| Agents | native | not available | native, name and description only | native, with plugin-prefixed ids | not available |
-| Hooks | native | runtime shim | `hooks.json` plus a shim | runtime shim | native (`codex-hooks.json`) |
-| Hook events | all five | session-start, pre-tool, post-tool, stop | session-start, pre-tool, post-tool, stop | all five | session-start, pre-tool, post-tool, stop |
+| | Claude Code | Pi | omp | Antigravity | OpenCode | Codex |
+| --- | --- | --- | --- | --- | --- | --- |
+| Skills | native | native | native, plugin-prefixed names | native | native, registered by the plugin runtime | native |
+| Entry for a skill | the skill, `/plugin:skill` | prompt template, `/plugin-skill` | command, `/plugin:skill` | the skill, `/plugin:skill` | command, `/plugin-skill` | the skill, `$plugin:skill` |
+| Agents | native | not available | native, plugin-prefixed name and description only | native, name and description only | native, with plugin-prefixed ids | not available |
+| Hooks | native | runtime shim | runtime shim on omp events | `hooks.json` plus a shim | runtime shim | native (`codex-hooks.json`) |
+| Hook events | all five | session-start, pre-tool, post-tool, stop | all five | session-start, pre-tool, post-tool, stop | all five | session-start, pre-tool, post-tool, stop |
 
 The five hook events are session-start, subagent-start, pre-tool, post-tool
 and stop. Every shim runs the canonical hook scripts under Claude Code's
@@ -158,6 +173,9 @@ What `npm run build` reports as degraded or skipped:
 - **Pi**: plugin agents are not available, since Pi has no sub-agents, and
   subagent-start hooks do not apply. A stop hook cannot keep the agent
   going, so its exit 2 is only logged.
+- **omp**: nothing is degraded. A stop hook cannot keep the agent going, so
+  its exit 2 is only logged, and without a UI (`omp -p`) hook notices go to
+  stderr. Agent tool limits are not carried.
 - **Antigravity**: hooks follow agy's documented contract but are unverified
   at runtime, because agy 1.4.1 ran no JSON hooks without a signed-in
   account. PreToolUse hooks can block but not inject context, and
@@ -175,7 +193,7 @@ What `npm run build` reports as degraded or skipped:
   (no Grep/Glob tool) and devenv's `nix-tools` (edits use `apply_patch`) are
   marked optional in `registry.json`.
 
-Tested with Claude Code, Pi 1.4.0, agy 1.4.1, OpenCode 2.1.1 and Codex.
+Tested with Claude Code, Pi 1.4.0, omp 18.16.0, agy 1.4.1, OpenCode 2.1.1 and Codex.
 
 ## How this repo is organized
 
@@ -192,10 +210,11 @@ harnesses/lib/       # Hook runner and tool translation shared by harness runtim
 harnesses/<id>/      # One folder per harness: adapter, runtime or shim, tool table, docs
 
 # Generated at release
-dist/<harness>/plugins/<plugin>/  # One generated tree per harness: claude-code, codex, antigravity, opencode, pi, agent-plugins (portable skills + MCP only)
+dist/<harness>/plugins/<plugin>/  # One generated tree per harness: claude-code, codex, antigravity, opencode, pi, omp, agent-plugins (portable skills + MCP only)
 .claude-plugin/marketplace.json   # Claude Code marketplace, pointing into dist/claude-code/plugins
 .agents/plugins/marketplace.json  # Codex marketplace, pointing into dist/codex/plugins
 .plugin/marketplace.json          # OpenCode marketplace, pointing into dist/opencode/plugins
+.omp-plugin/marketplace.json      # omp marketplace, pointing into dist/omp/plugins
 marketplace.json                  # Pi marketplace, pointing into dist/pi/plugins
 ```
 
@@ -209,11 +228,11 @@ harness into a temp dir and reports what each one degrades. For details, see
 
 <!-- PLUGINS:START -->
 
-Every plugin below ships to Claude Code, Pi, Antigravity, OpenCode and Codex. See
+Every plugin below ships to Claude Code, Pi, omp, Antigravity, OpenCode and Codex. See
 [Install](#install) for each harness and [Harness support](#harness-support)
 for what each one carries. Skills are written `plugin:skill` below. Claude Code
-and Antigravity run them as `/plugin:skill`, Codex as `$plugin:skill`, and Pi and
-OpenCode as `/plugin-skill`; see the [invocation forms](docs/command-skill-map.md).
+omp and Antigravity run them as `/plugin:skill`, Codex as `$plugin:skill`, and Pi
+and OpenCode as `/plugin-skill`; see the [invocation forms](docs/command-skill-map.md).
 Model-only skills have no entry.
 ### bivouac
 

@@ -1,7 +1,7 @@
 # Shared Harness Hook Runtime Library (`harnesses/lib`)
 
 ## Overview
-Self-contained runtime helpers shared by non-Claude harnesses (`opencode`, `pi`) and build-time transform tools. Translates harness-specific tool invocations into the standard JSON stdin payload expected by canonical Claude Code hook scripts, and executes those hook scripts with process-group timeouts, time budgets, exit-code-2 blocking semantics, and context extraction.
+Self-contained runtime helpers shared by non-Claude harnesses (`opencode`, `pi`, `omp`) and build-time transform tools. Translates harness-specific tool invocations into the standard JSON stdin payload expected by canonical Claude Code hook scripts, and executes those hook scripts with process-group timeouts, time budgets, exit-code-2 blocking semantics, and context extraction.
 
 ## Interface
 - `CLAUDE_EVENTS` (`hook-input.mjs`): Mapping from neutral hook event names (`"session-start"`, `"subagent-start"`, `"pre-tool"`, `"post-tool"`, `"stop"`) to Claude event names (`"SessionStart"`, `"SubagentStart"`, `"PreToolUse"`, `"PostToolUse"`, `"Stop"`).

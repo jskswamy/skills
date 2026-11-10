@@ -5,6 +5,13 @@ Antigravity, OpenCode, Pi) names, shows and runs a skill, plus the vocabulary
 this repo uses for it. Keep it. Edit it when a harness changes or a new one is
 added; do not rely on memory or on docs alone.
 
+omp (oh-my-pi 18.16.0, added 2026-11-10) is not yet a column in the tables
+below; its evidence is the omp section of
+[`docs/harness-research.md`](docs/harness-research.md#omp). In short: plugin
+commands are `/<plugin>:<command>`, skills `/skill:<name>`, agents go by
+frontmatter name, MCP tools are `mcp__<plugin>_<server>_<tool>`, and hooks run
+only as JS extensions (`hooks.json` is never read).
+
 How it was built: one research pass per harness against the installed binary
 plus its documentation and source. The raw evidence (commands run, output,
 quotes) is in [`docs/harness-research.md`](docs/harness-research.md):

@@ -8,6 +8,7 @@ resources and `registry.json` into that harness's install tree under `dist/`:
 | --- | --- |
 | Claude Code | `dist/claude-code/plugins/<plugin-name>/`, `.claude-plugin/marketplace.json` |
 | Pi | `dist/pi/plugins/<plugin-name>/` (`package.json#pi`, `prompts/`, `runtime/pi/`), `marketplace.json` |
+| omp | `dist/omp/plugins/<plugin-name>/` (`.omp-plugin/plugin.json`, `commands/`, `package.json#omp`, `runtime/omp/`), `.omp-plugin/marketplace.json` |
 | Antigravity | `dist/antigravity/plugins/<plugin-name>/` (each with `.antigravity-plugin/plugin.json`) |
 | OpenCode | `dist/opencode/plugins/<plugin-name>/` (`package.json`, `index.js`, `.opencode/plugins/index.js`, `runtime/opencode/`), `.plugin/marketplace.json` |
 | Codex | `dist/codex/plugins/<plugin-name>/` (`.codex-plugin/plugin.json`, `codex-skills/`), `.agents/plugins/marketplace.json` |
@@ -19,7 +20,7 @@ These paths exist after the next release (the last release shipped
 `npm run build` writes this into a temp dir and prints it; only the release
 (`npm run build:release`) writes it into the repo. Edit canonical resources,
 build, and read the report. Never commit `dist/`, `.claude-plugin/`,
-`.agents/`, `.plugin/`, or `marketplace.json` outside a release.
+`.agents/`, `.plugin/`, `.omp-plugin/`, or `marketplace.json` outside a release.
 
 ## Skillshare Discovery and Catalogs
 
@@ -33,6 +34,7 @@ when their plugin `name` matches:
 | `.claude-plugin/marketplace.json` | `./dist/claude-code/plugins/<name>` | Claude Code and Skillshare Claude/Antigravity discovery |
 | `.plugin/marketplace.json` | `./dist/opencode/plugins/<name>` | Skillshare OpenCode discovery (`package.json#main`) |
 | `marketplace.json` | `./dist/pi/plugins/<name>` | Skillshare Pi discovery (`package.json#pi`) |
+| `.omp-plugin/marketplace.json` | `./dist/omp/plugins/<name>` | omp and Skillshare omp discovery (`.omp-plugin/plugin.json`) |
 
 Keep these invariants whenever changing adapter layouts or manifests:
 
@@ -45,9 +47,15 @@ Keep these invariants whenever changing adapter layouts or manifests:
 - **No Copilot manifest in OpenCode output:** `.plugin/marketplace.json` is
   also a Copilot catalog path in Skillshare. It is safe for OpenCode only
   because `dist/opencode/plugins/<name>/` carries no Copilot manifest.
-- **No `.omp-plugin/`, `.cursor-plugin/`, or `.github/plugin/` catalogs:** Do
-  not add those root catalog paths, as they advertise or steal unrelated agent
-  targets in Skillshare.
+- **No `.cursor-plugin/` or `.github/plugin/` catalogs:** Do not add those
+  root catalog paths, as they advertise or steal unrelated agent targets in
+  Skillshare.
+- **`.omp-plugin/marketplace.json` lists every plugin or does not exist:**
+  omp reads it instead of `.claude-plugin/marketplace.json`, so a partial
+  catalog hides plugins from omp users. The registry requires omp on every
+  plugin or none, and the omp adapter deletes the catalog before writing it.
+  Skillshare v0.29.1 routes only its omp target to this catalog (claude and
+  copilot stay on `.claude-plugin`).
 
 ## Canonical Resource Directories
 

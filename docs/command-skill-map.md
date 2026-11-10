@@ -5,6 +5,8 @@ mechanism, and the build generates a separate tree for each harness
 (`dist/<harness>/plugins/<plugin>/`).
 
 - **Claude Code and Antigravity**: the skill is the slash entry, `/<plugin>:<skill>`.
+- **omp**: a command wrapper `commands/<skill>.md`, which omp registers as
+  `/<plugin>:<skill>`; the skill itself is also `/skill:<plugin>-<skill>`.
 - **Codex**: the skill is run as `$<plugin>:<skill>`.
 - **Pi**: a prompt template named `<plugin>-<skill>` (`/<plugin>-<skill>`, with the
   argument hint); the skill itself is also `/skill:<plugin>-<skill>`.
@@ -14,7 +16,7 @@ mechanism, and the build generates a separate tree for each harness
 Pi and OpenCode cannot namespace plugin skills, so every entry carries the
 plugin name. Model-only skills (`user-invocable: false`) have no entry.
 
-| Claude Code, Antigravity | Codex | Pi, OpenCode |
+| Claude Code, omp, Antigravity | Codex | Pi, OpenCode |
 | --- | --- | --- |
 | `/bivouac:session` | `$bivouac:session` | `/bivouac-session` |
 | `/devenv:manage` | `$devenv:manage` | `/devenv-manage` |

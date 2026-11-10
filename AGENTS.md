@@ -19,14 +19,14 @@ Canonical sources live in `skills/<plugin>/<skill>/`, `agents/`, `hooks/`,
 truth. `scripts/build.mjs` runs one adapter per harness
 (`harnesses/<id>/adapter.mjs`) using shared conversions
 (`scripts/lib/transforms/`). Harness runtimes and tool tables live in
-`harnesses/lib/`, `harnesses/pi/`, `harnesses/antigravity/` and
-`harnesses/opencode/`. See `CLAUDE.md` for the full layout.
+`harnesses/lib/`, `harnesses/pi/`, `harnesses/omp/`, `harnesses/antigravity/`
+and `harnesses/opencode/`. See `CLAUDE.md` for the full layout.
 
 Skills are the only authored entry; there is no `commands/` folder. Each
 harness gets its own generated tree, `dist/<harness>/plugins/<plugin>/`.
 Everything under `dist/`, plus `.claude-plugin/marketplace.json`,
-`.agents/plugins/marketplace.json`, `.plugin/marketplace.json`, and
-`marketplace.json`, is generated and must not be edited by hand. Only the
+`.agents/plugins/marketplace.json`, `.plugin/marketplace.json`,
+`.omp-plugin/marketplace.json`, and `marketplace.json`, is generated and must not be edited by hand. Only the
 release writes it (`npm run build:release`); never commit it otherwise. Edit
 the canonical source, then run `npm run build` (writes to a temp dir and
 prints it), `npm run validate` and `npm test`.

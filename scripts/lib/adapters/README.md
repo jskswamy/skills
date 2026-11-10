@@ -1,10 +1,10 @@
 # Harness Adapters Orchestration (`scripts/lib/adapters`)
 
 ## Overview
-Central registry and execution runner for harness build adapters (`claude-code`, `antigravity`, `opencode`, `pi`, and `codex`). Coordinates per-plugin and root-level package generation, validates harness identifiers configured in `registry.json`, tracks degradation or error notes across builds, and provides isolated temporary build execution for validation and evaluation scripts.
+Central registry and execution runner for harness build adapters (`claude-code`, `antigravity`, `opencode`, `pi`, `omp`, and `codex`). Coordinates per-plugin and root-level package generation, validates harness identifiers configured in `registry.json`, tracks degradation or error notes across builds, and provides isolated temporary build execution for validation and evaluation scripts.
 
 ## Interface
-- `ADAPTERS` (`index.mjs`): Array of registered harness adapter modules (`[claudeCode, antigravity, opencode, pi, codex]`).
+- `ADAPTERS` (`index.mjs`): Array of registered harness adapter modules (`[claudeCode, antigravity, opencode, pi, omp, codex, agentPlugins]`).
 - `isEnabled(plugin, id)` (`index.mjs`): Returns whether harness `id` is enabled for `plugin` (`claude-code` defaults to enabled unless explicitly `false`; all other harnesses require `enabled === true`).
 - `enabledAdapters(plugin, adapters = ADAPTERS)` (`index.mjs`): Filters `adapters` to those enabled for `plugin`.
 - `validateHarnessIds(registry, adapters = ADAPTERS)` (`index.mjs`): Returns validation error strings for any `plugin.harnesses.<id>` key in `registry` that does not match a registered adapter `id`.

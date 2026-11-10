@@ -2,7 +2,7 @@
 // Usage: node scripts/build.mjs [--release] [--out <dir>]
 // Writes into a fresh temp dir by default, so day-to-day builds never touch
 // the repo; only --release writes dist/, .claude-plugin/, .agents/, .plugin/,
-// and marketplace.json in place.
+// .omp-plugin/ and marketplace.json in place.
 import { mkdir, mkdtemp } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
