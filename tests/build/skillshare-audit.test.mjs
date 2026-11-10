@@ -48,7 +48,7 @@ test("Skillshare still blocks arbitrary Python subprocess calls", { skip: !avail
 });
 
 test(
-  "Skillshare discovers Claude, Codex, Pi, and OpenCode targets for every plugin from the generated catalogs",
+  "Skillshare discovers Claude, Codex, Pi, OpenCode, and omp targets for every plugin from the generated catalogs",
   { skip: !available && "skillshare is not installed" },
   async () => {
     const repoRoot = process.cwd();
@@ -61,7 +61,7 @@ test(
         const entry = candidates.find((p) => p.name === plugin.name);
         assert.ok(entry, `missing candidate ${plugin.name}`);
         const targets = entry.targets ?? [];
-        for (const target of ["claude", "codex", "pi", "opencode"]) {
+        for (const target of ["claude", "codex", "pi", "opencode", "omp"]) {
           assert.ok(targets.includes(target), `${plugin.name} missing target ${target}: ${targets.join(", ")}`);
         }
         assert.equal(entry.targetInfo?.claude?.path, `dist/claude-code/plugins/${plugin.name}`);
@@ -71,6 +71,13 @@ test(
         assert.equal(entry.targetInfo?.pi?.problem, undefined);
         assert.equal(entry.targetInfo?.opencode?.path, `dist/opencode/plugins/${plugin.name}`);
         assert.equal(entry.targetInfo?.opencode?.problem, undefined);
+        // omp reads .omp-plugin/ first, so its target must resolve to the omp tree, not Claude's
+        assert.equal(entry.targetInfo?.omp?.path, `dist/omp/plugins/${plugin.name}`);
+        assert.equal(entry.targetInfo?.omp?.manifest, ".omp-plugin/plugin.json");
+      }
+      // these root catalogs would advertise or steal unrelated Skillshare targets
+      for (const banned of [".cursor-plugin", ".github/plugin"]) {
+        assert.equal(spawnSync("test", ["-e", join(outRoot, banned)]).status, 1, `${banned} must not be generated`);
       }
 
       const home = await mkdtemp(join(tmpdir(), "skillshare-home-"));

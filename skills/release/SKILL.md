@@ -213,11 +213,12 @@ below.
 
 1. **Stage version files:**
    ```bash
-   git add registry.json .claude-plugin .agents .plugin marketplace.json dist
+   git add registry.json .claude-plugin .agents .plugin .omp-plugin marketplace.json dist
    ```
    Stage `registry.json` (the actual edit) together with the generated
    `.claude-plugin/marketplace.json`, `.agents/plugins/marketplace.json`,
-   `.plugin/marketplace.json`, `marketplace.json`, and `dist/` from
+   `.plugin/marketplace.json`, `.omp-plugin/marketplace.json`,
+   `marketplace.json`, and `dist/` from
    `npm run build:release`.
 
 2. **Commit**, message (classic style):

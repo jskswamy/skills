@@ -13,10 +13,13 @@ import { loadRegistry } from "./lib/registry.mjs";
 
 // Manifests that carry the plugin version.
 const VERSIONED = new Set(["plugin.json", "package.json"]);
-const MARKETPLACES = [
+// Every root catalog the build writes; tests/build/adapters.test.mjs keeps
+// this list and the release git add lines in step with the build.
+export const MARKETPLACES = [
   ".claude-plugin/marketplace.json",
   ".agents/plugins/marketplace.json",
   ".plugin/marketplace.json",
+  ".omp-plugin/marketplace.json",
   "marketplace.json",
 ];
 

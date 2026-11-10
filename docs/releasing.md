@@ -151,7 +151,7 @@ agy 1.4.1, OpenCode 2.1.1):
 Stage the registry and all generated output:
 
 ```bash
-git add registry.json .claude-plugin .agents .plugin marketplace.json dist
+git add registry.json .claude-plugin .agents .plugin .omp-plugin marketplace.json dist
 ```
 
 For the v3 release, `git rm -r dist/plugins` first (see above).

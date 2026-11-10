@@ -57,6 +57,9 @@
         },
         "agent-plugins": {
           "enabled": true
+        },
+        "omp": {
+          "enabled": true
         }
       }
     },
@@ -124,6 +127,9 @@
           }
         },
         "agent-plugins": {
+          "enabled": true
+        },
+        "omp": {
           "enabled": true
         }
       }
@@ -195,6 +201,9 @@
           "enabled": true
         },
         "agent-plugins": {
+          "enabled": true
+        },
+        "omp": {
           "enabled": true
         }
       }
@@ -275,6 +284,9 @@
         },
         "agent-plugins": {
           "enabled": true
+        },
+        "omp": {
+          "enabled": true
         }
       }
     },
@@ -337,6 +349,9 @@
           "enabled": true
         },
         "agent-plugins": {
+          "enabled": true
+        },
+        "omp": {
           "enabled": true
         }
       }
@@ -407,6 +422,9 @@
           "enabled": true
         },
         "agent-plugins": {
+          "enabled": true
+        },
+        "omp": {
           "enabled": true
         }
       }
@@ -487,6 +505,9 @@
         },
         "agent-plugins": {
           "enabled": true
+        },
+        "omp": {
+          "enabled": true
         }
       }
     },
@@ -556,6 +577,9 @@
         },
         "agent-plugins": {
           "enabled": true
+        },
+        "omp": {
+          "enabled": true
         }
       }
     },
@@ -617,6 +641,9 @@
         },
         "agent-plugins": {
           "enabled": true
+        },
+        "omp": {
+          "enabled": true
         }
       }
     },
@@ -676,6 +703,9 @@
           "enabled": true
         },
         "agent-plugins": {
+          "enabled": true
+        },
+        "omp": {
           "enabled": true
         }
       }

@@ -4,6 +4,7 @@ import { access, mkdtemp, mkdir, readdir, readFile, writeFile } from "node:fs/pr
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { ADAPTERS, enabledAdapters, runAdapters, validateHarnessIds, withTempBuild } from "../../scripts/lib/adapters/index.mjs";
+import { MARKETPLACES } from "../../scripts/changed-plugins.mjs";
 import { loadPluginModel } from "../../scripts/lib/model.mjs";
 
 async function write(path, content) {
@@ -209,6 +210,7 @@ test("all adapters co-exist in dist/<harness>/plugins/<plugin> without manifest 
       antigravity: { enabled: true },
       opencode: { enabled: true },
       pi: { enabled: true },
+      omp: { enabled: true },
       codex: { enabled: true },
     },
   });
@@ -217,17 +219,28 @@ test("all adapters co-exist in dist/<harness>/plugins/<plugin> without manifest 
   const report = await runAdapters({ repoRoot, outRoot, registry: registry([allEnabled]) });
   assert.deepEqual(report.errors(), []);
 
-  // no adapter writes outside dist/<harness>/ except the four marketplace files
+  // no adapter writes outside dist/<harness>/ except the root marketplace files
   const files = (await readdir(outRoot, { recursive: true, withFileTypes: true }))
     .filter((e) => e.isFile())
     .map((e) => join(e.parentPath, e.name).slice(outRoot.length + 1));
-  const outside = files.filter((f) => !/^dist\/(claude-code|antigravity|opencode|pi|codex)\//.test(f));
+  const outside = files.filter((f) => !/^dist\/(claude-code|antigravity|opencode|pi|omp|codex)\//.test(f));
   assert.deepEqual(outside.sort(), [
     ".agents/plugins/marketplace.json",
     ".claude-plugin/marketplace.json",
+    ".omp-plugin/marketplace.json",
     ".plugin/marketplace.json",
     "marketplace.json",
   ]);
+  // the release must stage and compare every one of them
+  const release = await readFile("skills/release/SKILL.md", "utf8");
+  const releasing = await readFile("docs/releasing.md", "utf8");
+  for (const catalog of outside) {
+    assert.ok(MARKETPLACES.includes(catalog), `${catalog} missing from MARKETPLACES`);
+    const staged = catalog.includes("/") ? catalog.split("/")[0] : catalog;
+    for (const [name, text] of [["release skill", release], ["docs/releasing.md", releasing]]) {
+      assert.match(text, new RegExp(`git add registry\\.json[^\\n]* ${staged.replace(".", "\\.")}( |$)`, "m"), `${staged} not staged by ${name}`);
+    }
+  }
 
   const tree = (harness) => join(outRoot, "dist", harness, "plugins/codebase");
   await access(join(tree("claude-code"), ".claude-plugin/plugin.json"));
@@ -237,6 +250,8 @@ test("all adapters co-exist in dist/<harness>/plugins/<plugin> without manifest 
   await access(join(tree("opencode"), "runtime/opencode/hooks.manifest.json"));
   await access(join(tree("pi"), "runtime/pi/hooks.manifest.json"));
   await access(join(tree("antigravity"), "runtime/antigravity/hooks.manifest.json"));
+  await access(join(tree("omp"), ".omp-plugin/plugin.json"));
+  await access(join(tree("omp"), "runtime/omp/hooks.manifest.json"));
 
   const pkg = JSON.parse(await readFile(join(tree("pi"), "package.json"), "utf8"));
   assert.equal(pkg.main, undefined, "Pi package does not carry the OpenCode entry");
@@ -246,8 +261,8 @@ test("all adapters co-exist in dist/<harness>/plugins/<plugin> without manifest 
   assert.equal(ocPkg.main, ".opencode/plugins/index.js");
   assert.ok(ocPkg.keywords.includes("opencode-plugin"));
 
-  // one skill folder per harness, no -cmd- skills, no commands/ capability or folder
-  for (const harness of ["claude-code", "antigravity", "opencode", "pi"]) {
+  // one skill folder per harness, no -cmd- skills, no commands/ capability; only omp ships commands/ wrappers
+  for (const harness of ["claude-code", "antigravity", "opencode", "pi", "omp"]) {
     assert.deepEqual(await readdir(join(tree(harness), "skills")), ["explore"], harness);
   }
   assert.deepEqual(await readdir(join(tree("codex"), "codex-skills")), ["explore"]);
