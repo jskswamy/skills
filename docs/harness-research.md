@@ -4,12 +4,13 @@ Raw evidence from the first research round for the five harnesses this repo ship
 (Claude Code, Codex, Antigravity, OpenCode, Pi), kept as one reference for future work.
 It is the evidence behind `harness_dictionary.md`, which holds the settled vocabulary,
 the per-harness tables and the results of the later rounds (section 8). Later rounds
-were recorded as results only; their raw logs were not kept.
+were recorded as results only; their raw logs were not kept. The omp section was
+added later (2026-11-10) from the omp harness research.
 
 Tags in the text: OBSERVED means run in an isolated config; DOCUMENTED means read in
 the harness docs or code and not run.
 
-Contents: [Claude Code](#claude-code), [Codex](#codex), [Antigravity](#antigravity), [OpenCode](#opencode), [Pi](#pi)
+Contents: [Claude Code](#claude-code), [Codex](#codex), [Antigravity](#antigravity), [OpenCode](#opencode), [Pi](#pi), [omp](#omp)
 
 
 <a id="claude-code"></a>
@@ -456,3 +457,123 @@ Fixture content: fx = skills alpha (has `argument-hint`), beta (`disable-model-i
 
 ### Addendum: name versus folder (Pi 1.4.0, isolated agent dir, 2026-11-02)
 - OBSERVED: a package with `skills/backlog/SKILL.md` (`name: craft-backlog`) and `skills/setup/SKILL.md` (`name: craft-setup`), installed with `pi install` and read with `pi --mode rpc` `get_commands`, lists `skill:craft-backlog` and `skill:craft-setup`. The folder name is not used. No warning on stderr. A prompt `craft-backlog.md` with `argument-hint` lists as `craft-backlog` (source `prompt`). No model call was made, so running the skill was not exercised.
+
+
+<a id="omp"></a>
+
+## omp
+
+## omp v18.16.0 findings (plugins, skills, commands, hooks)
+
+omp ("oh-my-pi", https://omp.sh, github.com/can1357/oh-my-pi) is a fork of Pi with its own plugin system.
+
+**Method.** omp was installed from nix (`omp/18.16.0`), with Skillshare v0.29.1. Every run used an isolated `HOME`, because the default one fails: omp extracts its native addon into `~/.omp/natives`. Prompts were sent with `omp -p --mode json … </dev/null`; without the `</dev/null`, omp waits forever in `readPipedInput`. Slash commands were checked with `omp --mode rpc` (`get_commands`, `prompt`). Model calls used a local ollama model (qwen3-coder:30b).
+
+The test plugin was a probe with these parts:
+- an `.omp-plugin/marketplace.json` catalog;
+- `.omp-plugin/plugin.json`;
+- a `package.json` holding only `{"omp":{"extensions":[...]}}`;
+- this repo's Pi runtime (`runtime/pi/`), copied unchanged;
+- a skill, an agent, a command wrapper, and a stub stdio MCP server;
+- an introspection extension that logged the events and context fields omp passed it.
+
+**Binary facts.** Facts marked "binary" below come from `strings` of the omp executable, not from running it.
+
+### 1. Bundle, manifest, layout
+- DOCUMENTED (docs/marketplace.md): the marketplace "is compatible with the Claude Code plugin registry format".
+  - omp prefers `.omp-plugin/marketplace.json` and falls back to `.claude-plugin/marketplace.json` only when the omp catalog is absent.
+  - Plugin sources can be a relative path, `github`, `url` or `git-subdir`. npm sources are rejected.
+- OBSERVED: `omp plugin marketplace add <repo>` on this repo listed all plugins from the Claude catalog, and `omp plugin install <p>@skills` installed them.
+- Three discovery providers load an installed plugin (binary).
+
+  | Provider | What it loads |
+  |---|---|
+  | `claude-plugins` | skills, `commands/`, rules, `hooks/pre\|post/<tool>.{js,ts}` and `.mcp.json` from a Claude-shaped tree, plus agents from `agents/` |
+  | `omp-plugins` | the package's `pkg.omp ?? pkg.pi` manifest (`extensions`) and `agents/` |
+  | `agent-plugins` | for a root with an agent-plugins.org 1.0.0 `plugin.json`, only `skills/` and `mcp.json` |
+
+- **Claude hooks are not loaded.** omp never reads `hooks/hooks.json`; the string does not appear in the binary. Installing a Claude tree drops every hook silently.
+- OBSERVED: `package.json#omp.extensions` loads from a plugin installed through omp's marketplace and through Skillshare. A Pi package also works through `omp plugin link <dir>`, because omp reads the `pi` key.
+- OBSERVED: `${CLAUDE_PLUGIN_ROOT}` in a marketplace plugin's `.mcp.json` is substituted, and the MCP server starts from the plugin root.
+
+### 2. Invocation strings, namespace, collisions
+- DOCUMENTED (docs/skills.md): skills are invoked as `/skill:<name>`. When two skills differ, the higher-precedence one keeps the bare name and the others become `<plugin>/<name>`. Identical duplicates are dropped silently, and a name containing `/` is rejected.
+- OBSERVED: a skill is listed once, and `omp read skill://<name>` resolves it from the plugin cache.
+- Commands:
+  - binary: a plugin's `commands/<file>.md` is registered as `<plugin>:<file>`.
+  - OBSERVED (RPC `get_commands`): `probe:hello` was listed, both after an omp marketplace install and after a Skillshare install. The prefix is the plugin name, not the install folder name.
+- Agents: OBSERVED that omp dispatches an agent by its frontmatter `name` through the `task` tool, with no plugin prefix. For Claude-dialect plugins, the agent's `model` is ignored (binary).
+- MCP tools: OBSERVED that omp names them `mcp__<plugin>_<server>_<tool>` (for example `mcp__probe_gitsrv_commit`), with the input fields unchanged. omp prefixes MCP servers from Claude-shaped plugins as `<plugin>:<server>`.
+
+### 3. Commands vs skills
+- OBSERVED: `/probe:hello banana` sent through RPC expanded the wrapper, and `$ARGUMENTS` became `banana`.
+- OBSERVED: print mode (`omp -p`) passes slash input to the model as plain text, for both `/probe-hello` and `/skill:probe-hello`. Test slash commands through RPC or the TUI.
+
+### 4. argument-hint
+- Command wrappers keep their `argument-hint` frontmatter. Whether omp shows it in the picker was not checked.
+
+### 5. Invocation control
+- DOCUMENTED: omp honours `disable-model-invocation` (normalised to `disableModelInvocation`), `hide` and `enabled: false`.
+- `user-invocable` and `argument-hint` are not documented for skills.
+
+### 6. Hooks and extensions (events, inputs)
+- DOCUMENTED (docs/hooks.md): hooks are JS/TS factories that call `pi.on(...)`. The extension API object is still named `pi`.
+- OBSERVED events and context:
+
+  | Event | What was seen |
+  |---|---|
+  | `session_start` | Carries no reason. `pi.sendMessage` sent from it reaches the model. |
+  | `tool_call` | Returning `{block: true, reason}` blocks the call, and the model sees the reason. |
+  | `tool_result` | Fires after the tool, carrying its output. |
+  | `session_stop` | Main agent only. Keys: `last_assistant_message, messages, session_file, session_id, signal, stop_hook_active, turn_id, type`. |
+  | `ctx.agent` | `{id, name, kind: "main"\|"sub", depth}`, plus `parentId` in a subagent. |
+  | `ctx.ui.notify` | Exists. `ctx.hasUI` is false in print and json modes. |
+
+  A subagent session fires `session_start` again.
+- Binary-only events and return values:
+  - `session_switch` with `reason: "new" | "resume" | "fork"`;
+  - `session_compact` after compaction;
+  - a `session_stop` handler returning `{decision: "block", reason}` continues the agent, at most 8 times per prompt;
+  - Pi's `agent_settled` does not exist in omp.
+- OBSERVED tool names and input fields:
+
+  | Tool | Input fields |
+  |---|---|
+  | `bash` | `{command}` |
+  | `read` | `{path}` |
+  | `write` | `{path, content}` |
+  | `edit` | a patch format `{input, path}`, or `{input, paths[]}` for a multi-file edit |
+  | `grep` | `{pattern, path}` |
+  | `glob` | `{path}`, where `path` is the glob |
+  | `task`, `wait`, `eval`, `web_search` | (other tools seen) |
+
+- OBSERVED: this repo's Pi runtime, copied unchanged, ran under omp:
+  - SessionStart context arrived;
+  - PreToolUse exit 2 blocked a direct commit;
+  - PostToolUse fired.
+
+  Through Pi's tool table, omp's `glob`, `task` and `eval` stay unmapped. A multi-file `edit` reaches hooks without a `file_path`.
+
+### 7. Other things that affect the plugin
+- OBSERVED: `skillshare plugin discover <repo>` sends the omp target to `.omp-plugin/plugin.json` when that catalog exists. The claude and copilot targets stay on `.claude-plugin`.
+  - With no omp catalog, Skillshare's omp target installs the Claude tree, which loses every hook.
+  - Skillshare copies the whole plugin tree, including `runtime/` and `package.json`, into `~/.omp/plugins/cache/plugins/<marketplace>___<plugin>___<version>/`.
+  - Skillshare blocks native updates for omp, so moving between trees means remove, then add.
+- `codebase-memory-mcp hook-augment` reads Claude PreToolUse JSON. It needs `tool_input.pattern`; given no pattern, it prints nothing.
+- Later versions (2026-11-10):
+  - omp 18.18.6 dropped the RPC `get_commands` call ("Unknown command") and
+    pushes an `available_commands_update` event at startup instead. It lists
+    plugin commands (`craft:park`) and skills (`skill:craft-park`).
+  - Skillshare 0.30.0 adds an omp install safety check ("requires a verified
+    version (18.6.1+), a reviewed source and a verified cache root"). It
+    blocked installs into a fresh scratch HOME, even after omp had created
+    `~/.omp/plugins`, but a dry run with an established profile planned a
+    normal install (components `commands`, `extensions`, `skills`).
+  - Built trees from this repo, installed through omp's marketplace, loaded
+    all plugins, registered every `/<plugin>:<skill>` command, and the
+    commit guard blocked a direct commit (omp 18.18.6).
+- Not tested:
+  - whether omp enforces agent `tools:`;
+  - the interactive extension trust prompt;
+  - duplicate loading when the same plugin is installed from both catalogs;
+  - `session_switch`/`session_compact` delivery in a live session.
