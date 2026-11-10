@@ -1,0 +1,12 @@
+{
+  "name": "devenv",
+  "version": "2.2.0",
+  "private": true,
+  "type": "module",
+  "description": "Initialize and manage Nix flake development environments with auto-detection and security tooling",
+  "omp": {
+    "extensions": [
+      "./runtime/omp/runtime.mjs"
+    ]
+  }
+}

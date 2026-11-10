@@ -1,0 +1,224 @@
+{
+  "name": "skills",
+  "owner": {
+    "name": "Krishnaswamy Subramanian",
+    "email": "jskswamy@gmail.com"
+  },
+  "metadata": {
+    "description": "Reusable agent skills and plugins for coding workflows"
+  },
+  "plugins": [
+    {
+      "name": "bivouac",
+      "description": "Safe workflows for disposable remote coding-agent sessions with bivouac",
+      "version": "1.2.0",
+      "author": {
+        "name": "Krishnaswamy Subramanian"
+      },
+      "source": "./dist/omp/plugins/bivouac",
+      "category": "workflow",
+      "tags": [
+        "bivouac",
+        "remote",
+        "agents",
+        "sessions",
+        "workflow",
+        "nix",
+        "cloud"
+      ]
+    },
+    {
+      "name": "devenv",
+      "description": "Initialize and manage Nix flake development environments with auto-detection and security tooling",
+      "version": "2.2.0",
+      "author": {
+        "name": "Krishnaswamy Subramanian"
+      },
+      "source": "./dist/omp/plugins/devenv",
+      "category": "development",
+      "tags": [
+        "nix",
+        "flake",
+        "devenv",
+        "development",
+        "environment",
+        "pre-commit",
+        "gitleaks",
+        "security",
+        "direnv",
+        "direnv-instant"
+      ]
+    },
+    {
+      "name": "commit-tools",
+      "description": "End-to-end commit hygiene: write atomic commits with style enforcement, review and consolidate them before push, validate the final history",
+      "version": "2.2.0",
+      "author": {
+        "name": "Krishnaswamy Subramanian"
+      },
+      "source": "./dist/omp/plugins/commit-tools",
+      "category": "git",
+      "tags": [
+        "git",
+        "commit",
+        "atomic",
+        "classic",
+        "conventional",
+        "review",
+        "squash",
+        "merge",
+        "validate",
+        "hooks",
+        "history",
+        "hygiene"
+      ]
+    },
+    {
+      "name": "jot",
+      "description": "Quick, low-friction capture of notes, tasks, ideas, session summaries, and tech radar blips with Obsidian-style auto-linking",
+      "version": "3.2.0",
+      "author": {
+        "name": "Krishnaswamy Subramanian"
+      },
+      "source": "./dist/omp/plugins/jot",
+      "category": "productivity",
+      "tags": [
+        "capture",
+        "notes",
+        "tasks",
+        "ideas",
+        "radar",
+        "blips",
+        "knowledge-management",
+        "obsidian",
+        "wikilinks",
+        "gtd",
+        "productivity",
+        "learning",
+        "feynman",
+        "teach",
+        "teaching-notes"
+      ]
+    },
+    {
+      "name": "craft",
+      "description": "Spec-driven development workshop with beads wisps and thin stories: park, debug, shape, and build",
+      "version": "3.1.0",
+      "author": {
+        "name": "Krishnaswamy Subramanian"
+      },
+      "source": "./dist/omp/plugins/craft",
+      "category": "workflow",
+      "tags": [
+        "craft",
+        "work",
+        "build",
+        "shape",
+        "debug",
+        "park",
+        "wisps",
+        "stories",
+        "epics",
+        "workflow"
+      ]
+    },
+    {
+      "name": "sketch-note",
+      "description": "Generate visual sketch notes in Excalidraw format from conversations, code architecture, or custom content",
+      "version": "2.2.0",
+      "author": {
+        "name": "Krishnaswamy Subramanian"
+      },
+      "source": "./dist/omp/plugins/sketch-note",
+      "category": "visualization",
+      "tags": [
+        "sketch",
+        "excalidraw",
+        "diagram",
+        "visualization",
+        "architecture",
+        "notes",
+        "hand-drawn",
+        "mind-map",
+        "flowchart"
+      ]
+    },
+    {
+      "name": "typst-notes",
+      "description": "Generate beautiful PDF/HTML shareable notes using Typst with 7 professional templates, infographics, and modern typography",
+      "version": "2.2.0",
+      "author": {
+        "name": "Krishnaswamy Subramanian"
+      },
+      "source": "./dist/omp/plugins/typst-notes",
+      "category": "productivity",
+      "tags": [
+        "typst",
+        "pdf",
+        "html",
+        "notes",
+        "templates",
+        "publish",
+        "infographics"
+      ]
+    },
+    {
+      "name": "codebase",
+      "description": "Intelligent codebase exploration powered by codebase-memory-mcp. Natural language queries, change impact analysis, symbol graph traversal, and automatic brainstorming/planning integration.",
+      "version": "1.3.0",
+      "author": {
+        "name": "Krishnaswamy Subramanian"
+      },
+      "source": "./dist/omp/plugins/codebase",
+      "category": "code-intelligence",
+      "tags": [
+        "codebase",
+        "exploration",
+        "semantic-search",
+        "impact-analysis",
+        "codebase-memory",
+        "graph",
+        "architecture"
+      ]
+    },
+    {
+      "name": "study",
+      "description": "Adaptive study coach with multi-gear learning sessions (Socratic, Explain, Guide, Check, Help) and spaced recall tracking via Feynman loops. Saves coaching notes with gap tracking and a recall log that shows improvement over time.",
+      "version": "2.2.0",
+      "author": {
+        "name": "Krishnaswamy Subramanian"
+      },
+      "source": "./dist/omp/plugins/study",
+      "category": "productivity",
+      "tags": [
+        "learning",
+        "coaching",
+        "feynman",
+        "recall",
+        "spaced-repetition",
+        "study",
+        "knowledge",
+        "gaps"
+      ]
+    },
+    {
+      "name": "refactor",
+      "description": "Semantic refactoring opportunity detection. Scans committed code for structural duplication (Fowler catalog), code smells (Fowler/Beck), GoF design pattern opportunities, SOLID/DRY principle violations, and language-idiomatic anti-patterns (Go, Python, TypeScript). Creates beads issues with TDD-first refactoring plans. Run on demand with /refactor:scan.",
+      "version": "1.2.0",
+      "author": {
+        "name": "Krishnaswamy Subramanian"
+      },
+      "source": "./dist/omp/plugins/refactor",
+      "category": "code-quality",
+      "tags": [
+        "refactoring",
+        "duplication",
+        "fowler",
+        "beads",
+        "codebase-memory",
+        "tdd",
+        "semantic-search"
+      ]
+    }
+  ]
+}

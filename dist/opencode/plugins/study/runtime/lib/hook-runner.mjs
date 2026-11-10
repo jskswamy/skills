@@ -3,7 +3,8 @@
 //
 // Contract, matching Claude Code: the event goes to the script as JSON on
 // stdin; exit 2 blocks with stderr as the reason; a JSON
-// hookSpecificOutput.additionalContext on stdout is context to inject. Any
+// hookSpecificOutput.additionalContext on stdout is context to inject, and a
+// JSON systemMessage is a notice for the user. Any
 // other outcome (missing script, crash, other exit code, timeout, spawn
 // error) is logged and does not block. Nothing here throws.
 import { spawn } from "node:child_process";
@@ -41,7 +42,8 @@ export async function runHook({
       return { blocked: false };
     }
     const context = parseContext(stdout, plainStdoutIsContext);
-    return context ? { blocked: false, context } : { blocked: false };
+    const notice = parseNotice(stdout);
+    return { blocked: false, ...(context && { context }), ...(notice && { notice }) };
   } catch (error) {
     log(`hook failed: ${error.message}`);
     return { blocked: false };
@@ -55,6 +57,8 @@ export async function runHook({
 // the rest are skipped, so a slow start cannot hold up a session.
 export async function runEvent({ entries, event, target = "", input, cwd, env, log, budgetMs = Infinity }) {
   const context = [];
+  const notices = [];
+  const withNotices = (result) => (notices.length > 0 ? { ...result, notices } : result);
   const deadline = Date.now() + budgetMs;
   for (const entry of entries) {
     if (entry.event !== event || !safeMatches(entry.matcher, target, log)) continue;
@@ -73,9 +77,10 @@ export async function runEvent({ entries, event, target = "", input, cwd, env, l
       log,
     });
     if (result.context) context.push(result.context);
-    if (result.blocked) return { blocked: true, reason: result.reason, context };
+    if (result.notice) notices.push(result.notice);
+    if (result.blocked) return withNotices({ blocked: true, reason: result.reason, context });
   }
-  return { blocked: false, context };
+  return withNotices({ blocked: false, context });
 }
 
 function safeMatches(matcher, target, log = (line) => console.error(line)) {
@@ -84,6 +89,16 @@ function safeMatches(matcher, target, log = (line) => console.error(line)) {
   } catch (error) {
     log(`hook matcher invalid (${matcher}): ${error.message}`);
     return false;
+  }
+}
+
+// Claude shows a JSON systemMessage to the user, not the model.
+function parseNotice(stdout) {
+  try {
+    const notice = JSON.parse(stdout.trim())?.systemMessage;
+    return typeof notice === "string" && notice ? notice : undefined;
+  } catch {
+    return undefined;
   }
 }
 

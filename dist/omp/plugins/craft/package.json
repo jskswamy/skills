@@ -1,0 +1,12 @@
+{
+  "name": "craft",
+  "version": "3.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Spec-driven development workshop with beads wisps and thin stories: park, debug, shape, and build",
+  "omp": {
+    "extensions": [
+      "./runtime/omp/runtime.mjs"
+    ]
+  }
+}

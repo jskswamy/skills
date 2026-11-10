@@ -1,6 +1,6 @@
 {
   "name": "bivouac",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Safe workflows for disposable remote coding-agent sessions with bivouac",
   "author": {
     "name": "Krishnaswamy Subramanian"

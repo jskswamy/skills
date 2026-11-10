@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "typst-notes",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "Generate beautiful PDF/HTML shareable notes using Typst with 7 professional templates, infographics, and modern typography",
   "author": {
     "name": "Krishnaswamy Subramanian"

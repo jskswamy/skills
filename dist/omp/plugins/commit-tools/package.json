@@ -1,0 +1,12 @@
+{
+  "name": "commit-tools",
+  "version": "2.2.0",
+  "private": true,
+  "type": "module",
+  "description": "End-to-end commit hygiene: write atomic commits with style enforcement, review and consolidate them before push, validate the final history",
+  "omp": {
+    "extensions": [
+      "./runtime/omp/runtime.mjs"
+    ]
+  }
+}

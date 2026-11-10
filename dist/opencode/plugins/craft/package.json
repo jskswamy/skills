@@ -1,6 +1,6 @@
 {
   "name": "craft",
-  "version": "3.0.1",
+  "version": "3.1.0",
   "description": "Spec-driven development workshop with beads wisps and thin stories: park, debug, shape, and build",
   "type": "module",
   "main": ".opencode/plugins/index.js",

@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "commit-tools",
-  "version": "2.1.1",
+  "version": "2.2.0",
   "description": "End-to-end commit hygiene: write atomic commits with style enforcement, review and consolidate them before push, validate the final history",
   "author": {
     "name": "Krishnaswamy Subramanian"
