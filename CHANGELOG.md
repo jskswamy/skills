@@ -2,7 +2,130 @@
 
 All notable changes to this skills/plugins collection will be documented in this file.
 
+## [3.4.0] - 2026-11-10
+
+### Added
+
+- Add an omp harness adapter and hook runtime
+
+omp reads Claude-shaped plugin trees but never runs hooks/hooks.json,
+so installing the Claude tree into omp drops every hook silently.
+
+The omp adapter writes dist/omp/plugins/<p> without .claude-plugin/
+or hooks.json: skills and agents named <plugin>-<name>, a
+commands/<skill>.md wrapper per runnable skill so omp keeps the
+/<plugin>:<skill> slash names, .mcp.json as is, and a root
+.omp-plugin/marketplace.json that is deleted first and written only
+when plugins enable omp, since omp prefers it over the Claude catalog.
+The registry now requires omp on every plugin or none.
+
+Hooks run through a runtime forked from Pi's on omp's own events:
+session_start, session_switch and session_compact map to Claude's
+startup, clear, resume and compact sources, with SubagentStart in
+subagent sessions; tool_call and tool_result use omp's tool names,
+running file hooks once per path of a multi-file edit; session_stop
+delivers notices and logs a block. canCarry fails the build only for a
+matcher naming a tool omp lacks, and all seven current hooks carry.
+No plugin enables omp yet, so the build output is unchanged.
+- Add a pre-release smoke check for omp
+
+scripts/omp-smoke.sh installs a fresh build into omp from its
+.omp-plugin catalog in a scratch HOME and checks that every runnable
+skill's /<plugin>:<skill> command and skill are listed once and that
+the commit guard blocks a direct commit. A model that never runs bash
+is reported as inconclusive, not as a pass.
+
+It installs with omp's own marketplace commands because Skillshare
+0.30 refuses omp installs into a scratch HOME, and it reads omp
+18.18's available_commands_update event, which replaced the RPC
+get_commands call.
+
+### Changed
+
+- Enable omp for every plugin and ship its catalog
+
+Every plugin now builds for omp, so the release writes
+.omp-plugin/marketplace.json and dist/omp/plugins, and Skillshare's
+omp target installs the omp tree with its hooks instead of the Claude
+tree, which omp loads without them.
+
+The release must stage and compare the new catalog: it joins
+MARKETPLACES, now exported, and both release git add lines. The
+adapters test fails if any root catalog the build writes is missing
+from either, and the Skillshare discovery test checks that the omp
+target resolves to dist/omp and that no .cursor-plugin or
+.github/plugin catalog is written. Other harness trees build
+unchanged apart from the shared hook runner copy in Pi and OpenCode.
+
+### Documentation
+
+- Document the omp harness
+
+List omp wherever harnesses, generated trees and catalogs are named,
+and add harnesses/omp/README.md with the layout, event and tool
+mapping, known differences, migration, rollback and the pre-release
+checklist.
+
+The rule against a root .omp-plugin catalog is narrowed to
+.cursor-plugin and .github/plugin: Skillshare routes only its omp
+target to .omp-plugin, and that catalog must list every plugin or not
+exist, because omp prefers it over the Claude catalog.
+
+### Other
+
+- Record omp harness research findings
+
+omp (oh-my-pi) is a Pi fork that Skillshare already targets, but its
+--target omp install picks the Claude tree, whose hooks/hooks.json omp
+never reads, so every hook is dropped silently. Supporting omp needs
+the facts about how it loads plugins, and those outlive the design
+work that gathered them.
+
+Add an omp section to the consolidated harness research, in the same
+seven-question shape and OBSERVED/DOCUMENTED tags as the other
+harnesses. It records the catalog fallback, the three discovery
+providers, extension loading from marketplace and Skillshare
+installs, command, agent and MCP naming, the extension events and
+context fields, omp's tool inputs, and Skillshare's routing, with the
+method and what was not tested.
+
+It also records what later versions changed: omp 18.18 replaced the
+RPC get_commands call with an available_commands_update event, and
+Skillshare 0.30 added an omp install safety check that refuses a
+scratch HOME but plans a normal install for an established profile.
+
+The design and review reports stay out of the repository; only the
+findings that will matter after implementation are kept here.
+- Keep slash references when rewriting for omp
+
+omp registers a plugin's commands/<skill>.md wrappers as
+/<plugin>:<skill>, the same slash names Claude Code uses, so the omp
+tree can keep /plugin:skill references in skills as written. Bare
+plugin:name references still need the derived plugin-name id, because
+omp loads skills and agents by that frontmatter name.
+
+Add a keepSlash option to rewriteReferences that leaves a leading-slash
+reference unchanged when joining with "-", and pass it through
+rewriteTree and copyRewrittenSkills. It defaults to false, so the Pi,
+OpenCode and Codex trees build byte-identical to the committed dist.
+- Return hook notices from the shared runner
+
+Claude Code shows a hook's JSON systemMessage to the user, but the
+shared runner read only additionalContext, so notices such as the
+devenv formatter summary and the craft parked-ideas reminder were
+dropped on every harness that uses it.
+
+runHook now returns a systemMessage as notice, and runEvent collects
+them as notices, including on an early block. Both fields appear only
+when a hook sent one, so existing results are unchanged and the Pi and
+OpenCode runtimes, which ignore the field, behave as before.
 ## [3.3.1] - 2026-11-09
+
+### Changed
+
+- Update CHANGELOG for v3.3.1
+
+Document all changes included in the v3.3.1 release. by @jskswamy
 
 ### Other
 
@@ -11,7 +134,7 @@ All notable changes to this skills/plugins collection will be documented in this
 Keep issue data, configuration and hook wrappers out of source control.
 The local database remains available with independent remote sync.
 
-Existing files remain on disk; remove only their tracked copies.
+Existing files remain on disk; remove only their tracked copies. by @jskswamy
 - Ground Craft workflows in architecture evidence
 
 Reuse current capability and seam evidence when shaping specs and
@@ -20,7 +143,11 @@ approved ownership and contracts without repeating unchanged analysis.
 
 Persist explicit review depth and approval records, validate complete
 bundles, and preserve saved review baselines during resume. Add
-instruction and packaging checks with the corresponding snapshot update.
+instruction and packaging checks with the corresponding snapshot update. by @jskswamy
+- Release v3.3.1
+
+Bump plugin versions: craft 3.0.0 → 3.0.1.
+Write every harness's output via npm run build:release. by @jskswamy
 ## [3.3.0] - 2026-11-07
 
 ### Changed
@@ -3882,6 +4009,7 @@ as a dependency.
 ### Removed
 
 - Remove welcome message from shell hook by @jskswamy
+[3.4.0]: https://github.com/jskswamy/skills/compare/v3.3.1..v3.4.0
 [3.3.1]: https://github.com/jskswamy/skills/compare/v3.3.0..v3.3.1
 [3.3.0]: https://github.com/jskswamy/skills/compare/v3.2.0..v3.3.0
 [3.2.0]: https://github.com/jskswamy/skills/compare/v3.1.0..v3.2.0
