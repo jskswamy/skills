@@ -97,8 +97,11 @@ test("each harness carries the picker line in the field it reads", async () => {
       assert.equal(claude.when_to_use, skill.frontmatter.description);
       assert.ok(agy.description.startsWith(`${skill.pickerLine} `) && agy.description.endsWith(skill.frontmatter.description));
       assert.equal(pickerLine(codex), skill.pickerLine);
-      const prompt = parseFrontmatter(await readFile(join(outRoot, "dist/pi/plugins", skill.plugin, "prompts", `${id}.md`), "utf8"));
-      assert.equal(prompt.description, skill.pickerLine);
+      // a hidden skill has no Pi prompt; users run /skill:<id>
+      if (!skill.hidden) {
+        const prompt = parseFrontmatter(await readFile(join(outRoot, "dist/pi/plugins", skill.plugin, "prompts", `${id}.md`), "utf8"));
+        assert.equal(prompt.description, skill.pickerLine);
+      }
       const resources = JSON.parse(await readFile(join(outRoot, "dist/opencode/plugins", skill.plugin, "resources.json"), "utf8"));
       assert.equal(resources.commands.find((command) => command.name === id).description, skill.pickerLine);
     }

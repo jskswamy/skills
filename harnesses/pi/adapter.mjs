@@ -65,11 +65,14 @@ export async function generate({ repoRoot, outRoot, model, state, report }) {
     ({ kind, from }) => !["skills", "agents"].includes(kind) && !(kind === "hooks" && from.endsWith("hooks.json")),
   );
   await copyLayout({ repoRoot, layout, to: out });
-  await copyRewrittenSkills({ repoRoot, model, to: out, pairs: state.pairs });
+  // shortcut: hidden set is this plugin's only; a cross-plugin /plugin:skill to a hidden skill would need the registry-wide set.
+  const hidden = new Set(model.skills.filter((s) => s.hidden).map((s) => `${model.name}:${s.name}`));
+  await copyRewrittenSkills({ repoRoot, model, to: out, pairs: state.pairs, hidden });
 
   // A runnable skill gets a prompt of the same id, Pi's own slash entry. Pi drops arguments from a
   // prompt with no placeholder, so wrapperText places them.
-  const runnable = model.skills.filter(({ userInvocable }) => userInvocable);
+  // a hidden skill has no prompt: a wrapper saying "invoke the skill" cannot reach it, so users run /skill:<id>
+  const runnable = model.skills.filter(({ userInvocable, hidden }) => userInvocable && !hidden);
   if (runnable.length > 0) {
     await ensureDir(join(out, "prompts"));
     for (const skill of runnable) {

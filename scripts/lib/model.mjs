@@ -31,6 +31,8 @@ export async function loadPluginModel({ repoRoot, plugin }) {
           path: `skills/${entry}`,
           frontmatter,
           userInvocable: isRunnable(frontmatter),
+          // parseFrontmatter returns strings, so compare as one
+          hidden: String(frontmatter["disable-model-invocation"]) === "true",
           pickerLine: pickerLine(frontmatter),
         };
       }),

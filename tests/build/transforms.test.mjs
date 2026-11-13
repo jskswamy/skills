@@ -208,6 +208,16 @@ test("derivedId joins plugin and name without repeating the plugin prefix", asyn
   assert.equal(derivedId("commit-tools", "commit"), "commit-tools-commit");
 });
 
+test("rewriteReferences sends slash references to hidden skills through /skill:<id>", () => {
+  const pairs = new Set(["one:hush", "one:run"]);
+  const text = "Run /one:hush, load one:hush, then /one:run.";
+  assert.equal(
+    rewriteReferences(text, pairs, { join: "-", hidden: new Set(["one:hush"]) }),
+    "Run /skill:one-hush, load one-hush, then /one-run.",
+  );
+  assert.equal(rewriteReferences(text, pairs), "Run /one-hush, load one-hush, then /one-run.");
+});
+
 test("rewriteReferences keeps slash references only when asked", async () => {
   const pairs = new Set(["craft:park", "commit-tools:commit"]);
   const text = "Run /craft:park, then load commit-tools:commit; leave other:thing.";

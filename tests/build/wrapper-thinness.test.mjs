@@ -20,18 +20,20 @@ test("Pi prompts and OpenCode commands are thin wrappers over runnable skills", 
   const expected = [];
   for (const plugin of all.plugins) {
     const model = await loadPluginModel({ repoRoot, plugin });
-    for (const skill of model.skills.filter((s) => s.userInvocable)) expected.push([plugin.name, derivedId(plugin.name, skill.name)]);
+    for (const skill of model.skills.filter((s) => s.userInvocable)) expected.push([plugin.name, derivedId(plugin.name, skill.name), skill.hidden]);
   }
   assert.ok(expected.length > 0);
 
   await withTempBuild({ repoRoot, registry: all, adapters: [pi, opencode] }, async ({ outRoot }) => {
+    // Pi has no prompt for a hidden skill (users run /skill:<id>); OpenCode keeps its command.
     const wrappers = [
-      ["dist/pi/plugins", "prompts"],
-      ["dist/opencode/plugins", "runtime/opencode/commands"],
+      ["dist/pi/plugins", "prompts", false],
+      ["dist/opencode/plugins", "runtime/opencode/commands", true],
     ];
-    for (const [base, sub] of wrappers) {
+    for (const [base, sub, wrapsHidden] of wrappers) {
       const found = [];
-      for (const [plugin, id] of expected) {
+      for (const [plugin, id, hidden] of expected) {
+        if (hidden && !wrapsHidden) continue;
         const path = join(outRoot, base, plugin, sub, `${id}.md`);
         const content = await readFile(path, "utf8");
         found.push(`${plugin}/${id}`);

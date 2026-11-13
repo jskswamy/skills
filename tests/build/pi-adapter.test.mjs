@@ -45,6 +45,7 @@ async function fixture(plugins, { outRoot } = {}) {
   }
   await write(join(repoRoot, "skills/one/run/SKILL.md"), "---\nname: run\ndescription: Run it\n---\n\nRun now.\n");
   await write(join(repoRoot, "skills/one/quiet/SKILL.md"), "---\nname: quiet\ndescription: Model only\nuser-invocable: false\n---\n");
+  await write(join(repoRoot, "skills/one/hush/SKILL.md"), "---\nname: hush\ndescription: User only\ndisable-model-invocation: true\n---\n\nRun /one:hush again.\n");
   await write(join(repoRoot, "agents/one/helper.md"), "---\nname: helper\ndescription: Helps\n---\n");
   await write(join(repoRoot, "hooks/one/hooks.json"), JSON.stringify(HOOKS));
   await write(join(repoRoot, "hooks/one/reminder.sh"), "echo 'remember'\n");
@@ -79,6 +80,15 @@ test("each runnable skill becomes a prompt named plugin-skill", async () => {
   const run_ = await readFile(join(repoRoot, "dist/pi/plugins/one/prompts/one-run.md"), "utf8");
   assert.doesNotMatch(run_, /argument-hint/);
   assert.match(run_, /\$ARGUMENTS/);
+});
+
+test("a hidden skill gets no Pi prompt and is referenced as /skill:<id>", async () => {
+  const { repoRoot, run } = await fixture([{ ...ONE, resources: { ...ONE.resources, skills: [...ONE.resources.skills, "one/hush"] } }]);
+  await run();
+  assert.deepEqual((await readdir(join(repoRoot, "dist/pi/plugins/one/prompts"))).sort(), ["one-run.md", "one-setup.md"]);
+  const hush = await readFile(join(repoRoot, "dist/pi/plugins/one/skills/hush/SKILL.md"), "utf8");
+  assert.match(hush, /disable-model-invocation: true/);
+  assert.match(hush, /Run \/skill:one-hush again\./);
 });
 
 test("a model-only skill gets no Pi prompt", async () => {

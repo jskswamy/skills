@@ -49,3 +49,5 @@ pi -e <dir>/dist/pi/plugins/<plugin>
 ```
 
 Run a skill as the prompt `/<plugin>-<skill>`, for example `/commit-tools-commit`, or as `/skill:<plugin>-<skill>`.
+
+A skill with `disable-model-invocation: true` (for example `bivouac:session`) is left out of the model's skill listing and gets no prompt, because a prompt that tells the model to invoke it cannot reach it. Run it as `/skill:<plugin>-<skill>`, for example `/skill:bivouac-session`. References to it inside the package are rewritten to that form.

@@ -96,6 +96,7 @@ test("loadPluginModel reads resources and their frontmatter", async () => {
       path: "skills/codebase/explore",
       frontmatter: { name: "codebase-explore", description: "Use when exploring." },
       userInvocable: true,
+      hidden: false,
       pickerLine: undefined,
     },
   );

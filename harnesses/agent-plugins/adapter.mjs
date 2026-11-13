@@ -47,6 +47,9 @@ export async function generate({ repoRoot, outRoot, model, report }) {
   for (const agent of model.agents) {
     report.add({ kind: "agents", resource: agent.name, status: "degraded", reason: "Agent Plugins 1.0.0 defines no agents" });
   }
+  for (const skill of model.skills.filter(({ hidden }) => hidden)) {
+    report.add({ kind: "skills", resource: skill.name, status: "degraded", reason: "Agent Plugins 1.0.0 has no disable-model-invocation; the skill stays listed" });
+  }
   await carryHooks({ repoRoot, model, harness: id, canCarry, report });
 
   const source = model.extra.find(({ to }) => to === MCP_SOURCE);

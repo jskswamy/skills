@@ -83,6 +83,19 @@ test("agent-plugins writes only plugin.json, skills/ and a spec-shaped mcp.json"
   assert.deepEqual(await agentPlugins.validate({ outRoot: repoRoot, plugin: PLUGIN }), []);
 });
 
+test("a hidden skill ships but is reported degraded: the spec cannot hide it", async (t) => {
+  const { repoRoot, registry } = await fixture();
+  t.after(() => rm(repoRoot, { recursive: true, force: true }));
+  await write(join(repoRoot, "skills/sample/quiet/SKILL.md"), "---\nname: quiet\ndescription: Use when asked.\ndisable-model-invocation: true\n---\n");
+  registry.plugins = [{ ...PLUGIN, resources: { ...PLUGIN.resources, skills: ["sample/do", "sample/quiet"] } }];
+
+  const report = await runAdapters({ repoRoot, registry, adapters: [agentPlugins] });
+  const entry = report.entries.find(({ kind, resource }) => kind === "skills" && resource === "quiet");
+  assert.equal(entry?.status, "degraded");
+  assert.match(entry.reason, /disable-model-invocation/);
+  await access(join(repoRoot, agentPlugins.pluginsDir, "sample/skills/quiet/SKILL.md"));
+});
+
 test("validate rejects a bad name, a stray hooks dir and a shell-string command", async (t) => {
   const { repoRoot, registry } = await fixture();
   t.after(() => rm(repoRoot, { recursive: true, force: true }));
