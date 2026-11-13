@@ -24,7 +24,7 @@ dist/omp/plugins/<p>/
   .omp-plugin/plugin.json        name, version, description, author, keywords
   package.json                   "omp": {"extensions": ["./runtime/omp/runtime.mjs"]} only when hooks are carried
   skills/<skill>/SKILL.md        frontmatter name <p>-<skill>; bare plugin:name references → plugin-name
-  commands/<skill>.md            one per runnable skill; omp registers it as /<p>:<skill>
+  commands/<skill>.md            one per runnable skill, except hidden ones; omp registers it as /<p>:<skill>
   agents/<agent>.md              name <p>-<agent> and description only
   .mcp.json                      as is; omp substitutes ${CLAUDE_PLUGIN_ROOT}
   hooks/scripts/…                canonical scripts (copied, bare references rewritten)
@@ -36,6 +36,13 @@ There is no `.claude-plugin/` and no `hooks/hooks.json`: omp would read the
 first as a second copy and never runs the second. Slash references such as
 `/craft:park` stay as written, because the command wrappers give omp that
 exact name.
+
+A skill with `disable-model-invocation: true` (for example `bivouac:session`)
+is left out of the system prompt's skill list, which omp 18.18.6 honors
+(observed over RPC; `scripts/omp-smoke.sh` checks it). It gets no command
+wrapper, because a wrapper that tells the model to invoke the skill cannot
+reach it. Run it as `/skill:<p>-<skill>`, for example `/skill:bivouac-session`;
+slash references to it are rewritten to that form.
 
 ## Hooks
 

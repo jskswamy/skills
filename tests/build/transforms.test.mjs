@@ -216,6 +216,11 @@ test("rewriteReferences sends slash references to hidden skills through /skill:<
     "Run /skill:one-hush, load one-hush, then /one-run.",
   );
   assert.equal(rewriteReferences(text, pairs), "Run /one-hush, load one-hush, then /one-run.");
+  // omp keeps /plugin:skill for wrapped skills, but a hidden skill has no wrapper
+  assert.equal(
+    rewriteReferences(text, pairs, { join: "-", keepSlash: true, hidden: new Set(["one:hush"]) }),
+    "Run /skill:one-hush, load one-hush, then /one:run.",
+  );
 });
 
 test("rewriteReferences keeps slash references only when asked", async () => {

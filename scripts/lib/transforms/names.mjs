@@ -28,11 +28,12 @@ const REFERENCE = new RegExp(`(?<![A-Za-z0-9_.\\-/:])(/?)(${NAME}):(${NAME})(?![
 // keepSlash with join "-" (omp): /plugin:skill is left alone, because a command
 // wrapper already provides that slash name; only bare references are rewritten.
 // join ":" with sigil (Codex): the name keeps its colon and a leading `/` becomes the sigil.
-// hidden (Pi): a skill with no prompt wrapper is run as /skill:plugin-skill.
+// hidden (Pi, omp): a skill with no wrapper is run as /skill:plugin-skill, even where keepSlash
+// keeps the slash names that wrappers provide.
 export function rewriteReferences(text, pairs, { join = "-", sigil, keepSlash = false, hidden } = {}) {
   return text.replace(REFERENCE, (match, slash, plugin, name) => {
     if (!pairs.has(`${plugin}:${name}`)) return match;
-    if (join === "-" && slash && !keepSlash && hidden?.has(`${plugin}:${name}`)) return `/skill:${plugin}-${name}`;
+    if (join === "-" && slash && hidden?.has(`${plugin}:${name}`)) return `/skill:${plugin}-${name}`;
     if (join === "-") return slash && keepSlash ? match : `${slash}${plugin}-${name}`;
     return slash && sigil ? `${sigil}${plugin}:${name}` : match;
   });

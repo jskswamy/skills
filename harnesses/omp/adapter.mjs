@@ -70,10 +70,13 @@ export async function generate({ repoRoot, outRoot, model, state, report }) {
     ({ kind, from }) => !["skills", "agents"].includes(kind) && !(kind === "hooks" && from.endsWith("hooks.json")),
   );
   await copyLayout({ repoRoot, layout, to: out });
-  // /plugin:skill stays: the command wrappers below provide that slash name.
-  await copyRewrittenSkills({ repoRoot, model, to: out, pairs: state.pairs, keepSlash: true });
+  // /plugin:skill stays: the command wrappers below provide that slash name. A hidden skill
+  // (disable-model-invocation) gets no wrapper, so references to it become /skill:<plugin>-<skill>.
+  // shortcut: hidden set is this plugin's only; a cross-plugin reference would need the registry-wide set.
+  const hidden = new Set(model.skills.filter((s) => s.hidden).map((s) => `${model.name}:${s.name}`));
+  await copyRewrittenSkills({ repoRoot, model, to: out, pairs: state.pairs, keepSlash: true, hidden });
 
-  for (const skill of model.skills.filter(({ userInvocable }) => userInvocable)) {
+  for (const skill of model.skills.filter(({ userInvocable, hidden }) => userInvocable && !hidden)) {
     const frontmatter = { description: skill.pickerLine ?? skill.frontmatter.description };
     if (skill.frontmatter["argument-hint"] !== undefined) frontmatter["argument-hint"] = skill.frontmatter["argument-hint"];
     await ensureDir(join(out, "commands"));
@@ -93,7 +96,7 @@ export async function generate({ repoRoot, outRoot, model, state, report }) {
     await ensureDir(join(out, "agents"));
     await writeFile(
       join(out, "agents", agent.path.split("/").at(-1)),
-      rewriteReferences(text, state.pairs, { join: "-", keepSlash: true }),
+      rewriteReferences(text, state.pairs, { join: "-", keepSlash: true, hidden }),
     );
   }
 

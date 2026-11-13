@@ -57,10 +57,10 @@ check "$([[ $installed == "$total" ]] && echo ok)" "omp installed $installed of 
 
 # Slash commands expand only through RPC or the TUI, not print mode.
 mkdir -p "$WORK/repo"
-node - "$WORK/commands" "$WORK/repo" <<'NODE'
+node - "$WORK/commands" "$WORK/repo" "$WORK/prompt" <<'NODE'
 const { spawn } = require("node:child_process");
 const { writeFileSync } = require("node:fs");
-const [out, cwd] = process.argv.slice(2);
+const [out, cwd, promptOut] = process.argv.slice(2);
 const omp = spawn("omp", ["--mode", "rpc", "--no-session"], { cwd, stdio: ["pipe", "pipe", "ignore"] });
 let buffer = "";
 const timer = setTimeout(() => { omp.kill(); process.exit(2); }, 120_000);
@@ -71,12 +71,20 @@ omp.stdout.on("data", (chunk) => {
     try { message = JSON.parse(line); } catch { continue; }
     // omp 18.18 pushes available_commands_update at startup; older omp answered get_commands.
     const list = message.type === "available_commands_update" ? message.commands : message.id === "1" && message.success !== false ? message.data?.commands ?? message.data : undefined;
-    if (!Array.isArray(list)) continue;
-    const commands = list;
-    writeFileSync(out, commands.map((command) => command.name).join("\n") + "\n");
-    clearTimeout(timer);
-    omp.kill();
-    process.exit(0);
+    if (Array.isArray(list)) {
+      writeFileSync(out, list.map((command) => command.name).join("\n") + "\n");
+      // the system prompt's skill list is what the model sees
+      omp.stdin.write(JSON.stringify({ id: "state", type: "get_state" }) + "\n");
+      continue;
+    }
+    if (message.id === "state") {
+      // omp 18.18 returns the system prompt as an array of parts
+      const parts = [].concat(message.data?.systemPrompt ?? []);
+      writeFileSync(promptOut, parts.map((part) => (typeof part === "string" ? part : part.text ?? JSON.stringify(part))).join("\n"));
+      clearTimeout(timer);
+      omp.kill();
+      process.exit(0);
+    }
   }
   buffer = buffer.slice(buffer.lastIndexOf("\n") + 1);
 });
@@ -91,6 +99,14 @@ sed -E 's/^([^:]+):(.*)$/skill:\1-\2/' "$WORK/expected" | sort >"$WORK/expected-
 skills_missing=$(comm -23 "$WORK/expected-skills" <(sort -u "$WORK/commands"))
 skills_twice=$(sort "$WORK/commands" | uniq -d | grep -F -x -f "$WORK/expected-skills" || true)
 check "$([[ -z $skills_missing && -z $skills_twice ]] && echo ok)" "every runnable skill is listed once as /skill:<plugin>-<skill>${skills_missing:+; missing: $(echo $skills_missing)}${skills_twice:+; twice: $(echo $skills_twice)}"
+
+# A disable-model-invocation skill is left out of the model's skill list but still runs as /skill:<id>.
+(cd "$OUT/dist/omp/plugins" && grep -l '^disable-model-invocation: true' */skills/*/SKILL.md | sed -E 's#^([^/]+)/skills/([^/]+)/SKILL.md$#\1-\2#') | sort >"$WORK/hidden"
+# match listing entries ("- <id>: ..."), not mentions inside other skills' descriptions
+listed=$(grep -o -F -f <(sed 's/.*/- &:/' "$WORK/hidden") "$WORK/prompt" | sort -u || true)
+unrunnable=$(comm -23 <(sed 's/^/skill:/' "$WORK/hidden") <(sort -u "$WORK/commands"))
+check "$([[ -s $WORK/hidden && -s $WORK/prompt && -z $listed ]] && echo ok)" "hidden skills are absent from the system prompt ($(wc -l <"$WORK/hidden" | tr -d ' ') hidden)${listed:+; listed: $(echo $listed)}"
+check "$([[ -z $unrunnable ]] && echo ok)" "every hidden skill still runs as /skill:<plugin>-<skill>${unrunnable:+; missing: $(echo $unrunnable)}"
 
 # The commit guard blocks a direct commit and names commit-tools-commit.
 (cd "$WORK/repo" && git init -q && echo x >f && git add f)

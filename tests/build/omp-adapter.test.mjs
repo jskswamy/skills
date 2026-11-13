@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { mkdtemp, mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdtemp, mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import * as omp from "../../harnesses/omp/adapter.mjs";
@@ -67,6 +67,19 @@ test("skills get plugin-prefixed names and keep slash references; bare reference
   const skill = await readFile(join(out, "dist/omp/plugins/one/skills/setup/SKILL.md"), "utf8");
   assert.equal(parseDocument(skill).frontmatter.name, "one-setup");
   assert.match(skill, /Run \/one:setup, then hand off to one-helper\./);
+});
+
+test("a hidden skill gets no command wrapper and is referenced as /skill:<id>", async () => {
+  const { repoRoot, registry } = await fixture([withAgent("one")]);
+  await write(join(repoRoot, "skills/one/hush/SKILL.md"), "---\nname: hush\ndescription: User only\ndisable-model-invocation: true\n---\n\nRun /one:hush or /one:setup.\n");
+  const one = registry.plugins[0];
+  const hidden = { ...registry, plugins: [{ ...one, resources: { ...one.resources, skills: ["one/setup", "one/hush"] } }] };
+  const out = await mkdtemp(join(tmpdir(), "omp-out-"));
+  await runAdapters({ repoRoot, outRoot: out, registry: hidden, adapters: [omp] });
+  const root = join(out, "dist/omp/plugins/one");
+  assert.deepEqual((await readdir(join(root, "commands"))).sort(), ["setup.md"]);
+  // /one:setup keeps its slash name (its wrapper provides it); /one:hush has none, so it goes through /skill:
+  assert.match(await readFile(join(root, "skills/hush/SKILL.md"), "utf8"), /Run \/skill:one-hush or \/one:setup\./);
 });
 
 test("each runnable skill gets a commands/<skill>.md wrapper invoking the derived skill id", async () => {
