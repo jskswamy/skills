@@ -36,3 +36,9 @@ codex plugin install <plugin>@skills
 
 Run a skill as `$<plugin>:<skill>`, for example `$commit-tools:commit`. The
 marketplace points at `dist/codex/plugins/<plugin>`.
+
+A skill with `disable-model-invocation: true` gets
+`codex-skills/<skill>/agents/openai.yaml` with
+`policy.allow_implicit_invocation: false`. That takes it out of the
+model's skill listing; `$<plugin>:<skill>` still runs it. The build
+fails if the source skill already ships its own `agents/openai.yaml`.

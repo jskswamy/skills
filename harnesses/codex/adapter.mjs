@@ -1,3 +1,4 @@
+import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { pathExists, readJson, writeJson } from "../../scripts/lib/fs-utils.mjs";
 import { copyLayout, rewriteTree, wrapperLayout } from "../../scripts/lib/layout.mjs";
@@ -69,6 +70,18 @@ export async function generate({ repoRoot, outRoot, model, report, state }) {
   // Hook scripts are not rewritten: a leading $ would be expanded by the shell.
   for (const dir of [SKILLS_DIR, "templates", "README.md"]) {
     await rewriteTree(join(pluginRoot, dir), { pairs: state.pairs, join: ":", sigil: "$", exts: [".md", ".yaml"] });
+  }
+
+  // A hidden skill leaves the listing through agents/openai.yaml ($plugin:skill still runs it).
+  // Written after rewriteTree so the yaml stays literal.
+  for (const skill of model.skills.filter(({ hidden }) => hidden)) {
+    const dir = join(pluginRoot, SKILLS_DIR, skill.name, "agents");
+    if (await pathExists(join(repoRoot, skill.path, "agents", "openai.yaml"))) {
+      report.add({ kind: "skills", resource: skill.name, status: "error", reason: `${skill.name} already ships agents/openai.yaml; merge allow_implicit_invocation: false into it by hand` });
+      continue;
+    }
+    await mkdir(dir, { recursive: true });
+    await writeFile(join(dir, "openai.yaml"), "policy:\n  allow_implicit_invocation: false\n");
   }
 
   for (const agent of model.agents) {

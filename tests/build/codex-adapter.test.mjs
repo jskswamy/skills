@@ -160,6 +160,23 @@ test("codex adapter writes .agents/plugins/marketplace.json, .codex-plugin/plugi
   assert.deepEqual(await codex.validate({ repoRoot, outRoot: repoRoot, plugin: PLUGIN }), []);
 });
 
+test("a hidden skill gets agents/openai.yaml turning implicit invocation off; a shipped one is an error", async (t) => {
+  const { repoRoot, registry } = await fixture();
+  t.after(() => rm(repoRoot, { recursive: true, force: true }));
+  await write(join(repoRoot, "skills/sample/quiet/SKILL.md"), "---\nname: quiet\ndescription: Use when asked.\ndisable-model-invocation: true\n---\n");
+  registry.plugins = [{ ...PLUGIN, resources: { ...PLUGIN.resources, skills: ["sample/do", "sample/quiet"] } }];
+
+  const report = await runAdapters({ repoRoot, registry, adapters: [codex] });
+  assert.deepEqual(report.errors(), []);
+  const skills = join(repoRoot, "dist/codex/plugins/sample/codex-skills");
+  assert.equal(await readFile(join(skills, "quiet/agents/openai.yaml"), "utf8"), "policy:\n  allow_implicit_invocation: false\n");
+  await assert.rejects(access(join(skills, "do/agents")), "a visible skill gets no openai.yaml");
+
+  await write(join(repoRoot, "skills/sample/quiet/agents/openai.yaml"), "interface: {}\n");
+  const clash = await runAdapters({ repoRoot, registry, adapters: [codex] });
+  assert.match(clash.errors().map(({ reason }) => reason).join("\n"), /quiet.*already ships agents\/openai\.yaml/);
+});
+
 test("codex validate rejects a commands/ folder, which Codex would convert into duplicate skills", async (t) => {
   const { repoRoot, registry } = await fixture();
   t.after(() => rm(repoRoot, { recursive: true, force: true }));
