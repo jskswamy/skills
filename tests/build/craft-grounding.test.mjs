@@ -50,7 +50,7 @@ test("Shape persists an established gate and dispositions instead of implying re
 });
 
 test("Shape grounds thin story slots in the issue-writer-owned contract", () => {
-  assert.match(shape, /agents\/craft\/issue-writer\.md/);
+  assert.match(shape, /`craft:issue-writer` agent's \*\*Positive Slot Template\*\*/);
   assert.match(shape, /Touch:.*concrete.*paths.*seams/i);
   assert.match(shape, /Verify:.*1[–-]3 runnable/i);
 });

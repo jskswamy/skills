@@ -241,7 +241,6 @@
           "jot/setup"
         ],
         "agents": [
-          "jot/capture.md",
           "jot/content-extractor.md"
         ],
         "hooks": [],
@@ -608,9 +607,7 @@
           "study/setup"
         ],
         "agents": [
-          "study/coach-agent.md",
-          "study/content-extractor.md",
-          "study/recall-agent.md"
+          "study/content-extractor.md"
         ],
         "hooks": [],
         "templates": [

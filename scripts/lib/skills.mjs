@@ -130,6 +130,9 @@ export async function validateSkills({ repoRoot, registry }) {
         }
       }
     }
+    // Agent files ship flat or not at all depending on the harness, so a skill reads its own references/.
+    const body = text.replace(/^---\r?\n[\s\S]*?\r?\n---/, "");
+    for (const m of body.matchAll(AGENT_PATH)) errors.push(`${label}: reads ${m[1]}; move it to references/`);
     errors.push(...(await validateReferences(path, label)));
   }
   return { errors };
@@ -148,6 +151,7 @@ function descriptionIsOneLine(text) {
 }
 
 const REF = /references\/([\w.\-\/]+\.md)/g;
+const AGENT_PATH = /(?:<package-root>\/)?(agents\/[a-z0-9-]+\/[\w.-]+\.md)/g;
 
 // Every references/*.md named in a skill must exist, and every file there must be named
 // somewhere in the skill (SKILL.md or another file in it).

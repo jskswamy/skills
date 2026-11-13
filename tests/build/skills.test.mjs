@@ -62,6 +62,20 @@ test("validateSkills fails on bad fixtures", async () => {
   assert.doesNotMatch(text, /good-skill/);
 });
 
+test("validateSkills rejects a SKILL.md that reads a file under agents/", async () => {
+  const head = (n) => `---\nname: ${n}\ndescription: Use when testing.\n---\n`;
+  const root = await fixture({
+    "p/rooted": `${head("rooted")}Read \`<package-root>/agents/p/x.md\` for the session.\n`,
+    "p/bare": `${head("bare")}Use \`agents/p/x.md\` as the template.\n`,
+    "p/clean": `${head("clean")}Read \`references/x.md\`, then dispatch the \`p:x\` agent.\n`,
+  }, { "p/clean/references/x.md": "x\n" });
+  const { errors } = await validateSkills({ repoRoot: root, registry: registryFor("p/rooted", "p/bare", "p/clean") });
+  const text = errors.join("\n");
+  assert.match(text, /rooted\/SKILL\.md: reads agents\/p\/x\.md/);
+  assert.match(text, /bare\/SKILL\.md: reads agents\/p\/x\.md/);
+  assert.doesNotMatch(text, /clean/);
+});
+
 test("all real skills satisfy the hard frontmatter rules", async () => {
   const registry = await loadRegistry(join(repoRoot, "registry.json"));
   const { errors } = await validateSkills({ repoRoot, registry });
