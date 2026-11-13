@@ -2,6 +2,136 @@
 
 All notable changes to this skills/plugins collection will be documented in this file.
 
+## [3.4.1] - 2026-11-13
+
+### Added
+
+- Add a trigger eval for sketch-note diagrams
+
+The sketch-note agent is the one agent picked by its description
+alone, and that description just lost its examples. The sketch-note
+skill fires on the same phrases. This eval pins the canonical route:
+a plain "draw me a diagram" request must load the sketch skill.
+
+It passes 3 of 3 runs against the current build.
+- Add the token diet design docs and research
+
+A usage report showed skill and agent listings, and the commit skill,
+driving most of the per-request token cost. These docs record how that
+was investigated and what was built.
+
+- research: where each of the seven harnesses spends per-request
+  tokens, and which levers a plugin author controls on each
+- token diet spec: the original combined design, kept for history and
+  marked as superseded after it was split
+- listing diet spec: the part built here, with its measured acceptance
+  (listing down 46-49% on Claude Code, Antigravity and omp, 14-16% on
+  OpenCode, Pi and Codex)
+- four parked specs: an 8 KB SKILL.md cap (fixes Codex cutting skills
+  off), agent models per harness, OpenCode hook notes, a commit relay
+- the design review findings and their dispositions
+
+### Changed
+
+- Move skill session files out of agents/
+
+jot:capture, study:coach and study:recall read their session
+instructions from <package-root>/agents/<plugin>/<file>.md. No
+generated tree has that path: Codex, Pi and agent-plugins do not ship
+agents at all, and the other harnesses ship them flat under agents/.
+The three files were also registered as agents, so they sat in the
+per-request agent listing as if they could be dispatched.
+
+Move each file into its skill's references/ and drop the agent
+frontmatter. study:coach now hands off to study:recall through a new
+--from-coach argument, so recall still skips its note search and
+prerequisite check right after a coaching session. craft:shape names
+the issue-writer agent by id instead of by path.
+
+Validation now rejects any SKILL.md that reads an
+agents/<plugin>/<file>.md path, so the pattern cannot come back.
+
+### Other
+
+- Hide five user-started skills from the model
+
+bivouac:session, devenv:manage, jot:setup, jot:configure and
+study:setup are only ever started by the user typing them; no skill,
+agent or hook invokes them. Their descriptions still rode along in the
+skill listing on every request.
+
+Mark them disable-model-invocation, which Claude Code, OpenCode,
+Antigravity and Pi read natively. The skill model gains a hidden flag
+so adapters can act on it:
+
+- Pi writes no prompt for a hidden skill, because a prompt that tells
+  the model to invoke the skill cannot reach it. Users run
+  /skill:<plugin>-<skill>, and references inside the package are
+  rewritten to that form.
+- agent-plugins has no such field, so the build reports each hidden
+  skill there as degraded.
+
+Codex and omp follow separately.
+- Hide disable-model-invocation skills on Codex
+
+Codex ignores the disable-model-invocation frontmatter key, so the
+five skills hidden on the other harnesses still sat in its skill
+listing on every request.
+
+For each hidden skill, write codex-skills/<skill>/agents/openai.yaml
+with policy.allow_implicit_invocation: false, which Codex reads to
+leave the skill out of the listing while $plugin:skill still runs it.
+The file is written after the reference rewrite so it stays literal,
+and the build fails if a source skill already ships its own
+openai.yaml rather than silently overwriting it.
+- Shorten agent descriptions to one line
+
+Claude Code, omp and Antigravity send every agent's description to
+the model on every request. About 70% of that text was <example>
+blocks: roughly 8k characters per request, most of the agent listing.
+Agents dispatched by name from their skills never needed them.
+
+Each agent now has a single quoted description line of at most 250
+characters, trigger first, and the examples are gone. The sketch-note
+agent, the one agent picked by its description alone, keeps its
+trigger words.
+
+Validation enforces the shape: one line, at most 250 characters, no
+<example>, and quoted unless it is plain YAML, because Claude Code
+copies agent files verbatim and an unquoted ": " would stop the agent
+from loading.
+- Print each harness's listing size in the build
+
+Every harness sends the name and description of each visible skill,
+and four of them each agent's too, on every request. Nothing measured
+that, so trimming it was guesswork.
+
+listingSize reads a generated tree with per-harness rules: which
+files hold the listing, which fields count, and how each harness marks
+a hidden skill (frontmatter, Codex's openai.yaml, OpenCode's
+resources.json). The build prints one informational line per harness;
+it never fails on the numbers, so a new skill does not break it.
+
+A test checks the counts against the registry for every harness, so
+an adapter layout change that the rules miss fails loudly.
+
+### Removed
+
+- Drop omp command wrappers for hidden skills
+
+omp 18.18.6 already honors disable-model-invocation: over RPC, the
+five hidden skills are absent from the system prompt's skill list
+while /skill:<plugin>-<skill> still runs them. But the omp adapter
+still wrote a /plugin:skill command wrapper for each one, telling the
+model to invoke a skill it can no longer see.
+
+Write no wrapper for a hidden skill, and rewrite slash references to
+it as /skill:<plugin>-<skill>. That rewrite now takes precedence over
+omp's rule of keeping /plugin:skill, which only holds for skills that
+have a wrapper.
+
+The omp smoke check now reads the system prompt through get_state and
+fails if a hidden skill is listed there or cannot run as /skill:<id>.
 ## [3.4.0] - 2026-11-10
 
 ### Added
@@ -26,7 +156,7 @@ subagent sessions; tool_call and tool_result use omp's tool names,
 running file hooks once per path of a multi-file edit; session_stop
 delivers notices and logs a block. canCarry fails the build only for a
 matcher naming a tool omp lacks, and all seven current hooks carry.
-No plugin enables omp yet, so the build output is unchanged.
+No plugin enables omp yet, so the build output is unchanged. by @jskswamy
 - Add a pre-release smoke check for omp
 
 scripts/omp-smoke.sh installs a fresh build into omp from its
@@ -38,7 +168,7 @@ is reported as inconclusive, not as a pass.
 It installs with omp's own marketplace commands because Skillshare
 0.30 refuses omp installs into a scratch HOME, and it reads omp
 18.18's available_commands_update event, which replaced the RPC
-get_commands call.
+get_commands call. by @jskswamy
 
 ### Changed
 
@@ -55,7 +185,10 @@ adapters test fails if any root catalog the build writes is missing
 from either, and the Skillshare discovery test checks that the omp
 target resolves to dist/omp and that no .cursor-plugin or
 .github/plugin catalog is written. Other harness trees build
-unchanged apart from the shared hook runner copy in Pi and OpenCode.
+unchanged apart from the shared hook runner copy in Pi and OpenCode. by @jskswamy
+- Update CHANGELOG for v3.4.0
+
+Document all changes included in the v3.4.0 release. by @jskswamy
 
 ### Documentation
 
@@ -69,7 +202,7 @@ checklist.
 The rule against a root .omp-plugin catalog is narrowed to
 .cursor-plugin and .github/plugin: Skillshare routes only its omp
 target to .omp-plugin, and that catalog must list every plugin or not
-exist, because omp prefers it over the Claude catalog.
+exist, because omp prefers it over the Claude catalog. by @jskswamy
 
 ### Other
 
@@ -95,7 +228,7 @@ Skillshare 0.30 added an omp install safety check that refuses a
 scratch HOME but plans a normal install for an established profile.
 
 The design and review reports stay out of the repository; only the
-findings that will matter after implementation are kept here.
+findings that will matter after implementation are kept here. by @jskswamy
 - Keep slash references when rewriting for omp
 
 omp registers a plugin's commands/<skill>.md wrappers as
@@ -107,7 +240,7 @@ omp loads skills and agents by that frontmatter name.
 Add a keepSlash option to rewriteReferences that leaves a leading-slash
 reference unchanged when joining with "-", and pass it through
 rewriteTree and copyRewrittenSkills. It defaults to false, so the Pi,
-OpenCode and Codex trees build byte-identical to the committed dist.
+OpenCode and Codex trees build byte-identical to the committed dist. by @jskswamy
 - Return hook notices from the shared runner
 
 Claude Code shows a hook's JSON systemMessage to the user, but the
@@ -118,7 +251,15 @@ dropped on every harness that uses it.
 runHook now returns a systemMessage as notice, and runEvent collects
 them as notices, including on an early block. Both fields appear only
 when a hook sent one, so existing results are unchanged and the Pi and
-OpenCode runtimes, which ignore the field, behave as before.
+OpenCode runtimes, which ignore the field, behave as before. by @jskswamy
+- Release v3.4.0
+
+Bump plugin versions: bivouac 1.1.0 → 1.2.0, devenv 2.1.0 → 2.2.0,
+commit-tools 2.1.1 → 2.2.0, jot 3.1.0 → 3.2.0, craft 3.0.1 → 3.1.0,
+sketch-note 2.1.0 → 2.2.0, typst-notes 2.1.0 → 2.2.0,
+codebase 1.2.0 → 1.3.0, study 2.1.0 → 2.2.0, refactor 1.1.1 → 1.2.0.
+Write every harness's output via npm run build:release, including the
+new dist/omp tree and the .omp-plugin/marketplace.json catalog. by @jskswamy
 ## [3.3.1] - 2026-11-09
 
 ### Changed
@@ -4009,6 +4150,7 @@ as a dependency.
 ### Removed
 
 - Remove welcome message from shell hook by @jskswamy
+[3.4.1]: https://github.com/jskswamy/skills/compare/v3.4.0..v3.4.1
 [3.4.0]: https://github.com/jskswamy/skills/compare/v3.3.1..v3.4.0
 [3.3.1]: https://github.com/jskswamy/skills/compare/v3.3.0..v3.3.1
 [3.3.0]: https://github.com/jskswamy/skills/compare/v3.2.0..v3.3.0
