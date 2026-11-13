@@ -9,6 +9,7 @@ import { dirname, join, resolve } from "node:path";
 import { parseArgs } from "node:util";
 import { fileURLToPath } from "node:url";
 import { runAdapters, validateHarnessIds } from "./lib/adapters/index.mjs";
+import { listingSize } from "./listing-size.mjs";
 import { loadRegistry, validateRegistryShape } from "./lib/registry.mjs";
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -37,5 +38,9 @@ for (const line of report.lines()) console.log(line);
 if (report.errors().length > 0) {
   console.error(`${report.errors().length} resource(s) cannot be carried; mark hooks optional in registry.json or fix them`);
   process.exit(1);
+}
+// Informational: what each harness lists to the model on every request.
+for (const [harness, { chars, skills, agents }] of Object.entries(await listingSize(outRoot))) {
+  console.log(`listing: ${harness} ${chars} chars (${skills} skills, ${agents} agents)`);
 }
 console.log(`Output: ${outRoot}`);
