@@ -1,6 +1,7 @@
 ---
 name: manage
 description: "Nix flake dev environment setup and changes: add, upgrade, remove, security. Use when setting up or changing a Nix flake development environment: 'set up devenv', 'devenv setup', 'init a nix flake', 'create a dev shell', 'add package X to the flake', 'upgrade flake inputs', 'remove package from devenv', 'add pre-commit/security hooks'. Auto-detects project stack and manages flake.nix."
+disable-model-invocation: true
 argument-hint: "[add|upgrade|remove|security]"
 metadata:
   short-description: "Nix flake dev environment setup and changes: add, upgrade, remove, security."

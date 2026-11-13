@@ -17,17 +17,17 @@
   "agents": [
     {
       "id": "refactor-scanner",
-      "description": "Scans committed code diffs for refactoring opportunities across the codebase.\nRuns three passes: semantic similarity (Fowler structural patterns + GoF),\nstructural analysis (code smells + SOLID/DRY violations), and language idiom\nchecks. Returns a candidate list for the validator agent to confirm.",
+      "description": "Scans committed code diffs for refactoring opportunities in three passes (structural similarity, code smells and SOLID/DRY violations, language idioms) and returns candidates for the validator agent.",
       "path": "opencode-agents/refactor-scanner.md"
     },
     {
       "id": "refactor-synthesizer",
-      "description": "Correlates raw refactoring candidates from scanner shards into\narchitectural root-cause findings. Reads candidates/*.yaml from a\nrefactor-scan working directory and writes a human-reviewable\nfindings.md. Does not file beads issues; that is the validator's job.",
+      "description": "Correlates raw refactoring candidates from scanner shards into architectural root-cause findings and writes a reviewable findings.md; filing issues is the validator's job.",
       "path": "opencode-agents/refactor-synthesizer.md"
     },
     {
       "id": "refactor-validator",
-      "description": "Validates refactoring candidates from the scanner agent. Reads actual source\nfiles to confirm similarity, checks test coverage, deduplicates against\nexisting beads issues, and creates new issues with TDD-first refactoring plans.",
+      "description": "Validates refactoring candidates from the scanner agent: reads the source to confirm similarity, checks test coverage, deduplicates against beads issues, and files TDD-first refactoring issues.",
       "path": "opencode-agents/refactor-validator.md"
     }
   ]

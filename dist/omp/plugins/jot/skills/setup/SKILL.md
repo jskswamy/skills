@@ -1,6 +1,7 @@
 ---
 name: jot-setup
 description: "Use when configuring where jot saves captures for the first time or changing it: 'set up jot', 'configure jot backend', 'switch jot to Capacities', 'use workbench for jot'. Run once to choose workbench or Capacities. Not for editing an existing type agent's questions or template (use jot-configure) or saving content (use jot-capture)."
+disable-model-invocation: true
 metadata:
   short-description: "Choose where jot saves captures: workbench or Capacities."
 ---
@@ -41,7 +42,7 @@ which cap 2>/dev/null || ls /Users/subramk/.local/bin/cap 2>/dev/null
 ```
 
 Store the path as `CAP`. If not found, stop:
-> "capacities-cli is not installed or not in PATH. Install it and re-run `/jot:setup`."
+> "capacities-cli is not installed or not in PATH. Install it and re-run `/skill:jot-setup`."
 
 ### Step 3b: Verify connectivity
 
@@ -50,7 +51,7 @@ $CAP types --json 2>&1
 ```
 
 If exit non-zero or output contains error, stop:
-> "Cannot connect to Capacities. Check your authentication (`cap auth`) and re-run `/jot:setup`."
+> "Cannot connect to Capacities. Check your authentication (`cap auth`) and re-run `/skill:jot-setup`."
 
 ### Step 3c: Create agents directory
 

@@ -17,5 +17,5 @@ Adaptive study coach. Coach a topic, URL, or local file in a guided session, the
 ## Components
 
 - Skills: `study-coach`, `study-recall`, `study-setup`
-- Agents: `coach-agent`, `content-extractor`, `recall-agent`
+- Agent: `content-extractor`
 - Template: `templates/study-note.md` (coaching note format)

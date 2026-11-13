@@ -1,9 +1,5 @@
 ---
-description: |
-  Correlates raw refactoring candidates from scanner shards into
-  architectural root-cause findings. Reads candidates/*.yaml from a
-  refactor-scan working directory and writes a human-reviewable
-  findings.md. Does not file beads issues; that is the validator's job.
+description: Correlates raw refactoring candidates from scanner shards into architectural root-cause findings and writes a reviewable findings.md; filing issues is the validator's job.
 mode: subagent
 ---
 

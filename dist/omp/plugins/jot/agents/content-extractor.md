@@ -1,33 +1,5 @@
 ---
-description: |
-  Use this agent to extract content from research papers (PDFs), YouTube videos, and web articles for the Feynman learning process. Handles PDF downloads, video transcripts, and web content fetching.
-
-  <example>
-  Context: User wants to learn from a research paper
-  user: "explain https://arxiv.org/pdf/2512.24601"
-  assistant: "I'll extract the content from this research paper for learning."
-  <commentary>
-  PDF URL - content extractor downloads and extracts text for the learning loop.
-  </commentary>
-  </example>
-
-  <example>
-  Context: User wants to learn from a YouTube video
-  user: "explain video https://youtube.com/watch?v=abc123"
-  assistant: "I'll extract the transcript from this video for learning."
-  <commentary>
-  YouTube URL - uses yt-dlp for transcript extraction.
-  </commentary>
-  </example>
-
-  <example>
-  Context: User wants to learn from an article
-  user: "explain article https://martinfowler.com/bliki/CQRS.html"
-  assistant: "I'll fetch and extract this article's content for learning."
-  <commentary>
-  Web article - uses WebFetch to retrieve content.
-  </commentary>
-  </example>
+description: Use this agent to extract content from research papers (PDFs), YouTube videos and web articles for the Feynman learning process, handling PDF downloads, video transcripts and web fetching.
 name: jot-content-extractor
 ---
 

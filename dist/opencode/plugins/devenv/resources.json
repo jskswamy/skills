@@ -4,7 +4,8 @@
       "id": "devenv-manage",
       "name": "devenv-manage",
       "description": "Use when setting up or changing a Nix flake development environment: 'set up devenv', 'devenv setup', 'init a nix flake', 'create a dev shell', 'add package X to the flake', 'upgrade flake inputs', 'remove package from devenv', 'add pre-commit/security hooks'. Auto-detects project stack and manages flake.nix.",
-      "path": "skills/manage/SKILL.md"
+      "path": "skills/manage/SKILL.md",
+      "autoinvoke": false
     }
   ],
   "commands": [

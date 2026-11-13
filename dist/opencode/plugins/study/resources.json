@@ -16,7 +16,8 @@
       "id": "study-setup",
       "name": "study-setup",
       "description": "Use when configuring the study plugin or it reports missing config: 'set up study', 'configure study notes folder', 'change study notes path', 'add a content vault'. Writes study.md with notes_path and content_vaults. Run before first study-coach or study-recall use.",
-      "path": "skills/setup/SKILL.md"
+      "path": "skills/setup/SKILL.md",
+      "autoinvoke": false
     }
   ],
   "commands": [
@@ -38,19 +39,9 @@
   ],
   "agents": [
     {
-      "id": "study-coach-agent",
-      "description": "Use this agent to run an adaptive coaching session on any topic or content. Supports multiple learning gears (Socratic, Explain, Guide, Check, Help) and saves a structured coaching note with identified gaps for use in future recall sessions.",
-      "path": "opencode-agents/study-coach-agent.md"
-    },
-    {
       "id": "study-content-extractor",
       "description": "Use this agent to extract content from URLs (research papers, YouTube videos, web articles) or local files (PDF, markdown, text) for use in a coaching session.",
       "path": "opencode-agents/study-content-extractor.md"
-    },
-    {
-      "id": "study-recall-agent",
-      "description": "Use this agent to run a Feynman recall session. Reads an existing coaching note to target known gaps, runs iterative explanation cycles, and appends results to the Recall Log.",
-      "path": "opencode-agents/study-recall-agent.md"
     }
   ]
 }

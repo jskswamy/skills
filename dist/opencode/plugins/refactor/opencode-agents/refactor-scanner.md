@@ -1,9 +1,5 @@
 ---
-description: |
-  Scans committed code diffs for refactoring opportunities across the codebase.
-  Runs three passes: semantic similarity (Fowler structural patterns + GoF),
-  structural analysis (code smells + SOLID/DRY violations), and language idiom
-  checks. Returns a candidate list for the validator agent to confirm.
+description: Scans committed code diffs for refactoring opportunities in three passes (structural similarity, code smells and SOLID/DRY violations, language idioms) and returns candidates for the validator agent.
 mode: subagent
 ---
 

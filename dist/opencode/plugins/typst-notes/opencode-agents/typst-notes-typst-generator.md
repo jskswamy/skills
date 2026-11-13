@@ -1,7 +1,5 @@
 ---
-description: |
-  Generates complete Typst source files from structured content using
-  templates and themes.
+description: Generates complete Typst source files from structured content using templates and themes.
 mode: subagent
 ---
 

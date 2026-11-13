@@ -72,8 +72,8 @@ If matches found, list them and ask the user to pick one or proceed with concept
 
 ### Step 6: Run Coaching Session
 
-Read `<package-root>/agents/study/coach-agent.md` for the full session
-logic. Run it directly in this conversation — do not spawn an agent.
+Read `references/coach-session.md` for the full session logic. Run it
+directly in this conversation — do not spawn an agent.
 
 Context to carry in:
 - Topic name or title
@@ -92,17 +92,9 @@ When the session closes, store:
 
 ### Step 7: Flow into Recall (Unless --no-recall)
 
-After coaching completes, unless `--no-recall` was passed:
-
-Read `<package-root>/agents/study/recall-agent.md` for the full session
-logic. Run it directly in this conversation — do not spawn an agent.
-
-Context to carry in:
-- Topic slug: `SLUG`
-- Coaching note path: `NOTE_PATH`
-- Notes path: `NOTES_PATH`
-- Depth: from `--depth` argument
-- `from_coach: true` (skip prerequisite check)
+After coaching completes, unless `--no-recall` was passed, invoke the
+`study:recall` skill with `SLUG --from-coach NOTE_PATH --depth <depth>`.
+Recall then skips its note search and prerequisite check.
 
 ### Step 8: Done
 

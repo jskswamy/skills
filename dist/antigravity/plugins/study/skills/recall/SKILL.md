@@ -1,7 +1,7 @@
 ---
 name: recall
 description: "Re-test a coached topic, Feynman style. <topic|url> [--depth shallow|standard|deep] Use when the user wants to test or reinforce what they learned on a topic already coached or studied: 'quiz me on X', 'recall session for X', 'Feynman test on X', 'explain X back to you', 'review what I learned about X'. Targets gaps in the existing coaching note and logs the result. For first-time learning use study:coach."
-argument-hint: "<topic|url> [--depth shallow|standard|deep]"
+argument-hint: "<topic|url> [--depth shallow|standard|deep] [--from-coach <note-path>]"
 metadata:
   short-description: "Re-test a coached topic, Feynman style. <topic|url> [--depth shallow|standard|deep]"
 ---
@@ -14,12 +14,13 @@ Run a Feynman-style recall session on a topic you've previously coached or studi
 
 - `<topic|url>` - Topic name or original URL used during coaching (required)
 - `--depth shallow|standard|deep` - How many Feynman iterations to run (default: standard)
+- `--from-coach <note-path>` - Set by `study:coach` when it flows straight into recall: the coaching note just saved
 
 ## Workflow
 
 ### Step 1: Parse Arguments
 
-Extract topic/url and depth (default: standard).
+Extract topic/url, depth (default: standard) and `--from-coach` (default: none).
 
 ### Step 2: Read Config
 
@@ -33,6 +34,8 @@ NOTES_PATH=$(eval echo "<notes_path>")
 ```
 
 ### Step 3: Find Coaching Note
+
+If `--from-coach` was given, use that path as the coaching note and skip to Step 4.
 
 Generate slug from input (lowercase, hyphens, strip special chars).
 
@@ -60,15 +63,15 @@ If nothing found anywhere:
 
 ### Step 4: Run Recall Session
 
-Read `<package-root>/agents/study/recall-agent.md` for the full session
-logic. Run it directly in this conversation — do not spawn an agent.
+Read `references/recall-session.md` for the full session logic. Run it
+directly in this conversation — do not spawn an agent.
 
 Context to carry in:
 - Topic name
 - Coaching note path (or null for cold recall)
 - Notes path: `NOTES_PATH`
 - Depth: from `--depth` argument
-- `from_coach: false`
+- `from_coach: true` if `--from-coach` was given (skip the prerequisite check), otherwise `false`
 
 ### Step 5: Done
 

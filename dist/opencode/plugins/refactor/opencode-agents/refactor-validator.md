@@ -1,8 +1,5 @@
 ---
-description: |
-  Validates refactoring candidates from the scanner agent. Reads actual source
-  files to confirm similarity, checks test coverage, deduplicates against
-  existing beads issues, and creates new issues with TDD-first refactoring plans.
+description: "Validates refactoring candidates from the scanner agent: reads the source to confirm similarity, checks test coverage, deduplicates against beads issues, and files TDD-first refactoring issues."
 mode: subagent
 ---
 

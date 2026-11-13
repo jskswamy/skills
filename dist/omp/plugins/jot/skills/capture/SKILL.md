@@ -62,7 +62,7 @@ If no URL or file path in `raw_args`: leave `CONTENT` empty (Mode B or conversat
 
 ## Step 4: Run Capture Session
 
-Read `<package-root>/agents/jot/capture.md` for the full session logic.
+Read `references/capture-session.md` for the full session logic.
 Run it **directly in this conversation — do not spawn an agent**.
 
 All variables are already resolved — carry them in:

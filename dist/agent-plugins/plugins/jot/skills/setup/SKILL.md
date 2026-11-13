@@ -1,6 +1,7 @@
 ---
 name: setup
 description: "Use when configuring where jot saves captures for the first time or changing it: 'set up jot', 'configure jot backend', 'switch jot to Capacities', 'use workbench for jot'. Run once to choose workbench or Capacities. Not for editing an existing type agent's questions or template (use jot:configure) or saving content (use jot:capture)."
+disable-model-invocation: true
 metadata:
   short-description: "Choose where jot saves captures: workbench or Capacities."
 ---

@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "craft",
-  "version": "3.1.0",
+  "version": "3.1.1",
   "description": "Spec-driven development workshop with beads wisps and thin stories: park, debug, shape, and build",
   "author": {
     "name": "Krishnaswamy Subramanian"

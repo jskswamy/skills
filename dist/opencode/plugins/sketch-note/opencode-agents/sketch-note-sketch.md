@@ -1,5 +1,5 @@
 ---
-description: Use this agent proactively when users want to visualize, diagram, or create visual representations of conversations, code architecture, or concepts. Generates Excalidraw sketch notes with customizable hand-drawn styling.
+description: Use this agent proactively when users want to visualize, diagram, sketch or mind-map conversations, code architecture or concepts. Generates Excalidraw sketch notes with hand-drawn styling.
 mode: subagent
 ---
 

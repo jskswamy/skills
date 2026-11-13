@@ -1,6 +1,6 @@
 {
   "name": "sketch-note",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "private": true,
   "type": "module",
   "description": "Generate visual sketch notes in Excalidraw format from conversations, code architecture, or custom content",

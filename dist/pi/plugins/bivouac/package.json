@@ -1,6 +1,6 @@
 {
   "name": "bivouac",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "private": true,
   "type": "module",
   "description": "Safe workflows for disposable remote coding-agent sessions with bivouac",
@@ -17,9 +17,6 @@
   "pi": {
     "skills": [
       "./skills"
-    ],
-    "prompts": [
-      "./prompts"
     ]
   }
 }

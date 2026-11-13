@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "jot",
-  "version": "3.2.0",
+  "version": "3.2.1",
   "description": "Quick, low-friction capture of notes, tasks, ideas, session summaries, and tech radar blips with Obsidian-style auto-linking",
   "author": {
     "name": "Krishnaswamy Subramanian"

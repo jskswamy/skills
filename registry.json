@@ -11,7 +11,7 @@
     {
       "name": "bivouac",
       "description": "Safe workflows for disposable remote coding-agent sessions with bivouac",
-      "version": "1.2.0",
+      "version": "1.2.1",
       "author": {
         "name": "Krishnaswamy Subramanian"
       },
@@ -66,7 +66,7 @@
     {
       "name": "devenv",
       "description": "Initialize and manage Nix flake development environments with auto-detection and security tooling",
-      "version": "2.2.0",
+      "version": "2.2.1",
       "author": {
         "name": "Krishnaswamy Subramanian"
       },
@@ -211,7 +211,7 @@
     {
       "name": "jot",
       "description": "Quick, low-friction capture of notes, tasks, ideas, session summaries, and tech radar blips with Obsidian-style auto-linking",
-      "version": "3.2.0",
+      "version": "3.2.1",
       "author": {
         "name": "Krishnaswamy Subramanian"
       },
@@ -292,7 +292,7 @@
     {
       "name": "craft",
       "description": "Spec-driven development workshop with beads wisps and thin stories: park, debug, shape, and build",
-      "version": "3.1.0",
+      "version": "3.1.1",
       "author": {
         "name": "Krishnaswamy Subramanian"
       },
@@ -358,7 +358,7 @@
     {
       "name": "sketch-note",
       "description": "Generate visual sketch notes in Excalidraw format from conversations, code architecture, or custom content",
-      "version": "2.2.0",
+      "version": "2.2.1",
       "author": {
         "name": "Krishnaswamy Subramanian"
       },
@@ -431,7 +431,7 @@
     {
       "name": "typst-notes",
       "description": "Generate beautiful PDF/HTML shareable notes using Typst with 7 professional templates, infographics, and modern typography",
-      "version": "2.2.0",
+      "version": "2.2.1",
       "author": {
         "name": "Krishnaswamy Subramanian"
       },
@@ -585,7 +585,7 @@
     {
       "name": "study",
       "description": "Adaptive study coach with multi-gear learning sessions (Socratic, Explain, Guide, Check, Help) and spaced recall tracking via Feynman loops. Saves coaching notes with gap tracking and a recall log that shows improvement over time.",
-      "version": "2.2.0",
+      "version": "2.2.1",
       "author": {
         "name": "Krishnaswamy Subramanian"
       },
@@ -647,7 +647,7 @@
     {
       "name": "refactor",
       "description": "Semantic refactoring opportunity detection. Scans committed code for structural duplication (Fowler catalog), code smells (Fowler/Beck), GoF design pattern opportunities, SOLID/DRY principle violations, and language-idiomatic anti-patterns (Go, Python, TypeScript). Creates beads issues with TDD-first refactoring plans. Run on demand with /refactor:scan.",
-      "version": "1.2.0",
+      "version": "1.2.1",
       "author": {
         "name": "Krishnaswamy Subramanian"
       },

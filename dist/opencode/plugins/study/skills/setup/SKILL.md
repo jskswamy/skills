@@ -1,6 +1,7 @@
 ---
 name: study-setup
 description: "Use when configuring the study plugin or it reports missing config: 'set up study', 'configure study notes folder', 'change study notes path', 'add a content vault'. Writes study.md with notes_path and content_vaults. Run before first study-coach or study-recall use."
+disable-model-invocation: true
 metadata:
   short-description: "Set the study notes folder and vault paths."
 ---

@@ -16,13 +16,15 @@
       "id": "jot-configure",
       "name": "jot-configure",
       "description": "Use when editing an already-configured jot type agent: 'change the questions for my article type', 'edit the output template', 'update triggers', 'reset setup for a type'. Not for first-run backend choice (use jot-setup) or saving content (use jot-capture).",
-      "path": "skills/configure/SKILL.md"
+      "path": "skills/configure/SKILL.md",
+      "autoinvoke": false
     },
     {
       "id": "jot-setup",
       "name": "jot-setup",
       "description": "Use when configuring where jot saves captures for the first time or changing it: 'set up jot', 'configure jot backend', 'switch jot to Capacities', 'use workbench for jot'. Run once to choose workbench or Capacities. Not for editing an existing type agent's questions or template (use jot-configure) or saving content (use jot-capture).",
-      "path": "skills/setup/SKILL.md"
+      "path": "skills/setup/SKILL.md",
+      "autoinvoke": false
     }
   ],
   "commands": [
@@ -45,7 +47,7 @@
   "agents": [
     {
       "id": "jot-content-extractor",
-      "description": "Use this agent to extract content from research papers (PDFs), YouTube videos, and web articles for the Feynman learning process. Handles PDF downloads, video transcripts, and web content fetching.",
+      "description": "Use this agent to extract content from research papers (PDFs), YouTube videos and web articles for the Feynman learning process, handling PDF downloads, video transcripts and web fetching.",
       "path": "opencode-agents/jot-content-extractor.md"
     }
   ]

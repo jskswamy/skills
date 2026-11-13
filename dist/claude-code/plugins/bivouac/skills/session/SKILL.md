@@ -2,6 +2,7 @@
 name: session
 description: "Manage remote agent sessions and cloud images. [start|status|ssh|sync|image|down] [request]"
 when_to_use: "Use when the user asks to manage disposable remote coding-agent sessions, VMs, configuration, or custom cloud images with the bivouac CLI, including start, status, issues, attach, pull, merge, delete, up, down, and image generate/build/list/tag/prune."
+disable-model-invocation: true
 argument-hint: "[start|status|issues|pull|merge|delete|ssh|connect|serve|unserve|sync|download|provision|down|image] [request...]"
 metadata:
   short-description: "Manage remote agent sessions and cloud images. [start|status|ssh|sync|image|down] [request]"

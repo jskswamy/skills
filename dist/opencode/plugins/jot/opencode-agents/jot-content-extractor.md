@@ -1,5 +1,5 @@
 ---
-description: Use this agent to extract content from research papers (PDFs), YouTube videos, and web articles for the Feynman learning process. Handles PDF downloads, video transcripts, and web content fetching.
+description: Use this agent to extract content from research papers (PDFs), YouTube videos and web articles for the Feynman learning process, handling PDF downloads, video transcripts and web fetching.
 mode: subagent
 ---
 

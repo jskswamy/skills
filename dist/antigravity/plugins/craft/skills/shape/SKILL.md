@@ -29,7 +29,7 @@ Turn an idea, promoted wisp, or design doc into an approved markdown spec and th
    - Give context-aware reviewers the candidate and the same capability/seam evidence. EGM comprehension receives only the self-contained candidate with its embedded architecture context: no source, supplementary reports or earlier review results. Adapt Ponytail to proposed-design checks; do not claim implementation tests ran.
    - Apply the Review records, Findings and Material changes contracts below. Reuse valid results and the recorded mode for unchanged scope instead of asking again. Resolve/disposition findings and re-review affected changes under the selected mode, then obtain final user approval before slicing.
 4. **Slice into Thin Vertical Stories & Preview**:
-   - Recheck evidence and approval at handoff. Derive thin stories from accepted architecture using `agents/craft/issue-writer.md`, **Positive Slot Template**: `Touch:` names concrete file paths or module seams; `Verify:` contains 1–3 runnable validation commands. Keep analysis/review reports in the spec, not copied into Beads stories.
+   - Recheck evidence and approval at handoff. Derive thin stories from accepted architecture using the `craft:issue-writer` agent's **Positive Slot Template**: `Touch:` names concrete file paths or module seams; `Verify:` contains 1–3 runnable validation commands. Keep analysis/review reports in the spec, not copied into Beads stories.
    - Preview the Epic, Stories, and DAG for user approval (exit here if `--dry-run`).
 5. **Batched Beads Creation**:
    - Dispatch `craft:issue-writer` to create the Epic, Stories, swimlanes, and dependencies via `--dolt-auto-commit=batch`, `bd dolt commit`, and `bd swarm validate <epic-id>`.

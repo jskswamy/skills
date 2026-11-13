@@ -4,7 +4,8 @@
       "id": "bivouac-session",
       "name": "bivouac-session",
       "description": "Use when the user asks to manage disposable remote coding-agent sessions, VMs, configuration, or custom cloud images with the bivouac CLI, including start, status, issues, attach, pull, merge, delete, up, down, and image generate/build/list/tag/prune.",
-      "path": "skills/session/SKILL.md"
+      "path": "skills/session/SKILL.md",
+      "autoinvoke": false
     }
   ],
   "commands": [

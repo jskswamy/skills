@@ -1,6 +1,6 @@
 {
   "name": "devenv",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "private": true,
   "type": "module",
   "description": "Initialize and manage Nix flake development environments with auto-detection and security tooling",
@@ -20,9 +20,6 @@
   "pi": {
     "skills": [
       "./skills"
-    ],
-    "prompts": [
-      "./prompts"
     ],
     "extensions": [
       "./runtime/pi/runtime.mjs"

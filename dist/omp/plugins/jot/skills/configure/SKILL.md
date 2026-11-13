@@ -1,6 +1,7 @@
 ---
 name: jot-configure
 description: "Use when editing an already-configured jot type agent: 'change the questions for my article type', 'edit the output template', 'update triggers', 'reset setup for a type'. Not for first-run backend choice (use jot-setup) or saving content (use jot-capture)."
+disable-model-invocation: true
 argument-hint: "[type label, optional]"
 metadata:
   short-description: "Edit a jot type: its questions, template or triggers. [type]"
@@ -24,7 +25,7 @@ Stop.
 
 ## Step 2: Pick a Type
 
-If an argument was passed (e.g. `/jot:configure blip`), match it against `routing[].label` or `routing[].id` (case-insensitive). If matched, skip the AskUserQuestion and use that entry.
+If an argument was passed (e.g. `/skill:jot-configure blip`), match it against `routing[].label` or `routing[].id` (case-insensitive). If matched, skip the AskUserQuestion and use that entry.
 
 Otherwise, use AskUserQuestion:
 ```

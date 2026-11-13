@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "devenv",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "description": "Initialize and manage Nix flake development environments with auto-detection and security tooling",
   "author": {
     "name": "Krishnaswamy Subramanian"

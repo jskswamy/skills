@@ -35,12 +35,12 @@
   "agents": [
     {
       "id": "typst-notes-content-analyzer",
-      "description": "Analyzes input content, selects appropriate structure for the chosen template,\nand organizes content with infographic suggestions.",
+      "description": "Analyzes input content, selects appropriate structure for the chosen template, and organizes content with infographic suggestions.",
       "path": "opencode-agents/typst-notes-content-analyzer.md"
     },
     {
       "id": "typst-notes-typst-generator",
-      "description": "Generates complete Typst source files from structured content using\ntemplates and themes.",
+      "description": "Generates complete Typst source files from structured content using templates and themes.",
       "path": "opencode-agents/typst-notes-typst-generator.md"
     }
   ]
