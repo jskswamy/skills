@@ -19,6 +19,6 @@ export function writeDocument({ frontmatter, body }) {
   return lines.length === 0 ? body : `---\n${lines.join("\n")}\n---\n${body}`;
 }
 
-function isPlain(value) {
+export function isPlain(value) {
   return /^[A-Za-z0-9_.\/(<$]/.test(value) && value === value.trim() && !/: | #|:$/.test(value);
 }

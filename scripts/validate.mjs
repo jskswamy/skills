@@ -6,7 +6,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { enabledAdapters, validateHarnessIds, withTempBuild } from "./lib/adapters/index.mjs";
 import { loadRegistry, validateRegistryResources, validateRegistryShape } from "./lib/registry.mjs";
-import { validateSkills } from "./lib/skills.mjs";
+import { validateAgents, validateSkills } from "./lib/skills.mjs";
 import { validateOptionalHooks } from "./lib/transforms/policy.mjs";
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -20,6 +20,7 @@ if (errors.length === 0) {
     ...validateHarnessIds(registry),
     ...(await validateOptionalHooks({ repoRoot, registry })),
     ...(await validateSkills({ repoRoot, registry })).errors,
+    ...(await validateAgents({ repoRoot, registry })),
   );
 }
 

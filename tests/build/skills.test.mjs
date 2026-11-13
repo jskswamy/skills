@@ -4,7 +4,7 @@ import { mkdtemp, mkdir, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { parseFrontmatter, validateSkills } from "../../scripts/lib/skills.mjs";
+import { parseFrontmatter, validateAgents, validateSkills } from "../../scripts/lib/skills.mjs";
 import { loadRegistry } from "../../scripts/lib/registry.mjs";
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -74,6 +74,31 @@ test("validateSkills rejects a SKILL.md that reads a file under agents/", async 
   assert.match(text, /rooted\/SKILL\.md: reads agents\/p\/x\.md/);
   assert.match(text, /bare\/SKILL\.md: reads agents\/p\/x\.md/);
   assert.doesNotMatch(text, /clean/);
+});
+
+test("validateAgents wants a one-line description of at most 250 chars, no examples, valid as YAML", async () => {
+  const root = await mkdtemp(join(tmpdir(), "agents-"));
+  const agents = {
+    "good.md": '---\nname: good\ndescription: "Use this agent to test: it is quoted."\nmodel: sonnet\n---\nBody\n',
+    "plain.md": "---\nname: plain\ndescription: Generates notes from content.\n---\nBody\n",
+    "block.md": "---\nname: block\ndescription: |\n  Use this agent to test.\n---\nBody\n",
+    "example.md": '---\nname: example\ndescription: "Use this agent. <example>x</example>"\n---\nBody\n',
+    "long.md": `---\nname: long\ndescription: ${"x".repeat(251)}\n---\nBody\n`,
+    "colon.md": "---\nname: colon\ndescription: Use this agent to test: unquoted.\n---\nBody\n",
+  };
+  for (const [file, body] of Object.entries(agents)) {
+    await mkdir(join(root, "agents", "p"), { recursive: true });
+    await writeFile(join(root, "agents", "p", file), body);
+  }
+  const registry = { plugins: [{ name: "p", resources: { agents: Object.keys(agents).map((f) => `p/${f}`) } }] };
+  const text = (await validateAgents({ repoRoot: root, registry })).join("\n");
+  for (const bad of ["block", "example", "long", "colon"]) assert.match(text, new RegExp(`agents/p/${bad}\\.md`), `expected error for ${bad}`);
+  assert.doesNotMatch(text, /good\.md|plain\.md/);
+});
+
+test("all real agents satisfy the description rules", async () => {
+  const registry = await loadRegistry(join(repoRoot, "registry.json"));
+  assert.deepEqual(await validateAgents({ repoRoot, registry }), []);
 });
 
 test("all real skills satisfy the hard frontmatter rules", async () => {

@@ -1,5 +1,6 @@
 import { access, readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
+import { isPlain } from "./transforms/frontmatter.mjs";
 
 // shortcut: minimal YAML subset (top-level scalar keys; plain, quoted, | and > block scalars;
 // nested maps skipped). Swap for a real YAML lib if frontmatter grows more complex.
@@ -148,6 +149,30 @@ function descriptionIsOneLine(text) {
   const lines = m[1].split(/\r?\n/);
   const at = lines.findIndex((l) => l.startsWith("description:"));
   return at >= 0 && (at === lines.length - 1 || /^[A-Za-z0-9_-]+:/.test(lines[at + 1]));
+}
+
+const AGENT_DESCRIPTION_MAX = 250;
+
+// Agent descriptions ride in the agent listing on every request, and Claude Code copies agent files
+// verbatim, so each one must be a short single line that strict YAML also reads.
+export async function validateAgents({ repoRoot, registry }) {
+  const errors = [];
+  for (const plugin of registry?.plugins ?? []) {
+    for (const entry of plugin.resources?.agents ?? []) {
+      const label = `agents/${entry}`;
+      const text = await readFile(join(repoRoot, "agents", entry), "utf8");
+      const description = parseFrontmatter(text)?.description;
+      const raw = /^description:[ \t]*(.*)$/m.exec(/^---\r?\n([\s\S]*?)\r?\n---/.exec(text)?.[1] ?? "")?.[1] ?? "";
+      if (typeof description !== "string" || description.trim() === "") errors.push(`${label}: description is required`);
+      else if (!descriptionIsOneLine(text)) errors.push(`${label}: description must be a single line`);
+      else {
+        if (description.length > AGENT_DESCRIPTION_MAX) errors.push(`${label}: description is ${description.length} chars (max ${AGENT_DESCRIPTION_MAX})`);
+        if (description.includes("<example>")) errors.push(`${label}: description must not carry <example> blocks`);
+        if (!/^["']/.test(raw) && !isPlain(raw)) errors.push(`${label}: quote the description; as written it is not valid YAML`);
+      }
+    }
+  }
+  return errors;
 }
 
 const REF = /references\/([\w.\-\/]+\.md)/g;
