@@ -1,12 +1,15 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import test from "node:test";
 import * as pi from "../../harnesses/pi/adapter.mjs";
 import { withTempBuild } from "../../scripts/lib/adapters/index.mjs";
 import { loadRegistry } from "../../scripts/lib/registry.mjs";
 
-const shape = await readFile("skills/craft/shape/SKILL.md", "utf8");
+// shape keeps its ideation routes in references/ (SKILL.md stays under Codex's 8,000-byte cut).
+const shapeDir = "skills/craft/shape";
+const shapeRefs = (await readdir(`${shapeDir}/references`)).filter((f) => f.endsWith(".md")).sort();
+const shape = (await Promise.all([`${shapeDir}/SKILL.md`, ...shapeRefs.map((f) => `${shapeDir}/references/${f}`)].map((p) => readFile(p, "utf8")))).join("\n");
 const build = await readFile("skills/craft/build/SKILL.md", "utf8");
 
 // Instruction contracts catch omitted gates; scenario reviews test their interpretation.
