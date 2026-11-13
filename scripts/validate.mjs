@@ -5,6 +5,7 @@
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { enabledAdapters, validateHarnessIds, withTempBuild } from "./lib/adapters/index.mjs";
+import { skillSizeErrors } from "./listing-size.mjs";
 import { loadRegistry, validateRegistryResources, validateRegistryShape } from "./lib/registry.mjs";
 import { validateAgents, validateSkills } from "./lib/skills.mjs";
 import { validateOptionalHooks } from "./lib/transforms/policy.mjs";
@@ -32,6 +33,7 @@ if (errors.length === 0) {
         errors.push(...(await adapter.validate({ repoRoot, outRoot, plugin })));
       }
     }
+    errors.push(...(await skillSizeErrors(outRoot)));
   });
 }
 

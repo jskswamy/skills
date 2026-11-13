@@ -61,6 +61,21 @@ async function plugin(harness, rule, root) {
   return size;
 }
 
+// Codex cuts a $skill body off at 8,000 bytes, and reference rewriting can grow a generated
+// copy past its source, so check every generated SKILL.md: dist/<harness>/plugins/<plugin>/<dir>/<skill>/SKILL.md.
+const SKILL_MAX = 8000;
+
+export async function skillSizeErrors(outRoot) {
+  const errors = [];
+  for (const rel of (await readdir(join(outRoot, "dist"), { recursive: true })).sort()) {
+    const parts = rel.split(/[\\/]/);
+    if (parts.length !== 6 || parts[1] !== "plugins" || parts[5] !== "SKILL.md") continue;
+    const bytes = (await readFile(join(outRoot, "dist", rel))).length;
+    if (bytes > SKILL_MAX) errors.push(`${parts[0]} ${parts[2]}:${parts[4]}: SKILL.md is ${bytes} bytes (max ${SKILL_MAX})`);
+  }
+  return errors;
+}
+
 export async function listingSize(outRoot) {
   const sizes = {};
   for (const [harness, rule] of Object.entries(RULES)) {
