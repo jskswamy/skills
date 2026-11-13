@@ -1,12 +1,17 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 
-const skill = await readFile("skills/bivouac/session/SKILL.md", "utf8");
+// The skill keeps its workflows in references/ (SKILL.md stays under Codex's 8,000-byte cut),
+// so read SKILL.md first and then every reference.
+const dir = "skills/bivouac/session";
+const refs = (await readdir(`${dir}/references`)).filter((f) => f.endsWith(".md")).sort();
+const skill = (await Promise.all([`${dir}/SKILL.md`, ...refs.map((f) => `${dir}/references/${f}`)].map((p) => readFile(p, "utf8")))).join("\n");
 
-test("bivouac routes repo-independent image operations before repo preflight", () => {
-  const imageRoute = skill.indexOf("Route image requests");
-  const repoCheck = skill.indexOf("git rev-parse --show-toplevel");
+test("bivouac routes repo-independent image operations before repo preflight", async () => {
+  const preflight = await readFile(`${dir}/references/preflight.md`, "utf8");
+  const imageRoute = preflight.indexOf("Route image requests");
+  const repoCheck = preflight.indexOf("git rev-parse --show-toplevel");
   assert.ok(imageRoute >= 0 && imageRoute < repoCheck);
   assert.match(skill, /image list.*image tag.*image prune/);
   assert.match(skill, /image generate --tag/);
