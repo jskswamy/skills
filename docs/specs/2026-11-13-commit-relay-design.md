@@ -124,7 +124,7 @@ These are estimates from file sizes. Story 3's gate measures both flows with one
    - `amend-eligible.txt`: `yes` only when the last commit exists, its author email equals `git config user.email`, and no remote-tracking branch contains `HEAD` (`git branch -r --contains HEAD` is empty). Otherwise `no`.
 3. **Recomputes the id.** If the id changed while writing, it starts over once. If it changes again, it fails.
 4. **Cleans up.** It deletes the `--prev` folder, which is the caller's own earlier snapshot, but only if that path is a direct child of this repository's `commit-relay/` folder; any other path is ignored. It also deletes any other `commit-relay/` folder whose modification time is more than 24 hours old. A folder modified within 24 hours, such as another session's, is never touched.
-5. **Prints** `snapshot <id> <nonce> <dir> <files>`, where `<files>` is the number of lines in `staged.files`, and keeps the token to itself. On failure it prints `snapshot-failed <reason>`, for example `too-large` when `staged.diff` is over 400,000 chars. The commit then runs inline.
+5. **Prints** `snapshot <id> <nonce> <files> <dir>`, where `<files>` is the number of lines in `staged.files`, and keeps the token to itself. The folder path comes last because it may contain spaces. On failure it prints `snapshot-failed <reason>`, for example `too-large` when `staged.diff` is over 400,000 chars. The commit then runs inline.
 6. **`lib/snapshot.sh --token <dir>`** prints that folder's token. The parent calls it only when checking a reply, so the token never appears in a dispatch.
 
 The diff never enters the parent. When the drafter retires, the parent deletes its own last folder.

@@ -49,6 +49,7 @@
   "dist/claude-code/plugins/commit-tools/skills/commit-style/SKILL.md": "7333f0c31566c450ec0836f1b81d9e53a65e2eab4eb45e69612c4d7066660813",
   "dist/claude-code/plugins/commit-tools/skills/commit/SKILL.md": "88cdcdc6fc0299497a45a26863b08dc4fbf9f31770b630867b893624ea5dab0b",
   "dist/claude-code/plugins/commit-tools/skills/commit/lib/commit.sh": "037a51ca70c3784205953655d4b9f9de9a52f7f265300cc75de1c87b6b3d902c",
+  "dist/claude-code/plugins/commit-tools/skills/commit/lib/snapshot.sh": "4a898fc5dd598627eee33c5e31ac62abb30c65a0c3e21d44aa2e4194562d4f59",
   "dist/claude-code/plugins/commit-tools/skills/commit/lib/style-check.sh": "7ad8ffebd1b84f23ee76bc7c6ee1fb1f2eaaec35de57e0d4750713290a313df0",
   "dist/claude-code/plugins/commit-tools/skills/commit/references/atomicity-analysis.md": "0307cf5d461148bdc7a76c7beb8cd89b1681a3412201656cd02bec95c16b7252",
   "dist/claude-code/plugins/commit-tools/skills/commit/references/atomicity-warning-flow.md": "f74700f2b64705a4383bd2142d090272a12bbcaf58e57c04e39ae03e7040328c",
