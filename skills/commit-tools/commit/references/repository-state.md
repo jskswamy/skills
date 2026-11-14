@@ -8,9 +8,7 @@ First, verify we're in a git repository and check the current state:
    Error: Not a git repository. Please run this command from within a git repository.
    ```
 
-3. Get staged changes using MCP or Bash fallback:
-   - Try: `mcp__1mcp__git_1mcp_git_diff_staged`
-   - Fallback: `git diff --staged --stat`
+3. Get staged changes: `git diff --staged --stat` (the summary is enough here; the full diff stays out until it is needed)
 
 4. If `--amend` is set and no staged changes exist, keep the index unchanged and continue to Step 2. Use `git show HEAD` and the current message as context; leave unrelated unstaged/untracked files alone.
 

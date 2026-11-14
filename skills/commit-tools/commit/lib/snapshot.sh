@@ -1,7 +1,7 @@
 #!/bin/bash
 # Snapshot the staged state for the commit drafter, so the diff never enters
 # the parent's context. See docs/specs/2026-11-13-commit-relay-design.md §3.
-# Usage: snapshot.sh [--prev <dir>]   write a snapshot; prints
+# Usage: snapshot.sh [--style <s>] [--prev <dir>]   write a snapshot; prints
 #                                      `snapshot <id> <nonce> <files> <dir>`
 #        snapshot.sh --id              print the current id only
 #        snapshot.sh --token <dir>     print that snapshot's token
@@ -9,6 +9,9 @@
 # Needs bash 3.2+, git and POSIX tools only.
 
 MAX_DIFF_CHARS=400000
+# The drafter's files, copied into the snapshot so it never reads the plugin
+# folder (Claude Code refuses reads outside the repository without a rule).
+RULES="draft message-generation message-example content-leak-check atomicity-analysis last-commit-comparison"
 
 fail() {
   printf 'snapshot-failed %s\n' "$1"
@@ -27,23 +30,28 @@ current_id() {
 git_dir=$(git rev-parse --absolute-git-dir 2>/dev/null) || fail not-a-repository
 relay="$git_dir/commit-relay"
 
+skill_dir=$(cd -- "$(dirname -- "$0")/.." && pwd) || fail skill-not-found
+
 prev=""
-case "${1:-}" in
-  --id)
-    current_id || fail index-unreadable
-    exit 0
-    ;;
-  --token)
-    [ -f "${2:-}/staged.diff" ] || fail no-such-snapshot
-    tail -n 1 "$2/staged.diff" | sed -n 's/^relay-token: //p'
-    exit 0
-    ;;
-  --prev)
-    prev=${2:-}
-    ;;
-  "") ;;
-  *) fail "unknown-option $1" ;;
-esac
+style=classic
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --id)
+      current_id || fail index-unreadable
+      exit 0
+      ;;
+    --token)
+      [ -f "${2:-}/staged.diff" ] || fail no-such-snapshot
+      tail -n 1 "$2/staged.diff" | sed -n 's/^relay-token: //p'
+      exit 0
+      ;;
+    --prev) prev=${2:-}; shift ;;
+    --style) style=${2:-}; shift ;;
+    *) fail "unknown-option $1" ;;
+  esac
+  shift
+done
+case "$style" in classic | conventional) ;; *) fail bad-style ;; esac
 
 write_snapshot() {
   local id=$1 nonce=$2 token=$3 dir=$4 head email
@@ -55,6 +63,11 @@ write_snapshot() {
   git diff --name-only >"$dir/unstaged.files"
   git ls-files --others --exclude-standard >"$dir/untracked.txt"
   head=$(git rev-parse -q --verify HEAD 2>/dev/null)
+  mkdir -p "$dir/rules/references" "$dir/rules/styles" || return 1
+  for rule in $RULES; do
+    cp "$skill_dir/references/$rule.md" "$dir/rules/references/" || return 1
+  done
+  cp "$skill_dir/styles/$style.md" "$dir/rules/styles/" || return 1
   if [ -n "$head" ]; then
     {
       git log -5 --format=%s

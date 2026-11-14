@@ -2,11 +2,10 @@
 
 Based on user selection:
 
-Write the exact confirmed message to a temporary file (`MESSAGE_FILE`) using the file-write tool. Then use this skill's executor:
+Write the exact confirmed message with the file-write tool to `MESSAGE_FILE`, a new file with a unique name in `/tmp/commit-tools-msg/` (outside the repository: harnesses may refuse writes under `.git/`). The file-write tool creates the folder; do not run `mkdir`, `mktemp` or shell variables for it. Then run this skill's executor as its own command on one line, with literal paths:
 
 ```bash
-__GIT_COMMIT_PLUGIN__=1 bash "$COMMIT_SKILL_DIR/lib/commit.sh" \
-  --message-file "$MESSAGE_FILE" --style "$selected_style"
+__GIT_COMMIT_PLUGIN__=1 bash <COMMIT_SKILL_DIR>/lib/commit.sh --message-file <MESSAGE_FILE> --style <selected_style>
 ```
 
 For an explicit or detected amendment, append `--amend`. Append `--allow-style-override` only after the user explicitly chose "Commit anyway" for a style violation. The executor rechecks style, line wrapping, AI attribution and amend safety before calling Git. Keep the normal content-leak and atomicity checks above; the executor does not replace them.

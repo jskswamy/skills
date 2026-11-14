@@ -7,10 +7,10 @@
 Run the shared style script against the generated subject line:
 
 ```bash
-SCRIPT="$COMMIT_SKILL_DIR/lib/style-check.sh"
-STYLE_FILE="$COMMIT_SKILL_DIR/styles/<selected_style>.md"
-bash "$SCRIPT" "$subject" "$STYLE_FILE"
+bash <COMMIT_SKILL_DIR>/lib/style-check.sh "<subject>" <COMMIT_SKILL_DIR>/styles/<selected_style>.md
 ```
+
+Write it on one line with the literal paths, as its own command (nothing chained, no `echo $?`): the tool result shows its exit status.
 
 If the script exits non-zero, silently regenerate the subject so it
 conforms (preserve the body), then re-run the check. The classic style

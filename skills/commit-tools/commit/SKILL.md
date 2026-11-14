@@ -73,6 +73,8 @@ With no settings file or flag, use `classic` immediately. Settings are optional;
 
 ### Step 3: Gather Context
 
+First read `references/relay-dispatch.md`: when its conditions hold, the commit-drafter sub-agent does Steps 3–7b and that file replaces them.
+
 Read `references/gather-context.md` and follow it.
 
 ### Step 3b: Last Commit Comparison

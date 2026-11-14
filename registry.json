@@ -163,7 +163,9 @@
           "commit-tools/review-commits",
           "commit-tools/validate-commits"
         ],
-        "agents": [],
+        "agents": [
+          "commit-tools/commit-drafter.md"
+        ],
         "hooks": [
           "commit-tools/hooks.json",
           "commit-tools/scripts/intercept-git-commit.sh",
@@ -189,22 +191,40 @@
           "enabled": true,
           "optional": {
             "pre-tool:intercept-git-commit": "agy hook naming for MCP tools is unknown; the run_command guard is still carried"
+          },
+          "exclude": {
+            "agents/commit-tools/commit-drafter.md": "The commit drafter relay is Claude Code only; this harness drops the agent's tool limits or has no resumable sub-agents"
           }
         },
         "opencode": {
-          "enabled": true
+          "enabled": true,
+          "exclude": {
+            "agents/commit-tools/commit-drafter.md": "The commit drafter relay is Claude Code only; this harness drops the agent's tool limits or has no resumable sub-agents"
+          }
         },
         "pi": {
-          "enabled": true
+          "enabled": true,
+          "exclude": {
+            "agents/commit-tools/commit-drafter.md": "The commit drafter relay is Claude Code only; this harness drops the agent's tool limits or has no resumable sub-agents"
+          }
         },
         "codex": {
-          "enabled": true
+          "enabled": true,
+          "exclude": {
+            "agents/commit-tools/commit-drafter.md": "The commit drafter relay is Claude Code only; this harness drops the agent's tool limits or has no resumable sub-agents"
+          }
         },
         "agent-plugins": {
-          "enabled": true
+          "enabled": true,
+          "exclude": {
+            "agents/commit-tools/commit-drafter.md": "The commit drafter relay is Claude Code only; this harness drops the agent's tool limits or has no resumable sub-agents"
+          }
         },
         "omp": {
-          "enabled": true
+          "enabled": true,
+          "exclude": {
+            "agents/commit-tools/commit-drafter.md": "The commit drafter relay is Claude Code only; this harness drops the agent's tool limits or has no resumable sub-agents"
+          }
         }
       }
     },

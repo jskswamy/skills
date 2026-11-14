@@ -71,7 +71,8 @@ test("snapshot writes the staged state under the absolute git dir", async (t) =>
   assert.match(diff, /^\+two$/m);
   assert.ok(!r.stdout.includes(token), "the token is never printed with the snapshot");
   assert.ok(!s.dir.includes(token) && !s.nonce.includes(token));
-  for (const f of await readdir(s.dir)) if (f !== "staged.diff") assert.ok(!(await read(f)).includes(token), f);
+  // rules/ is checked by its own test
+  for (const f of await readdir(s.dir)) if (f !== "staged.diff" && f !== "rules") assert.ok(!(await read(f)).includes(token), f);
 
   const tok = snap(["--token", s.dir]);
   assert.equal(tok.status, 0, tok.stderr);
@@ -193,4 +194,37 @@ test("outside a git repository it fails cleanly", async (t) => {
   const r = spawnSync("bash", [SCRIPT], { cwd: root, encoding: "utf8", env: { ...process.env, GIT_CEILING_DIRECTORIES: root } });
   assert.notEqual(r.status, 0);
   assert.match(r.stdout, /^snapshot-failed /);
+});
+
+test("the snapshot carries the drafter's rules, laid out as in the skill", async (t) => {
+  const { git, write, snap, parse } = await repo(t);
+  await write("a.txt", "one\n");
+  git("add", "a.txt");
+  const r = snap(["--style", "conventional"]);
+  assert.equal(r.status, 0, r.stderr);
+  const s = parse(r.stdout);
+  const rules = join(s.dir, "rules");
+  assert.deepEqual(await readdir(join(rules, "styles")), ["conventional.md"], "only the chosen style");
+  const token = (await readFile(join(s.dir, "staged.diff"), "utf8")).trimEnd().split("\n").at(-1).split(" ")[1];
+  // every references/*.md or styles/*.md named by a copied file is copied too
+  const copied = (await readdir(rules, { recursive: true })).map(String).filter((f) => f.endsWith(".md"));
+  for (const f of copied) {
+    const text = await readFile(join(rules, f), "utf8");
+    assert.ok(!text.includes(token), `token leaked into ${f}`);
+    for (const m of text.matchAll(/`((?:references|styles)\/[\w.-]+\.md)`/g)) {
+      if (m[1].startsWith("styles/") && m[1] !== "styles/conventional.md") continue;
+      assert.ok(existsSync(join(rules, m[1])), `${f} names ${m[1]}, which was not copied`);
+    }
+  }
+  assert.ok(existsSync(join(rules, "references/draft.md")));
+  assert.equal(parse(snap().stdout) && existsSync(join(parse(snap().stdout).dir, "rules/styles/classic.md")), true, "classic by default");
+});
+
+test("an unknown style fails cleanly", async (t) => {
+  const { git, write, snap } = await repo(t);
+  await write("a.txt", "one\n");
+  git("add", "a.txt");
+  const r = snap(["--style", "conventinal"]);
+  assert.notEqual(r.status, 0);
+  assert.equal(r.stdout.trim(), "snapshot-failed bad-style");
 });
