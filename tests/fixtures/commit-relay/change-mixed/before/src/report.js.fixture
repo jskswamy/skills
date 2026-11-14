@@ -1,0 +1,3 @@
+import { fmt } from "./util.js";
+
+export const total = (items) => fmt(items.reduce((a, b) => a + b, 0));

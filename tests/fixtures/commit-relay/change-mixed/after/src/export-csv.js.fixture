@@ -1,0 +1,6 @@
+import { formatAmount } from "./util.js";
+
+// New feature: export line items as CSV.
+export function toCsv(items) {
+  return ["amount", ...items.map(formatAmount)].join("\n");
+}

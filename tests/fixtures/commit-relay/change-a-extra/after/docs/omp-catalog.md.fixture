@@ -1,0 +1,5 @@
+# omp catalog
+
+The release writes `.omp-plugin/marketplace.json` for every plugin with the
+omp harness enabled. omp prefers it over the Claude catalog, so enable omp
+for every plugin or for none.

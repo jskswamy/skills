@@ -1,6 +1,6 @@
 # Commit drafting in a per-task sub-agent
 
-Part 5 of the token diet (`docs/specs/2026-11-13-token-diet-design.md`). Issue: `skills-wisp-czi`. **Status: approved (v7).**
+Part 5 of the token diet (`docs/specs/2026-11-13-token-diet-design.md`). Issue: `skills-wisp-czi`. **Status: approved (v7.1: drafter rules copied into the snapshot after the Story 3 gate spike).**
 
 Reviews so far:
 
@@ -50,7 +50,12 @@ These are estimates from file sizes. Story 3's gate measures both flows with one
 - **Approval rule.** `SKILL.md:19`: a non-interactive run stops before committing unless the exact message was approved.
 - **Size cap.** `SKILL.md` is 7,113 bytes against the 8,000 cap.
 - **Evals.** The commit-tools evals allow only `[Read, Glob, Grep, Skill]`, run without a staged repository and grade read-only. They cannot exercise the drafter.
-- **Unverified until the Story 3 gate:**
+- **Gate spike, 2026-11-14** (a probe plugin with a `Read, Grep, Glob` agent, `claude -p` in default mode):
+  - a later `claude -p --resume` turn reached the same agent with `SendMessage`, and the agent quoted its earlier reply, so the per-task drafter works;
+  - `SendMessage` is a deferred tool (the parent loads it first), and the resumed agent's reply arrives after the turn's first result;
+  - the agent read files under `.git/` with no rule;
+  - **neither the agent nor the parent could read a file in the plugin folder** (outside the repository) without a rule, including a skill reading its own `references/`. This holds for today's inline flow too. Hence §3 copies the drafter's rule files into the snapshot.
+- **Still unverified until the Story 3 gate:**
   - whether a Claude Code sub-agent can be resumed from a later `claude -p --resume` turn of the same session;
   - whether a sub-agent can read files under `.git/` and under the plugin's skill folder without a permission prompt, in a normal checkout and in a linked worktree. The main session can: a probe on 2026-11-14 read under `.git/` with no rule. The same probe showed that writes under `.git/` are refused whatever the rule, and that writes outside the repository need an `Edit(//<path>/**)` rule.
 
@@ -74,7 +79,7 @@ These are estimates from file sizes. Story 3's gate measures both flows with one
 - **Every relay rule lives in `references/relay-dispatch.md`.** The inline references (`confirm-flow.md`, `message-dialogs.md` and the rest) keep their behavior, so the inline flow never dispatches, and the harnesses without a drafter are unaffected. Three one-line changes apply to both flows:
   - `repository-state.md`: Step 1 uses `--stat`.
   - `execute-commit.md`:
-    - the message file goes in `${TMPDIR:-/tmp}/commit-tools-msg/`, outside the repository (Claude Code refuses writes under `.git/` whatever the allow rule, observed 2026-11-14);
+    - the message file goes in `/tmp/commit-tools-msg/`, outside the repository, written directly with the file-write tool (the gate run on 2026-11-14 showed `${TMPDIR:-/tmp}`, `mkdir` and `mktemp` resolving to different folders) (Claude Code refuses writes under `.git/` whatever the allow rule, observed 2026-11-14);
     - the `commit.sh` call is written on one line with a literal path.
   - `message-validation.md`: the style check is called as the literal `bash <lib>/style-check.sh "<subject>" <style-file>`.
 - **Handing off to the inline flow.**
@@ -90,7 +95,7 @@ These are estimates from file sizes. Story 3's gate measures both flows with one
   - `tools: Read, Grep, Glob`: no Bash and no Write, so it cannot run git, commit or change files;
   - a one-line description saying that only the commit skill dispatches it.
 
-  Its prompt: read `<skill-dir>/references/draft.md`, follow it, and end every turn with one `relay` block.
+  Its prompt: read `<snapshot-dir>/rules/references/draft.md`, follow it, and end every turn with one `relay` block. The drafter reads only under the snapshot folder, which needs no permission rule.
 - **`references/draft.md`** is new and written for the drafter. It is linked from `relay-dispatch.md`, so reference validation passes.
   - **Inputs:** the snapshot files and the dispatch fields.
   - **Outputs:** the replies in section 5.
@@ -113,6 +118,7 @@ These are estimates from file sizes. Story 3's gate measures both flows with one
 
 `lib/snapshot.sh [--prev <dir>]`, run by the parent. It:
 
+0. **Takes `--style <classic|conventional>`** for the rules copy below. With no style, it uses `classic`. Any other value prints `snapshot-failed bad-style`, and the commit runs inline.
 1. **Computes the id:** `<head>-<tree>`, where `<head>` is the 12-character `HEAD` hash, or `root` when there are no commits, and `<tree>` is the 12-character `git write-tree` hash. `lib/snapshot.sh --id` prints only this id and is what the binding check calls.
 2. **Writes a new folder** at `$(git rev-parse --absolute-git-dir)/commit-relay/<nonce>/`, where `<nonce>` is random. The folder holds:
    - `id.txt`;
@@ -122,12 +128,18 @@ These are estimates from file sizes. Story 3's gate measures both flows with one
    - `head.txt`: the last 5 subjects, and the last commit's author and stat, or `no commits`;
    - `last-commit.diff` (`git show HEAD`; absent with no commits);
    - `amend-eligible.txt`: `yes` only when the last commit exists, its author email equals `git config user.email`, and no remote-tracking branch contains `HEAD` (`git branch -r --contains HEAD` is empty). Otherwise `no`.
+   - `rules/`: copies of the drafter's files, laid out as in the skill, so every path the copied files already use resolves against `rules/` unchanged and the drafter never reads the plugin folder. The copies are:
+     - `rules/references/draft.md`;
+     - the rule references `draft.md` names: `message-generation.md`, `message-example.md`, `content-leak-check.md`, `atomicity-analysis.md`, `last-commit-comparison.md`;
+     - `rules/styles/<style>.md`.
+
+     That is about 30 KB. The list lives in `snapshot.sh`, and a test checks that every file `draft.md` and the copied references name is copied.
 3. **Recomputes the id.** If the id changed while writing, it starts over once. If it changes again, it fails.
 4. **Cleans up.** It deletes the `--prev` folder, which is the caller's own earlier snapshot, but only if that path is a direct child of this repository's `commit-relay/` folder; any other path is ignored. It also deletes any other `commit-relay/` folder whose modification time is more than 24 hours old. A folder modified within 24 hours, such as another session's, is never touched.
 5. **Prints** `snapshot <id> <nonce> <files> <dir>`, where `<files>` is the number of lines in `staged.files`, and keeps the token to itself. The folder path comes last because it may contain spaces. On failure it prints `snapshot-failed <reason>`, for example `too-large` when `staged.diff` is over 400,000 chars. The commit then runs inline.
 6. **`lib/snapshot.sh --token <dir>`** prints that folder's token. The parent calls it only when checking a reply, so the token never appears in a dispatch.
 
-The diff never enters the parent. When the drafter retires, the parent deletes its own last folder.
+The diff never enters the parent. The parent never deletes snapshot folders itself (writes under `.git/` are refused); `--prev` and the 24-hour rule clean up.
 
 ### 4. Binding check
 
@@ -153,7 +165,6 @@ Relay messages are YAML in a fenced `relay` block. `references/relay-dispatch.md
 
 | Field | Value |
 |---|---|
-| `skill-dir` | absolute path of the commit skill |
 | `snapshot`, `snapshot-dir`, `nonce` | from `snapshot.sh` |
 | `style` | `classic` or `conventional` |
 | `co_author` | `none` or `Name <email>` |
@@ -297,8 +308,9 @@ Reading-based estimates for the reference change:
 3. **The drafter on Claude Code.**
    - **First:**
      - create and register the agent and `draft.md`, so the gate checks the real drafter;
+     - extend `lib/snapshot.sh` with `--style` and the `rules/` copy, with tests in `tests/build/commit-snapshot.test.mjs` (the copy mirrors the skill layout, `rules/styles/` holds only the chosen style, every file named by `draft.md` and the copied references is copied, an unknown style fails with `bad-style`, and the token appears in no copied file);
      - create `tests/fixtures/commit-relay/` (`change-a/`, `change-a-extra.md`, `change-b/`, `change-mixed/`), so the gate can measure on it.
-   - **Gate.** `scripts/commit-relay-check.sh --gate`. It:
+   - **Gate.** `scripts/commit-relay-check.mjs --gate`. It:
      - runs in a scratch repository with a local bare remote, pushing after every commit, so routine commits are never amend-eligible;
      - uses the plugin from a temp build (`--plugin-dir <build>/dist/claude-code/plugins/commit-tools`);
      - runs with `--setting-sources project`, so the user's own settings and allow rules do not apply;
@@ -307,7 +319,7 @@ Reading-based estimates for the reference change:
        - `Bash(git:*)`;
        - `Bash(bash <build>/dist/claude-code/plugins/commit-tools/skills/commit/lib/*)`;
        - `Bash(__GIT_COMMIT_PLUGIN__=1 bash <same lib>/commit.sh:*)`;
-       - `Edit(//<TMPDIR>/commit-tools-msg/**)`.
+       - `Edit(//tmp/commit-tools-msg/**)` and `Edit(//private/tmp/commit-tools-msg/**)` (macOS resolves `/tmp` to `/private/tmp`).
 
        The commit executor writes the message file with the Write tool into the folder that `execute-commit.md` now names (section 1). Observed on 2026-11-14:
        - an `Edit(//<absolute path>/**)` rule allows that write;
@@ -316,7 +328,7 @@ Reading-based estimates for the reference change:
 
        The literal style-check and `commit.sh` lines (section 1) match the `lib/*` and `commit.sh` rules on both flows.
      - fails the gate if any session reports a non-empty `permission_denials`;
-     - grants no Read rule and no extra directories, so the read check fails if the drafter needs a permission prompt;
+     - grants `Read(//<build>/dist/claude-code/plugins/commit-tools/**)`, so the parent can read its skill's references on both flows, as it needs today. It grants no other Read rule, so the drafter, which reads only under `.git/`, fails the gate if it needs anything else;
      - never uses a bypass mode.
 
      It checks:
@@ -326,7 +338,7 @@ Reading-based estimates for the reference change:
 
      If the resume or read check fails, the story stops and returns to shaping.
    - **Then:**
-     - create `references/relay-dispatch.md`, `tests/build/commit-drafter-exclude.test.mjs` and the rest of `scripts/commit-relay-check.sh`;
+     - create `references/relay-dispatch.md`, `tests/build/commit-drafter-exclude.test.mjs` and the rest of `scripts/commit-relay-check.mjs`;
      - modify `SKILL.md` (one pointer), `references/repository-state.md` (Step 1 `--stat`), `references/execute-commit.md` and `references/message-validation.md` (the one-line changes in section 1), and `registry.json` (the agent, excluded on the six other harnesses);
      - update `tests/fixtures/claude-snapshot.json`.
    - **Check script, behavior run.** The script uses a fresh scratch repository with the pushed seed (section 8). It copies each fixture's `after/` files in just before staging them, never earlier, so no fixture shows up as a related unstaged file. It drives one session with `claude -p`, then `claude -p --resume <session>`:
@@ -342,9 +354,26 @@ Reading-based estimates for the reference change:
      - **T6:** `/commit-tools:commit`. It expects `inline: atomicity`, the inline flow's split dialog, and no second dispatch for this commit.
 
      The script also runs the `measure-inline` and `measure-relay` sessions and asserts the section 8 acceptance from their counts. It prints each drafted message, so the user can judge its quality.
-   - **Verify:** `scripts/commit-relay-check.sh`, `npm test`, `npm run validate`, and `npm run eval -- commit-tools` (the inline flow, unchanged).
+   - **Verify:** `scripts/commit-relay-check.mjs`, `npm test`, `npm run validate`, and `npm run eval -- commit-tools` (the inline flow, unchanged).
 
 Stories 1 and 2 are independent. Story 3 depends on both. Parked follow-ups: enabling OpenCode, omp, Antigravity, and Pi with `pi-subagents`.
+
+## Outcome (Story 3 check, 2026-11-14)
+
+`node scripts/commit-relay-check.mjs` passed every check on Sonnet: the gate measurements and the T1–T6 behavior run.
+
+| Parent context per commit (the same `change-a`, then `change-b`) | Chars | Of inline |
+|---|---|---|
+| Inline baseline | 49,219 | |
+| Relay, first commit of a task | 19,231 | 39% (target ≤ 55%) |
+| Relay, later commit | 5,399 | 11% (target ≤ 35%) |
+
+What the gate runs changed while building:
+
+- **Script calls are literal one-liners.** `relay-dispatch.md`, `execute-commit.md` and `message-validation.md` call each script as its own command with literal paths. Quoted paths and chained commands never match an allow rule, and the relay then fell back inline.
+- **A fixed message folder.** The message file goes in `/tmp/commit-tools-msg/`, written directly. `${TMPDIR:-/tmp}`, `mkdir` and `mktemp` resolved to different folders.
+- **No deletes under `.git/`.** The parent never deletes snapshot folders; `--prev` and the 24-hour rule do.
+- **The check is a Node script,** `scripts/commit-relay-check.mjs`, because it parses stream-json. Its fixtures carry a `.fixture` suffix, so the test runner and validators ignore them.
 
 ## Alternatives considered
 
@@ -370,6 +399,17 @@ Stories 1 and 2 are independent. Story 3 depends on both. Parked follow-ups: ena
 ## Review record
 
 Review mode: Full (EGM + Ponytail), user-selected default, 2026-11-14 | Scope: new agent, relay for the common case, registry `exclude`, Step 1 `--stat`; Claude Code only | Rounds 1–6 complete and dispositioned | v7: approved by the user on 2026-11-14 ("Approve v7 and create"), after six Full rounds. The round-6 fixes were not re-reviewed by EGM, by the user's explicit choice; the Story 3 gate is the empirical check.
+
+**v7.1 (2026-11-14), after the Story 3 gate spike:** the drafter's rule files are copied into the snapshot (§3), and the gate allows the parent to read the plugin folder (Story 3). The user chose a Lightweight check (Ponytail) for this change.
+
+**v7.1 change review (Ponytail):**
+
+| Finding | Severity | Disposition |
+|---|---|---|
+| A flat `rules/` breaks `message-generation.md`'s link to `references/message-example.md` | Major | Fixed: `rules/` mirrors the skill layout |
+| An unknown `--style` has no defined result | Nit | Fixed: `snapshot-failed bad-style`, then inline |
+
+v7.1 approved by the user on 2026-11-14 ("Approve and continue").
 
 Disposition rows from earlier rounds describe the version they fixed. Where a later version replaced a mechanism (`fix-subject:`, `stripped`, Steps 5 and 6 before the dispatch, "never `inline`"), the later row is the current one.
 

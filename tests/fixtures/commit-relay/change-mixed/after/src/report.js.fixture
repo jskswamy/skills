@@ -1,0 +1,3 @@
+import { formatAmount } from "./util.js";
+
+export const total = (items) => formatAmount(items.reduce((a, b) => a + b, 0));

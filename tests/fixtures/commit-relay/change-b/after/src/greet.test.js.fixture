@@ -1,0 +1,5 @@
+import { greet } from "./greet.js";
+import assert from "node:assert/strict";
+
+assert.equal(greet("Ada"), "Hello, Ada!");
+assert.throws(() => greet(""), /name is required/);

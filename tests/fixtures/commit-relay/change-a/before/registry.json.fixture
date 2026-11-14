@@ -1,0 +1,684 @@
+{
+  "marketplace": {
+    "name": "skills",
+    "description": "Reusable agent skills and plugins for coding workflows",
+    "owner": {
+      "name": "Krishnaswamy Subramanian",
+      "email": "jskswamy@gmail.com"
+    }
+  },
+  "plugins": [
+    {
+      "name": "bivouac",
+      "description": "Safe workflows for disposable remote coding-agent sessions with bivouac",
+      "version": "1.1.0",
+      "author": {
+        "name": "Krishnaswamy Subramanian"
+      },
+      "category": "workflow",
+      "tags": [
+        "bivouac",
+        "remote",
+        "agents",
+        "sessions",
+        "workflow",
+        "nix",
+        "cloud"
+      ],
+      "resources": {
+        "skills": [
+          "bivouac/session"
+        ],
+        "agents": [],
+        "hooks": [],
+        "templates": [],
+        "extra": [
+          {
+            "from": "templates/bivouac/README.md",
+            "to": "README.md"
+          }
+        ]
+      },
+      "harnesses": {
+        "claude-code": {
+          "enabled": true
+        },
+        "antigravity": {
+          "enabled": true
+        },
+        "opencode": {
+          "enabled": true
+        },
+        "pi": {
+          "enabled": true
+        },
+        "codex": {
+          "enabled": true
+        },
+        "agent-plugins": {
+          "enabled": true
+        }
+      }
+    },
+    {
+      "name": "devenv",
+      "description": "Initialize and manage Nix flake development environments with auto-detection and security tooling",
+      "version": "2.1.0",
+      "author": {
+        "name": "Krishnaswamy Subramanian"
+      },
+      "category": "development",
+      "tags": [
+        "nix",
+        "flake",
+        "devenv",
+        "development",
+        "environment",
+        "pre-commit",
+        "gitleaks",
+        "security",
+        "direnv",
+        "direnv-instant"
+      ],
+      "resources": {
+        "skills": [
+          "devenv/manage"
+        ],
+        "agents": [],
+        "hooks": [
+          "devenv/hooks.json",
+          "devenv/scripts/nix-tools.sh"
+        ],
+        "templates": [],
+        "extra": [
+          {
+            "from": "templates/devenv/.mcp.json",
+            "to": ".mcp.json"
+          },
+          {
+            "from": "templates/devenv/README.md",
+            "to": "README.md"
+          }
+        ]
+      },
+      "harnesses": {
+        "claude-code": {
+          "enabled": true
+        },
+        "antigravity": {
+          "enabled": true,
+          "optional": {
+            "post-tool:nix-tools": "agy file-edit hook names and args are unverified, and agy ignores PostToolUse output"
+          }
+        },
+        "opencode": {
+          "enabled": true
+        },
+        "pi": {
+          "enabled": true
+        },
+        "codex": {
+          "enabled": true,
+          "optional": {
+            "post-tool:nix-tools": "Codex edits files via apply_patch diffs, not Write or Edit file_path inputs"
+          }
+        },
+        "agent-plugins": {
+          "enabled": true
+        }
+      }
+    },
+    {
+      "name": "commit-tools",
+      "description": "End-to-end commit hygiene: write atomic commits with style enforcement, review and consolidate them before push, validate the final history",
+      "version": "2.1.1",
+      "author": {
+        "name": "Krishnaswamy Subramanian"
+      },
+      "category": "git",
+      "tags": [
+        "git",
+        "commit",
+        "atomic",
+        "classic",
+        "conventional",
+        "review",
+        "squash",
+        "merge",
+        "validate",
+        "hooks",
+        "history",
+        "hygiene"
+      ],
+      "resources": {
+        "skills": [
+          "commit-tools/commit",
+          "commit-tools/commit-style",
+          "commit-tools/review-commits",
+          "commit-tools/validate-commits"
+        ],
+        "agents": [],
+        "hooks": [
+          "commit-tools/hooks.json",
+          "commit-tools/scripts/intercept-git-commit.sh",
+          "commit-tools/scripts/routing-reminder.sh"
+        ],
+        "templates": [],
+        "extra": [
+          {
+            "from": "skills/commit-tools/commit/styles",
+            "to": "styles"
+          },
+          {
+            "from": "templates/commit-tools/README.md",
+            "to": "README.md"
+          }
+        ]
+      },
+      "harnesses": {
+        "claude-code": {
+          "enabled": true
+        },
+        "antigravity": {
+          "enabled": true,
+          "optional": {
+            "pre-tool:intercept-git-commit": "agy hook naming for MCP tools is unknown; the run_command guard is still carried"
+          }
+        },
+        "opencode": {
+          "enabled": true
+        },
+        "pi": {
+          "enabled": true
+        },
+        "codex": {
+          "enabled": true
+        },
+        "agent-plugins": {
+          "enabled": true
+        }
+      }
+    },
+    {
+      "name": "jot",
+      "description": "Quick, low-friction capture of notes, tasks, ideas, session summaries, and tech radar blips with Obsidian-style auto-linking",
+      "version": "3.1.0",
+      "author": {
+        "name": "Krishnaswamy Subramanian"
+      },
+      "category": "productivity",
+      "tags": [
+        "capture",
+        "notes",
+        "tasks",
+        "ideas",
+        "radar",
+        "blips",
+        "knowledge-management",
+        "obsidian",
+        "wikilinks",
+        "gtd",
+        "productivity",
+        "learning",
+        "feynman",
+        "teach",
+        "teaching-notes"
+      ],
+      "resources": {
+        "skills": [
+          "jot/sketch-from-capture",
+          "jot/capture",
+          "jot/configure",
+          "jot/setup"
+        ],
+        "agents": [
+          "jot/capture.md",
+          "jot/content-extractor.md"
+        ],
+        "hooks": [],
+        "templates": [
+          "jot/capture/article.md",
+          "jot/capture/blip.md",
+          "jot/capture/book.md",
+          "jot/capture/idea.md",
+          "jot/capture/note.md",
+          "jot/capture/organisation.md",
+          "jot/capture/person.md",
+          "jot/capture/research.md",
+          "jot/capture/session.md",
+          "jot/capture/task.md",
+          "jot/capture/trove.md",
+          "jot/capture/video.md"
+        ],
+        "extra": [
+          {
+            "from": "templates/jot/README.md",
+            "to": "README.md"
+          }
+        ]
+      },
+      "harnesses": {
+        "claude-code": {
+          "enabled": true
+        },
+        "antigravity": {
+          "enabled": true
+        },
+        "opencode": {
+          "enabled": true
+        },
+        "pi": {
+          "enabled": true
+        },
+        "codex": {
+          "enabled": true
+        },
+        "agent-plugins": {
+          "enabled": true
+        }
+      }
+    },
+    {
+      "name": "craft",
+      "description": "Spec-driven development workshop with beads wisps and thin stories: park, debug, shape, and build",
+      "version": "3.0.1",
+      "author": {
+        "name": "Krishnaswamy Subramanian"
+      },
+      "category": "workflow",
+      "tags": [
+        "craft",
+        "work",
+        "build",
+        "shape",
+        "debug",
+        "park",
+        "wisps",
+        "stories",
+        "epics",
+        "workflow"
+      ],
+      "resources": {
+        "skills": [
+          "craft/park",
+          "craft/debug",
+          "craft/shape",
+          "craft/build"
+        ],
+        "agents": [
+          "craft/issue-writer.md"
+        ],
+        "hooks": [
+          "craft/hooks.json",
+          "craft/scripts/check-parked-ideas.sh"
+        ],
+        "templates": [],
+        "extra": [
+          {
+            "from": "templates/craft/README.md",
+            "to": "README.md"
+          }
+        ]
+      },
+      "harnesses": {
+        "claude-code": {
+          "enabled": true
+        },
+        "antigravity": {
+          "enabled": true
+        },
+        "opencode": {
+          "enabled": true
+        },
+        "pi": {
+          "enabled": true
+        },
+        "codex": {
+          "enabled": true
+        },
+        "agent-plugins": {
+          "enabled": true
+        }
+      }
+    },
+    {
+      "name": "sketch-note",
+      "description": "Generate visual sketch notes in Excalidraw format from conversations, code architecture, or custom content",
+      "version": "2.1.0",
+      "author": {
+        "name": "Krishnaswamy Subramanian"
+      },
+      "category": "visualization",
+      "tags": [
+        "sketch",
+        "excalidraw",
+        "diagram",
+        "visualization",
+        "architecture",
+        "notes",
+        "hand-drawn",
+        "mind-map",
+        "flowchart"
+      ],
+      "resources": {
+        "skills": [
+          "sketch-note/capture-for-sketch",
+          "sketch-note/excalidraw-format",
+          "sketch-note/sketch"
+        ],
+        "agents": [
+          "sketch-note/sketch.md"
+        ],
+        "hooks": [],
+        "templates": [
+          "sketch-note/code-architecture.md",
+          "sketch-note/conversation.md",
+          "sketch-note/custom.md"
+        ],
+        "extra": [
+          {
+            "from": "templates/sketch-note/styles",
+            "to": "styles"
+          },
+          {
+            "from": "shared-scripts/sketch-note",
+            "to": "scripts"
+          },
+          {
+            "from": "templates/sketch-note/README.md",
+            "to": "README.md"
+          }
+        ]
+      },
+      "harnesses": {
+        "claude-code": {
+          "enabled": true
+        },
+        "antigravity": {
+          "enabled": true
+        },
+        "opencode": {
+          "enabled": true
+        },
+        "pi": {
+          "enabled": true
+        },
+        "codex": {
+          "enabled": true
+        },
+        "agent-plugins": {
+          "enabled": true
+        }
+      }
+    },
+    {
+      "name": "typst-notes",
+      "description": "Generate beautiful PDF/HTML shareable notes using Typst with 7 professional templates, infographics, and modern typography",
+      "version": "2.1.0",
+      "author": {
+        "name": "Krishnaswamy Subramanian"
+      },
+      "category": "productivity",
+      "tags": [
+        "typst",
+        "pdf",
+        "html",
+        "notes",
+        "templates",
+        "publish",
+        "infographics"
+      ],
+      "resources": {
+        "skills": [
+          "typst-notes/infographics",
+          "typst-notes/jot-to-publish",
+          "typst-notes/typst-format",
+          "typst-notes/publish"
+        ],
+        "agents": [
+          "typst-notes/content-analyzer.md",
+          "typst-notes/typst-generator.md"
+        ],
+        "hooks": [],
+        "templates": [
+          "typst-notes/base.typ",
+          "typst-notes/cheat-sheet.typ",
+          "typst-notes/creative-portfolio.typ",
+          "typst-notes/executive-summary.typ",
+          "typst-notes/meeting-minutes.typ",
+          "typst-notes/study-guide.typ",
+          "typst-notes/technical-brief.typ",
+          "typst-notes/visual-sketchnote.typ"
+        ],
+        "extra": [
+          {
+            "from": "templates/typst-notes/fonts",
+            "to": "fonts"
+          },
+          {
+            "from": "shared-scripts/typst-notes",
+            "to": "scripts"
+          },
+          {
+            "from": "templates/typst-notes/themes",
+            "to": "themes"
+          },
+          {
+            "from": "templates/typst-notes/README.md",
+            "to": "README.md"
+          }
+        ]
+      },
+      "harnesses": {
+        "claude-code": {
+          "enabled": true
+        },
+        "antigravity": {
+          "enabled": true
+        },
+        "opencode": {
+          "enabled": true
+        },
+        "pi": {
+          "enabled": true
+        },
+        "codex": {
+          "enabled": true
+        },
+        "agent-plugins": {
+          "enabled": true
+        }
+      }
+    },
+    {
+      "name": "codebase",
+      "description": "Intelligent codebase exploration powered by codebase-memory-mcp. Natural language queries, change impact analysis, symbol graph traversal, and automatic brainstorming/planning integration.",
+      "version": "1.2.0",
+      "author": {
+        "name": "Krishnaswamy Subramanian"
+      },
+      "category": "code-intelligence",
+      "tags": [
+        "codebase",
+        "exploration",
+        "semantic-search",
+        "impact-analysis",
+        "codebase-memory",
+        "graph",
+        "architecture"
+      ],
+      "resources": {
+        "skills": [
+          "codebase/explore",
+          "codebase/ask",
+          "codebase/index",
+          "codebase/impact",
+          "codebase/graph",
+          "codebase/capabilities",
+          "codebase/seams"
+        ],
+        "agents": [],
+        "hooks": [
+          "codebase/hooks.json",
+          "codebase/session-reminder.sh",
+          "codebase/subagent-reminder.sh",
+          "codebase/discovery-augment.sh"
+        ],
+        "templates": [],
+        "extra": [
+          {
+            "from": "templates/codebase/README.md",
+            "to": "README.md"
+          }
+        ]
+      },
+      "harnesses": {
+        "claude-code": {
+          "enabled": true
+        },
+        "antigravity": {
+          "enabled": true,
+          "optional": {
+            "pre-tool:discovery-augment": "agy has no Grep or Glob tool, and its PreToolUse cannot inject context"
+          }
+        },
+        "opencode": {
+          "enabled": true
+        },
+        "pi": {
+          "enabled": true
+        },
+        "codex": {
+          "enabled": true,
+          "optional": {
+            "pre-tool:discovery-augment": "Codex has no Grep or Glob tool"
+          }
+        },
+        "agent-plugins": {
+          "enabled": true
+        }
+      }
+    },
+    {
+      "name": "study",
+      "description": "Adaptive study coach with multi-gear learning sessions (Socratic, Explain, Guide, Check, Help) and spaced recall tracking via Feynman loops. Saves coaching notes with gap tracking and a recall log that shows improvement over time.",
+      "version": "2.1.0",
+      "author": {
+        "name": "Krishnaswamy Subramanian"
+      },
+      "category": "productivity",
+      "tags": [
+        "learning",
+        "coaching",
+        "feynman",
+        "recall",
+        "spaced-repetition",
+        "study",
+        "knowledge",
+        "gaps"
+      ],
+      "resources": {
+        "skills": [
+          "study/coach",
+          "study/recall",
+          "study/setup"
+        ],
+        "agents": [
+          "study/coach-agent.md",
+          "study/content-extractor.md",
+          "study/recall-agent.md"
+        ],
+        "hooks": [],
+        "templates": [
+          "study/study-note.md"
+        ],
+        "extra": [
+          {
+            "from": "templates/study/README.md",
+            "to": "README.md"
+          }
+        ]
+      },
+      "harnesses": {
+        "claude-code": {
+          "enabled": true
+        },
+        "antigravity": {
+          "enabled": true
+        },
+        "opencode": {
+          "enabled": true
+        },
+        "pi": {
+          "enabled": true
+        },
+        "codex": {
+          "enabled": true
+        },
+        "agent-plugins": {
+          "enabled": true
+        }
+      }
+    },
+    {
+      "name": "refactor",
+      "description": "Semantic refactoring opportunity detection. Scans committed code for structural duplication (Fowler catalog), code smells (Fowler/Beck), GoF design pattern opportunities, SOLID/DRY principle violations, and language-idiomatic anti-patterns (Go, Python, TypeScript). Creates beads issues with TDD-first refactoring plans. Run on demand with /refactor:scan.",
+      "version": "1.1.1",
+      "author": {
+        "name": "Krishnaswamy Subramanian"
+      },
+      "category": "code-quality",
+      "tags": [
+        "refactoring",
+        "duplication",
+        "fowler",
+        "beads",
+        "codebase-memory",
+        "tdd",
+        "semantic-search"
+      ],
+      "resources": {
+        "skills": [
+          "refactor/scan"
+        ],
+        "agents": [
+          "refactor/scanner.md",
+          "refactor/synthesizer.md",
+          "refactor/validator.md"
+        ],
+        "hooks": [],
+        "templates": [],
+        "extra": [
+          {
+            "from": "templates/refactor/fixtures",
+            "to": "fixtures"
+          },
+          {
+            "from": "templates/refactor/README.md",
+            "to": "README.md"
+          }
+        ]
+      },
+      "harnesses": {
+        "claude-code": {
+          "enabled": true
+        },
+        "antigravity": {
+          "enabled": true
+        },
+        "opencode": {
+          "enabled": true
+        },
+        "pi": {
+          "enabled": true
+        },
+        "codex": {
+          "enabled": true
+        },
+        "agent-plugins": {
+          "enabled": true
+        }
+      }
+    }
+  ]
+}
