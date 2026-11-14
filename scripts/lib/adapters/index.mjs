@@ -9,7 +9,7 @@ import * as omp from "../../../harnesses/omp/adapter.mjs";
 import * as opencode from "../../../harnesses/opencode/adapter.mjs";
 import * as pi from "../../../harnesses/pi/adapter.mjs";
 import { removeDir } from "../fs-utils.mjs";
-import { loadPluginModel } from "../model.mjs";
+import { applyExclude, loadPluginModel } from "../model.mjs";
 
 export const ADAPTERS = [claudeCode, antigravity, opencode, pi, omp, codex, agentPlugins];
 
@@ -44,8 +44,10 @@ export async function runAdapters({ repoRoot, outRoot = repoRoot, registry, adap
     // harnesses that write one aggregate across plugins.
     const state = await adapter.generateRoot?.({ repoRoot, outRoot, registry, plugins, report: report.for(null, adapter.id) });
     for (const plugin of plugins) {
-      const model = await loadPluginModel({ repoRoot, plugin });
-      await adapter.generate({ repoRoot, outRoot, model, plugin, state, report: report.for(plugin.name, adapter.id) });
+      const { model, excluded } = applyExclude(await loadPluginModel({ repoRoot, plugin }), plugin, adapter.id);
+      const pluginReport = report.for(plugin.name, adapter.id);
+      for (const { path, reason } of excluded) pluginReport.add({ kind: "agents", resource: path, status: "excluded", reason });
+      await adapter.generate({ repoRoot, outRoot, model, plugin, state, report: pluginReport });
       report.ran(plugin.name, adapter.id);
     }
     await adapter.finish?.({ repoRoot, outRoot, registry, plugins, state, report: report.for(null, adapter.id) });

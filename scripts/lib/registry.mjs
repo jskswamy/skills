@@ -18,6 +18,20 @@ export async function validateRegistryResources({ repoRoot, registry }) {
     await validatePathList({ repoRoot, plugin, type: "hooks", base: "hooks", values: resources.hooks ?? [], errors });
     await validatePathList({ repoRoot, plugin, type: "templates", base: "templates", values: resources.templates ?? [], errors });
 
+    // harnesses.<id>.exclude: a map of a listed agent's path to a non-empty reason.
+    const agentPaths = new Set((resources.agents ?? []).map((entry) => `agents/${entry}`));
+    for (const [harness, config] of Object.entries(plugin.harnesses ?? {})) {
+      if (config?.exclude === undefined) continue;
+      if (!isObject(config.exclude) || Array.isArray(config.exclude)) {
+        errors.push(`${plugin.name} harnesses.${harness}.exclude must map an agent path to a reason`);
+        continue;
+      }
+      for (const [path, reason] of Object.entries(config.exclude)) {
+        if (!agentPaths.has(path)) errors.push(`${plugin.name} harnesses.${harness}.exclude names ${path}, which the plugin does not list in resources.agents`);
+        if (typeof reason !== "string" || reason.trim() === "") errors.push(`${plugin.name} harnesses.${harness}.exclude ${path} needs a reason`);
+      }
+    }
+
     for (const skill of resources.skills ?? []) {
       // Frontmatter is checked for every skill by validateSkills.
       if (!(await pathExists(join(repoRoot, "skills", skill, "SKILL.md")))) {

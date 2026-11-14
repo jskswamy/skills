@@ -8,7 +8,7 @@ Central registry and execution runner for harness build adapters (`claude-code`,
 - `isEnabled(plugin, id)` (`index.mjs`): Returns whether harness `id` is enabled for `plugin` (`claude-code` defaults to enabled unless explicitly `false`; all other harnesses require `enabled === true`).
 - `enabledAdapters(plugin, adapters = ADAPTERS)` (`index.mjs`): Filters `adapters` to those enabled for `plugin`.
 - `validateHarnessIds(registry, adapters = ADAPTERS)` (`index.mjs`): Returns validation error strings for any `plugin.harnesses.<id>` key in `registry` that does not match a registered adapter `id`.
-- `runAdapters({ repoRoot, outRoot = repoRoot, registry, adapters = ADAPTERS })` (`index.mjs`): Runs `generateRoot`, per-plugin `loadPluginModel` + `generate`, and `finish` across all `adapters`, returning a structured build report (`{ entries, errors(), for(plugin, harness), ran(plugin, harness), lines() }`).
+- `runAdapters({ repoRoot, outRoot = repoRoot, registry, adapters = ADAPTERS })` (`index.mjs`): Runs `generateRoot`, per-plugin `loadPluginModel` + `applyExclude` (excluded agents reported as `excluded`) + `generate`, and `finish` across all `adapters`, returning a structured build report (`{ entries, errors(), for(plugin, harness), ran(plugin, harness), lines() }`).
 - `withTempBuild({ repoRoot, registry, adapters = ADAPTERS }, use)` (`index.mjs`): Creates a temporary directory (`skills-build-*`), runs `runAdapters` into it, invokes `await use({ outRoot, report })`, and removes the temporary directory afterward.
 
 ## Invariants

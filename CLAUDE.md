@@ -35,6 +35,7 @@ dist/<harness>/plugins/<plugin>/      # One generated tree per harness: claude-c
 - `npm run build` writes into a temp dir and prints it; it never writes into the repo. Only the release (`npm run build:release`) writes `dist/` and the root marketplace catalogs, so never commit those outside a release. `main` therefore always installs the last release.
 - Update `registry.json` when adding/removing plugin resources, changing plugin metadata, or enabling a harness (`harnesses.<id>.enabled`).
 - A hook a harness cannot carry fails the build unless `harnesses.<id>.optional` names it with a reason.
+- To leave an agent out of one harness on purpose, name it in `harnesses.<id>.exclude` (`{"agents/<plugin>/<file>.md": "<reason>"}`); the build reports it as `excluded`, and validation rejects a path the plugin does not list.
 - Run `npm run build` after registry or canonical resource changes, and read its report of what each harness degrades.
 - Run `npm run validate` before committing structural changes. It checks a fresh temp build, not the committed `dist/`.
 - Generated output stays committed because Claude Code, Antigravity, OpenCode, Pi and omp install from a git tree and do not run build scripts.

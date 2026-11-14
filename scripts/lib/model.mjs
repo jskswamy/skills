@@ -2,6 +2,15 @@ import { readFile } from "node:fs/promises";
 import { basename, join } from "node:path";
 import { isRunnable, parseFrontmatter, pickerLine } from "./skills.mjs";
 
+// harnesses.<id>.exclude maps an agent path to the reason it is left out of that harness only.
+// Returns the model unchanged when nothing is excluded.
+export function applyExclude(model, plugin, harnessId) {
+  const exclude = plugin.harnesses?.[harnessId]?.exclude ?? {};
+  const excluded = model.agents.filter((agent) => agent.path in exclude).map(({ path }) => ({ path, reason: exclude[path] }));
+  if (excluded.length === 0) return { model, excluded };
+  return { model: { ...model, agents: model.agents.filter((agent) => !(agent.path in exclude)) }, excluded };
+}
+
 // One plugin's resources, resolved against the canonical root directories.
 // Paths are repo-relative so adapters can join them onto repoRoot.
 export async function loadPluginModel({ repoRoot, plugin }) {
