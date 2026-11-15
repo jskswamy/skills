@@ -90,7 +90,7 @@ If there's additional content description from the user, incorporate it.
 
 ### Step 5: Analyze Content
 
-Delegate to the `content-analyzer` agent with:
+Delegate to the `typst-notes:content-analyzer` agent with:
 - The raw content gathered in Step 4
 - The selected template name
 - Any user instructions about what to emphasize
@@ -103,7 +103,7 @@ The agent returns structured content including:
 
 ### Step 6: Generate Typst Source
 
-Delegate to the `typst-generator` agent with:
+Delegate to the `typst-notes:typst-generator` agent with:
 - The structured content from Step 5
 - The template name
 - The theme name

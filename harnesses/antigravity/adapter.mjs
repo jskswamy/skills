@@ -2,7 +2,7 @@ import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { mkdtemp, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { delimiter, join } from "node:path";
+import { basename, delimiter, join } from "node:path";
 import { DEFAULT_TIMEOUT_MS } from "../lib/hook-runner.mjs";
 import { ensureDir, readJson, removeDir, writeJson } from "../../scripts/lib/fs-utils.mjs";
 import { mapAgent } from "../../scripts/lib/transforms/agents.mjs";
@@ -10,7 +10,8 @@ import { parseDocument } from "../../scripts/lib/transforms/frontmatter.mjs";
 import { pluginRootPaths, rewritePluginRoot } from "../../scripts/lib/transforms/paths.mjs";
 import { carryHooks } from "../../scripts/lib/transforms/policy.mjs";
 import { matchesClaude, rewriteMatcher } from "../../scripts/lib/transforms/tools.mjs";
-import { copyLayout, copyRuntime, insertAfterDescription, restatePicker, wrapperLayout } from "../../scripts/lib/layout.mjs";
+import { derivedId, rewriteReferences } from "../../scripts/lib/transforms/names.mjs";
+import { copyLayout, copyRuntime, insertAfterDescription, restatePicker, rewriteTree, wrapperLayout } from "../../scripts/lib/layout.mjs";
 
 // One native plugin per registry plugin under dist/antigravity/plugins/.
 // `agy plugin install dist/antigravity` installs them all. agy copies a
@@ -54,12 +55,20 @@ const EVENT_LIMITS = {
 };
 const UNVERIFIED = "agy 1.4.1 ran no JSON hooks without a signed-in account; carried per its documented contract, unverified at runtime";
 
-export async function generateRoot({ outRoot }) {
+export async function generateRoot({ outRoot, registry }) {
   // Rebuilt whole, so a plugin that loses the harness loses its tree.
   await removeDir(join(outRoot, pluginsDir));
+  // agy keeps one flat agent namespace across plugins, so agents are named
+  // plugin-agent and references to them are rewritten; a skill keeps its
+  // plugin:skill name and wins a name an agent shares.
+  const skills = new Set(registry.plugins.flatMap((p) => (p.resources?.skills ?? []).map((e) => `${p.name}:${e.split("/").at(-1)}`)));
+  const agentPairs = new Set(
+    registry.plugins.flatMap((p) => (p.resources?.agents ?? []).map((e) => `${p.name}:${basename(e, ".md")}`)).filter((a) => !skills.has(a)),
+  );
+  return { agentPairs };
 }
 
-export async function generate({ repoRoot, outRoot, model, report }) {
+export async function generate({ repoRoot, outRoot, model, report, state }) {
   const pluginRoot = join(outRoot, pluginsDir, model.name);
   await writeJson(join(pluginRoot, ".antigravity-plugin", "plugin.json"), {
     name: model.name,
@@ -72,6 +81,7 @@ export async function generate({ repoRoot, outRoot, model, report }) {
     ({ kind, from, to }) => kind !== "agents" && !(kind === "hooks" && from.endsWith("hooks.json")) && !(kind === "extra" && to === MCP_SOURCE),
   );
   await copyLayout({ repoRoot, layout, to: pluginRoot });
+  await rewriteTree(join(pluginRoot, "skills"), { pairs: state.agentPairs, join: "-", exts: [".md"] });
 
   // agy never loads Claude's .mcp.json; its own mcp_config.json wraps the servers in mcpServers.
   const mcp = model.extra.find(({ to }) => to === MCP_SOURCE);
@@ -98,7 +108,8 @@ export async function generate({ repoRoot, outRoot, model, report }) {
   for (const agent of model.agents) {
     const text = await readFile(join(repoRoot, agent.path), "utf8");
     await ensureDir(join(pluginRoot, "agents"));
-    await writeFile(join(pluginRoot, "agents", `${agent.name}.md`), antigravityAgent({ text, agent, plugin: model.name, report }));
+    const mapped = antigravityAgent({ text, agent, plugin: model.name, report });
+    await writeFile(join(pluginRoot, "agents", `${agent.name}.md`), rewriteReferences(mapped, state.agentPairs, { join: "-" }));
   }
 
   await generateHooks({ repoRoot, model, pluginRoot, report });
@@ -110,8 +121,7 @@ export async function generate({ repoRoot, outRoot, model, report }) {
 // agent gets agy's defaults, as Claude's "*" intends.
 function antigravityAgent({ text, agent, plugin, report }) {
   const { frontmatter } = parseDocument(text);
-  const set = {};
-  if (!frontmatter.name) set.name = agent.name;
+  const set = { name: derivedId(plugin, frontmatter.name ?? agent.name) };
   if (!frontmatter.description) {
     set.description = `The ${agent.name} agent of the ${plugin} plugin.`;
     report.add({ kind: "agents", resource: agent.name, status: "degraded", reason: "no description in frontmatter; a generic one was generated" });

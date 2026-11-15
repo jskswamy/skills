@@ -26,7 +26,7 @@ the same tree into a temp dir for local testing. Tested with agy 1.4.1.
 - Generated Antigravity plugins must not depend on Node.js at runtime; `hook-shim.sh` requires only `bash` (>= 3.2) and `jq`.
 - On `PreToolUse` (`pre-tool:*`), `hook-shim.sh` must never output `{}` on non-blocking outcomes; it must output `{"decision":"allow"}` because Antigravity treats `{}` on `PreToolUse` as a denial.
 - Only hook exit code `2` blocks (`{"decision":"deny"}` on `pre-tool`, `{"decision":"continue"}` on `stop`); missing `jq`, missing scripts, timeouts, or other exit codes exit `0` with default non-blocking output.
-- Agent frontmatter in generated plugins retains only `name` and `description` (synthesizing a fallback `description` if absent and recording a `degraded` note) because Antigravity skips agents missing either field or carrying `tools: "*"`.
+- Agent frontmatter in generated plugins retains only `name` and `description` (synthesizing a fallback `description` if absent and recording a `degraded` note) because Antigravity skips agents missing either field or carrying `tools: "*"`. Agents are named `<plugin>-<agent>` and `plugin:agent` references in skills and agents are rewritten to match, because agy keeps one agent namespace across plugins (two plugins' `content-extractor` would collide); `plugin:skill` references stay as they are.
 
 ## Side Effects
 - `generateRoot` and `generate` delete and write plugin trees under `<outRoot>/dist/antigravity/plugins/`.
@@ -64,7 +64,8 @@ Each plugin holds:
   [`docs/command-skill-map.md`](../../docs/command-skill-map.md) lists the
   invocation forms.
 - `agents/`: name and description only. agy skips an agent without both, or
-  with `tools: "*"`, and Claude tool lists mean nothing to it.
+  with `tools: "*"`, and Claude tool lists mean nothing to it. Each agent is
+  named `<plugin>-<agent>`, since agy has one agent namespace for all plugins.
 - `hooks.json` and `runtime/`: the hooks, described below
 - templates and other files at the same paths as the Claude wrapper
 

@@ -70,7 +70,7 @@ const CODEBASE = {
 async function fixture(t, plugins) {
   const repoRoot = await mkdtemp(join(tmpdir(), "agy-adapter-"));
   t.after(() => rm(repoRoot, { recursive: true, force: true }));
-  await write(join(repoRoot, "skills/one/backlog/SKILL.md"), '---\nname: backlog\ndescription: Show the backlog\nargument-hint: "<x>"\n---\n');
+  await write(join(repoRoot, "skills/one/backlog/SKILL.md"), '---\nname: backlog\ndescription: Show the backlog\nargument-hint: "<x>"\n---\nDispatch `one:helper`; run /one:quiet.\n');
   await write(join(repoRoot, "skills/one/backlog/tests/case.md"), "dev only\n");
   await write(join(repoRoot, "skills/one/quiet/SKILL.md"), "---\nname: quiet\ndescription: Model only\nuser-invocable: false\n---\n");
   await write(
@@ -116,14 +116,15 @@ test("plugin tree: manifest, skills without tests, picker flag, mapped agents, t
   assert.equal(existsSync(out("one", "skills/backlog/tests")), false);
   assert.equal(
     await readFile(out("one", "skills/backlog/SKILL.md"), "utf8"),
-    '---\nname: backlog\ndescription: Show the backlog\nargument-hint: "<x>"\n---\n',
+    '---\nname: backlog\ndescription: Show the backlog\nargument-hint: "<x>"\n---\nDispatch `one-helper`; run /one:quiet.\n',
+    "agent references take the plugin-agent name; skill references keep plugin:skill",
   );
   assert.equal(
     await readFile(out("one", "skills/quiet/SKILL.md"), "utf8"),
     "---\nname: quiet\ndescription: Model only\ndisable-slash-command: true\nuser-invocable: false\n---\n",
   );
-  assert.equal(await readFile(out("one", "agents/helper.md"), "utf8"), "---\nname: helper\ndescription: |\n  Helps.\n\n  <example>x</example>\n---\n\nBody.\n");
-  assert.match(await readFile(out("one", "agents/bare.md"), "utf8"), /^---\nname: bare\ndescription: The bare agent of the one plugin\.\n---\n## No frontmatter/);
+  assert.equal(await readFile(out("one", "agents/helper.md"), "utf8"), "---\nname: one-helper\ndescription: |\n  Helps.\n\n  <example>x</example>\n---\n\nBody.\n");
+  assert.match(await readFile(out("one", "agents/bare.md"), "utf8"), /^---\nname: one-bare\ndescription: The bare agent of the one plugin\.\n---\n## No frontmatter/);
   assert.equal(await readFile(out("one", "templates/note.md"), "utf8"), "note\n");
   assert.equal(await readFile(out("one", "styles/a.css"), "utf8"), "a\n");
   assert.deepEqual(await readJson(out("one", "mcp_config.json")), { mcpServers: { srv: { command: "sh", args: ["-x"] } } });
