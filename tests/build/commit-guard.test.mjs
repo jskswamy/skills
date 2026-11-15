@@ -28,6 +28,9 @@ test("Claude guard blocks compound, nested and option-prefixed direct commits", 
     '__GIT_COMMIT_PLUGIN__=1 git status; git commit -m test',
     'echo __GIT_COMMIT_PLUGIN__=1; git commit -m test',
     'git commit -m "__GIT_COMMIT_PLUGIN__=1"',
+    // A model can set the workflow token itself, so it never unlocks a direct commit.
+    "__GIT_COMMIT_PLUGIN__=1 git commit -m test",
+    "git status; __GIT_COMMIT_PLUGIN__=1 git commit --amend -F /tmp/message",
   ]) {
     const result = check(command);
     assert.equal(result.status, 2, `${command}: ${result.stderr}`);
@@ -35,12 +38,11 @@ test("Claude guard blocks compound, nested and option-prefixed direct commits", 
   }
 });
 
-test("guard permits read-only Git and the scoped workflow convention", () => {
+test("guard permits read-only Git and the skill's executor", () => {
   for (const command of [
     "git status", "git log -1 --format=%B", "git show HEAD", "git diff --cached",
     "git log --grep='git commit'", "git -C /tmp/repo log -1",
-    "__GIT_COMMIT_PLUGIN__=1 git commit -m test",
-    "git status; __GIT_COMMIT_PLUGIN__=1 git commit --amend -F /tmp/message",
+    "__GIT_COMMIT_PLUGIN__=1 bash /plugins/commit-tools/skills/commit/lib/commit.sh --message-file /tmp/commit-tools-msg/m.txt --style classic",
   ]) {
     const result = check(command);
     assert.equal(result.status, 0, `${command}: ${result.stderr}`);
