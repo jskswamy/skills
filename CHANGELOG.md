@@ -2,6 +2,261 @@
 
 All notable changes to this skills/plugins collection will be documented in this file.
 
+## [3.5.0] - 2026-11-15
+
+### Added
+
+- Add the commit drafter spec and its reviews
+
+Each commit puts about 50k chars of workflow and diff into the main
+conversation. Replace the parked relay stub with the approved design:
+a read-only drafter on Sonnet that lives for the whole task, drafts
+only the common case from a snapshot under .git, and is checked by a
+per-snapshot token before anything is committed. Splits, related
+files, amends and edits that fail checks stay on the inline flow.
+Claude Code only; a new registry exclude key keeps the agent off the
+other harnesses.
+
+The design went through six Full review rounds (major findings 18,
+14, 12, 7, 4, 2; no blockers since round 3). A claude -p probe settled
+the last open point: writes under .git are always refused, so the
+message file moves to a temp folder, allowed by an Edit rule.
+- Add a staged-state snapshot for the commit drafter
+
+The planned commit drafter is read-only, so it cannot run git. The
+parent needs a way to hand it the staged changes without pulling the
+diff into its own context, and to prove later that a draft was
+written for the exact index being committed.
+
+snapshot.sh writes the staged diff, file lists, recent history and an
+amend-eligibility verdict into a random folder under the absolute git
+dir, ends the diff with a one-off token, and prints the snapshot id
+(HEAD plus write-tree). --id recomputes the id before committing and
+--token reads the token back for the check. It retries once if the
+index moves while writing, refuses diffs over 400,000 chars, and
+cleans up only the caller's previous folder and folders older than a
+day, so another session's snapshot survives.
+
+The folder path is printed last because test repositories, like real
+ones, can have spaces in their paths.
+- Add an end-to-end check for the commit relay
+
+The relay depends on Claude Code behaviour no unit test can see:
+resuming a sub-agent across turns, permission rules, and how much
+text reaches the parent. commit-relay-check.mjs runs real claude -p
+sessions in scratch repositories built from fixtures (commit
+a49bc4c's six files, a second change and a mixed one). It measures
+both flows and runs six turns covering a mid-flow git add, a resumed
+drafter and an inline hand-off. It costs money, so it runs by hand.
+
+The spec records the measured outcome and what the runs changed.
+
+### Changed
+
+- Move craft:shape ideation routes to a reference
+
+craft:shape was 8,334 bytes, and the build's reference rewriting took
+it to 8,466, over Codex's 8,000-byte $skill cut.
+
+Move Step 2's Fast-Path and Ideation Selector bullets word for word
+into references/ideation.md, leaving one pointer line. The step order,
+the return to Step 3 and the Evidence and review contract, which
+craft:build reads by name, stay inline. The largest generated copy is
+now 7.6 KB.
+
+The grounding test pins nearly every rule in shape, so it now reads
+SKILL.md plus its references and still checks all of them.
+- Move Typst install help out of publish
+
+typst-notes:publish was 7,950 bytes in source, but the build's
+reference rewriting took it to 8,018 on one harness, over Codex's
+8,000-byte $skill cut.
+
+Move the message printed when Typst is missing, and the offer to
+install it, word for word into references/typst-missing.md. The
+preflight check and its FAIL rule stay inline, since a test pins the
+Nix fallback there. The largest generated copy is now 7.2 KB.
+
+A headless run with no typst or nix on PATH stopped at the preflight,
+read the reference and printed the install message.
+
+### Other
+
+- Split commit-tools skills under 8,000 bytes
+
+Codex cuts a $skill body off at 8,000 bytes, so commit (17.7 KB),
+review-commits (14.9 KB) and validate-commits (9.3 KB) lost their
+later steps there without warning. On every harness a loaded body also
+stays in history, and commit runs on almost every task.
+
+Move the long step and section bodies word for word into each skill's
+references/, leaving the heading and a one-line pointer, the pattern
+commit already used for its dialogs and checks. Argument tables,
+resource resolution and the standing rules stay inline, and so does
+review-commits' Codebase Transport section, which a test pins.
+
+The generated copies are now 7.0-7.3 KB on every harness. The
+commit-tools evals, which check message validation and confirmation
+survive, pass 15 of 15 runs.
+- Split bivouac:session under 8,000 bytes
+
+At 24.5 KB, bivouac:session was three times Codex's 8,000-byte $skill
+cut, so Codex saw the dispatcher and little else.
+
+Move Preflight Checks, the eleven workflow sections, Paths and
+Resolution, and the out-of-scope list word for word into references/,
+one file each, leaving the heading and a one-line pointer. Purpose,
+the Dispatcher routing table, session naming and the safety
+invariants stay inline. The largest generated copy is now 7.7 KB.
+
+The bivouac test now reads SKILL.md plus its references, and checks
+the image-before-repo routing order inside the preflight reference
+where it now lives. A headless run of /bivouac:session image list
+opened the images and preflight references as intended.
+- Split devenv:manage under 8,000 bytes
+
+devenv:manage was 15.4 KB, almost all of it the two Step 2 branches,
+so Codex's 8,000-byte $skill cut dropped most of the manage flow.
+
+Move the Initialize Flow and Manage Flow word for word into
+references/init-flow.md and references/manage-flow.md, leaving each
+branch heading and a one-line pointer. Step 1, which picks the branch,
+and the Important Notes (validate with nix flake check, keep self,
+direnv-instant is a flake input) stay inline. The largest generated
+copy is now 4.1 KB.
+
+A headless run in an empty folder took the initialize branch and
+read init-flow.md.
+- Split three codebase skills under 8,000 bytes
+
+seams (14.9 KB), capabilities (11.9 KB) and ask (9.3 KB) were over
+Codex's 8,000-byte $skill cut, which dropped their later modes and
+the results step there.
+
+Move the mode-specific steps word for word into each skill's
+references/ (seams' three modes and results, capabilities' two modes
+and results, ask's four query types), leaving the heading and a
+one-line pointer. Codebase Transport, availability, index freshness,
+project resolution and mode selection stay inline; a test pins the
+transport section. The copies are now 5.6-7.1 KB on every harness.
+
+A headless codebase:ask run gave the same answer by the same route
+as the v3.4.1 skill.
+- Split sketch-note skills under 8,000 bytes
+
+sketch (14.0 KB) and excalidraw-format (8.6 KB) were over Codex's
+8,000-byte $skill cut; for sketch that meant losing everything from
+the export steps on.
+
+Move sketch's Steps 3-7 and 9 (content gathering, style, JSON
+generation, output format, path and PNG export) and
+excalidraw-format's complete example word for word into references/,
+leaving the heading and a one-line pointer. The element and styling
+reference stays inline. Both copies are now about 7 KB on every
+harness.
+
+A headless custom-mode run read the moved steps in order.
+- Split refactor:scan under 8,000 bytes
+
+At 13.9 KB, refactor:scan was over Codex's 8,000-byte $skill cut,
+which dropped the validator and report stages there.
+
+Move resume detection, index setup, scanner input building, the
+validator stage and the report word for word into references/,
+leaving the heading and a one-line pointer. Scanner dispatch, which a
+test pins, the synthesizer and the human review gate stay inline. The
+largest generated copy is now 6.9 KB.
+
+A headless run read the resume, index and scanner-input references in
+order.
+- Fail validation on SKILL.md over 8,000 bytes
+
+Codex cuts a $skill body off at 8,000 bytes without warning. Every
+skill is now under that on every harness, and nothing kept it that
+way.
+
+skillSizeErrors walks the generated trees and reports each SKILL.md
+over 8,000 bytes by harness, plugin and skill; validate runs it on
+its fresh temp build. It checks the generated copies, not the source,
+because reference rewriting grows a copy by up to about 130 bytes:
+typst-notes:publish was 7,950 in source and 8,018 in one tree.
+- Record the 8,000-byte skill spec and its outcome
+
+Replace the parked stub with the approved spec: fresh size evidence
+at v3.4.1, the move-to-references design, the generated-copy size
+rule, the stories, and the Lightweight review record with its two
+fixed findings and approval.
+
+Add the outcome: every generated SKILL.md is now at most 7.7 KB,
+craft:shape was moved rather than reworded because its test pins its
+rules, and the craft backlog-view eval failure predates this work.
+- Let the registry exclude an agent per harness
+
+The planned commit drafter must ship only on Claude Code: the other
+adapters drop an agent's tools and model, so elsewhere it would run
+with every tool. harnesses.<id>.optional cannot do this, since it
+only covers hooks a harness is unable to carry.
+
+Add harnesses.<id>.exclude, a map of agent path to reason.
+applyExclude removes those agents from the plugin model for that
+harness only, right after runAdapters loads it, so neither the
+native agent nor its canonical copy is generated, and the build
+reports each one as excluded. Validation rejects a path the plugin
+does not list or an entry without a reason, and the listing-size test
+uses the same filter for its expected counts.
+- Draft commits in a per-task sub-agent
+
+Each commit put about 50k chars of workflow and diff into the main
+conversation. On Claude Code, one read-only commit-drafter (Sonnet;
+Read, Grep, Glob) now drafts every commit of a task from a snapshot
+under .git, and is resumed for each later commit. The parent keeps
+every question, staging change and commit, and checks each draft's
+token and file count against the snapshot, redrafting when the index
+changed. Splits, related files and amends hand off to the inline
+flow. The snapshot carries the drafter's rules, since Claude Code
+refuses reads of the plugin folder outside the repository.
+
+Script calls, including the shared executor and style check, are now
+literal one-line commands, and the message file goes to
+/tmp/commit-tools-msg, so permission rules can match them. Other
+harnesses exclude the drafter and keep the inline flow.
+
+Measured on the same change: the parent's share falls to 39% of the
+inline flow for a task's first commit and 11% for later ones.
+- Prefix Antigravity agent names with the plugin
+
+agy keeps one agent namespace across plugins, so jot's and study's
+content-extractor both registered as content-extractor and one hid
+the other. Name each agent <plugin>-<agent>, as omp and OpenCode
+do, and rewrite plugin:agent references in skills and agents to
+match; plugin:skill references stay, and a skill keeps a name an
+agent shares. study:coach and the typst-notes publish skills named
+their agents bare, which resolved only by luck where agents are not
+namespaced; name them in full.
+- Stop the commit token from unlocking git commit
+
+The commit guard let a direct git commit through when prefixed with
+__GIT_COMMIT_PLUGIN__=1. In an OpenCode smoke test the model was
+blocked, then set the token itself and committed. The workflow
+commits only through lib/commit.sh, which the guard never sees as
+git commit, so the exemption served no caller. Block every direct
+git commit; the executor call stays allowed. The guard is still a
+workflow guard, not a sandbox: git plumbing gets past it.
+- Ask for approval when a sandbox blocks a commit
+
+Codex's default workspace-write sandbox keeps .git/ read-only, so
+the executor fails with "Unable to create '.git/index.lock':
+Operation not permitted" and the skill stopped there. Rerun the
+same command once with the harness's request for elevated
+permissions so the user can approve it. Document this, and that
+the commit guard did not fire in a fresh CODEX_HOME, in the Codex
+README.
+- Release v3.5.0
+
+Bump plugin versions: bivouac 1.3.0, devenv 2.3.0, commit-tools
+2.3.0, jot 3.3.0, craft 3.2.0, sketch-note 2.3.0, typst-notes
+2.3.0, codebase 1.4.0, study 2.3.0, refactor 1.3.0.
+Write every harness's output via npm run build:release.
 ## [3.4.1] - 2026-11-13
 
 ### Added
@@ -13,7 +268,7 @@ alone, and that description just lost its examples. The sketch-note
 skill fires on the same phrases. This eval pins the canonical route:
 a plain "draw me a diagram" request must load the sketch skill.
 
-It passes 3 of 3 runs against the current build.
+It passes 3 of 3 runs against the current build. by @jskswamy
 - Add the token diet design docs and research
 
 A usage report showed skill and agent listings, and the commit skill,
@@ -29,7 +284,7 @@ was investigated and what was built.
   OpenCode, Pi and Codex)
 - four parked specs: an 8 KB SKILL.md cap (fixes Codex cutting skills
   off), agent models per harness, OpenCode hook notes, a commit relay
-- the design review findings and their dispositions
+- the design review findings and their dispositions by @jskswamy
 
 ### Changed
 
@@ -49,7 +304,10 @@ prerequisite check right after a coaching session. craft:shape names
 the issue-writer agent by id instead of by path.
 
 Validation now rejects any SKILL.md that reads an
-agents/<plugin>/<file>.md path, so the pattern cannot come back.
+agents/<plugin>/<file>.md path, so the pattern cannot come back. by @jskswamy
+- Update CHANGELOG for v3.4.1
+
+Document all changes included in the v3.4.1 release. by @jskswamy
 
 ### Other
 
@@ -71,7 +329,7 @@ so adapters can act on it:
 - agent-plugins has no such field, so the build reports each hidden
   skill there as degraded.
 
-Codex and omp follow separately.
+Codex and omp follow separately. by @jskswamy
 - Hide disable-model-invocation skills on Codex
 
 Codex ignores the disable-model-invocation frontmatter key, so the
@@ -83,7 +341,7 @@ with policy.allow_implicit_invocation: false, which Codex reads to
 leave the skill out of the listing while $plugin:skill still runs it.
 The file is written after the reference rewrite so it stays literal,
 and the build fails if a source skill already ships its own
-openai.yaml rather than silently overwriting it.
+openai.yaml rather than silently overwriting it. by @jskswamy
 - Shorten agent descriptions to one line
 
 Claude Code, omp and Antigravity send every agent's description to
@@ -99,7 +357,7 @@ trigger words.
 Validation enforces the shape: one line, at most 250 characters, no
 <example>, and quoted unless it is plain YAML, because Claude Code
 copies agent files verbatim and an unquoted ": " would stop the agent
-from loading.
+from loading. by @jskswamy
 - Print each harness's listing size in the build
 
 Every harness sends the name and description of each visible skill,
@@ -113,7 +371,14 @@ resources.json). The build prints one informational line per harness;
 it never fails on the numbers, so a new skill does not break it.
 
 A test checks the counts against the registry for every harness, so
-an adapter layout change that the rules miss fails loudly.
+an adapter layout change that the rules miss fails loudly. by @jskswamy
+- Release v3.4.1
+
+Bump plugin versions: bivouac 1.2.0 → 1.2.1, craft 3.1.0 → 3.1.1,
+devenv 2.2.0 → 2.2.1, jot 3.2.0 → 3.2.1, refactor 1.2.0 → 1.2.1,
+sketch-note 2.2.0 → 2.2.1, study 2.2.0 → 2.2.1, typst-notes
+2.2.0 → 2.2.1. Write every harness's output via npm run
+build:release. by @jskswamy
 
 ### Removed
 
@@ -131,7 +396,7 @@ omp's rule of keeping /plugin:skill, which only holds for skills that
 have a wrapper.
 
 The omp smoke check now reads the system prompt through get_state and
-fails if a hidden skill is listed there or cannot run as /skill:<id>.
+fails if a hidden skill is listed there or cannot run as /skill:<id>. by @jskswamy
 ## [3.4.0] - 2026-11-10
 
 ### Added
@@ -4150,6 +4415,7 @@ as a dependency.
 ### Removed
 
 - Remove welcome message from shell hook by @jskswamy
+[3.5.0]: https://github.com/jskswamy/skills/compare/v3.4.1..v3.5.0
 [3.4.1]: https://github.com/jskswamy/skills/compare/v3.4.0..v3.4.1
 [3.4.0]: https://github.com/jskswamy/skills/compare/v3.3.1..v3.4.0
 [3.3.1]: https://github.com/jskswamy/skills/compare/v3.3.0..v3.3.1
