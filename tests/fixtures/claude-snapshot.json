@@ -59,7 +59,7 @@
   "dist/claude-code/plugins/commit-tools/skills/commit/references/content-leak-check.md": "63470ef2fc6b45f0d001b639258c0347e28ec74b2a9b55ad678e6b0a0e3d8c1a",
   "dist/claude-code/plugins/commit-tools/skills/commit/references/draft.md": "787e344407b0572ae4a39a21b5acd1fef61c800f6951dcefa04b4471ae472ca8",
   "dist/claude-code/plugins/commit-tools/skills/commit/references/error-messages.md": "4b6624e1c66abe80eaf0c6f0db925b1d5a42568c9ce273ebdae9b174964bddcc",
-  "dist/claude-code/plugins/commit-tools/skills/commit/references/execute-commit.md": "c6397a24860b55e5e3bf8fe005ab548fb8f60687ea7a33acedfe727efdcd55be",
+  "dist/claude-code/plugins/commit-tools/skills/commit/references/execute-commit.md": "4216be16949ae85b01b1a69ab45d49810afd3020594f285bdb2787769ad5ecb7",
   "dist/claude-code/plugins/commit-tools/skills/commit/references/gather-context.md": "22cc8ede02a3d6d001612c260df4e3d69d9c2136568d2804698dbc71b254534e",
   "dist/claude-code/plugins/commit-tools/skills/commit/references/last-commit-comparison.md": "3161eab229d11ec3abbdc3e47efafacc374dde2d784d4ce700b1fa3b1c696105",
   "dist/claude-code/plugins/commit-tools/skills/commit/references/message-dialogs.md": "c676d9865ed6971e9896b4524072c4a337b9ae94d806b78d8111f7bf63ee8d27",

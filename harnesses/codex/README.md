@@ -42,3 +42,16 @@ A skill with `disable-model-invocation: true` gets
 `policy.allow_implicit_invocation: false`. That takes it out of the
 model's skill listing; `$<plugin>:<skill>` still runs it. The build
 fails if the source skill already ships its own `agents/openai.yaml`.
+
+## Runtime notes
+
+- **Commits need approval.** Codex's default `workspace-write` sandbox keeps
+  `.git/` read-only, so `commit-tools`' executor fails with `Unable to create
+  '.git/index.lock': Operation not permitted`. The commit skill then reruns the
+  same command with a request for elevated permissions, which Codex shows to
+  the user. Under `codex exec`, which cannot ask, run with
+  `--sandbox danger-full-access` in a repository you trust.
+- **Hook trust.** Codex records a trusted hash for each plugin hook in
+  `config.toml` (`[hooks.state]`). In a fresh `CODEX_HOME` with no such
+  entries, the commit guard did not fire in a 2026-11-15 smoke test (unverified
+  cause); check a new install by asking Codex to run `git commit` directly.

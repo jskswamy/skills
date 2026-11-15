@@ -10,7 +10,7 @@ __GIT_COMMIT_PLUGIN__=1 bash <COMMIT_SKILL_DIR>/lib/commit.sh --message-file <ME
 
 For an explicit or detected amendment, append `--amend`. Append `--allow-style-override` only after the user explicitly chose "Commit anyway" for a style violation. The executor rechecks style, line wrapping, AI attribution and amend safety before calling Git. Keep the normal content-leak and atomicity checks above; the executor does not replace them.
 
-The environment token is a workflow convention, not proof of approval or a security boundary. Set it only after Step 8 confirmation. On a failed commit, preserve the message and report the error; do not change the index, bypass hooks, retry with different Git options, or push.
+The environment token is a workflow convention, not proof of approval or a security boundary. Set it only after Step 8 confirmation. On a failed commit, preserve the message and report the error; do not change the index, bypass hooks, retry with different Git options, or push. One exception: if a sandbox refused the write to `.git/` (for example Codex's default sandbox: `Unable to create '.git/index.lock': Operation not permitted`), run the same command once more with the harness's request for elevated permissions, so the user approves it.
 
 **After commit:**
 
