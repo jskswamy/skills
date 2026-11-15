@@ -45,7 +45,9 @@ Restart or reload Pi after updating the installed package.
 Claude Code's `PreToolUse` hook and Pi's `tool_call` handler redirect direct
 shell and MCP Git commits to the workflow. Pi also checks nested tool calls
 from codemode. Compound commands and command substitutions are checked; a read
-operation elsewhere in the command does not exempt a commit.
+operation elsewhere in the command does not exempt a commit, and neither does
+a `__GIT_COMMIT_PLUGIN__=1` prefix: the workflow commits through its executor,
+so a direct `git commit` is always redirected.
 
 `__GIT_COMMIT_PLUGIN__=1` is an approval **convention**, not a security boundary.
 Helpers require it after workflow confirmation; they do not mint it themselves.

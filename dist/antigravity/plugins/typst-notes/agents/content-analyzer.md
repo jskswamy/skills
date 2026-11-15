@@ -1,5 +1,5 @@
 ---
-name: content-analyzer
+name: typst-notes-content-analyzer
 description: Analyzes input content, selects appropriate structure for the chosen template, and organizes content with infographic suggestions.
 ---
 

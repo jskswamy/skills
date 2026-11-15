@@ -85,32 +85,19 @@ If the intent is ambiguous, make your best judgment. Do not ask the user to clar
 
 ### Step 3a: Location Query
 
-1. Call `search_graph` with `semantic_query` (an array of strings, e.g. `["webhook validation"]`) set to a rephrased version of the user's question (extract the core concept from "where does webhook validation happen?"). Set `semantic_limit` to 5.
-2. For the top 1-3 results, call `get_code_snippet` with the `qualified_name` to read the actual source.
-3. Synthesize the answer: state which file:line the code lives in, what the function does, who calls it (from `search_graph` connected nodes if available), and any relevant context about why it exists.
+Read `references/location-query.md` and follow it.
 
 ### Step 3b: Understanding Query
 
-1. Call `get_architecture` with `project` set to the current project. Request aspects: `["packages", "services", "entry_points"]`.
-2. Call `search_graph` with `semantic_query` (array of strings) to find the entry point or main function related to the user's question. Set `semantic_limit` to 5.
-3. For the most relevant result, call `trace_path` with `direction: "outbound"`, `depth: 3` to trace the flow from that entry point.
-4. For key nodes in the trace (up to 3), call `get_code_snippet` to read the source.
-5. Synthesize a narrative explanation: start with the entry point, walk through the call chain, explain what each step does and why, and how data flows through the system. Reference file:line for each function mentioned.
+Read `references/understanding-query.md` and follow it.
 
 ### Step 3c: Similarity Query
 
-1. Call `search_graph` with `semantic_query` (array of strings) describing the function or concept the user is asking about. Set `semantic_limit` to 10.
-2. Filter results: skip results from the same file. Group by package.
-3. For the top 3-5 matches, call `get_code_snippet` to read the actual source and confirm similarity.
-4. Synthesize: describe each match, explain how it's similar and how it differs, and note which ones could potentially be unified.
+Read `references/similarity-query.md` and follow it.
 
 ### Step 3d: Onboarding Query
 
-1. Call `get_architecture` with `project` set to the current project. Request aspects: `["packages", "services", "dependencies", "entry_points"]`.
-2. Call `search_graph` with `semantic_query` (array of strings) to find existing implementations similar to what the user wants to add. Set `semantic_limit` to 5.
-3. For the top 1-2 matches, call `trace_path` with `direction: "both"`, `depth: 2` to understand the interfaces and patterns.
-4. Call `get_code_snippet` for key files the user will need to understand.
-5. Synthesize: "To add [X], you'll want to look at how [similar thing] is implemented. Here's the pattern..." Include: files to model after, interfaces to implement, configuration to update, test patterns to follow.
+Read `references/onboarding-query.md` and follow it.
 
 ### Step 4: Present Answer
 

@@ -74,8 +74,9 @@ tokenize() {
 }
 
 # Succeeds when the command runs git commit (or commit-tree) anywhere,
-# including inside sh -c and command substitutions, unless that commit is
-# prefixed by exactly the __GIT_COMMIT_PLUGIN__=1 workflow token.
+# including inside sh -c and command substitutions. The skill commits through
+# lib/commit.sh, which this never sees as git commit, so no prefix lets a
+# direct commit through: a model could set any token itself.
 blocks_direct_commit() {
   # Fast path: every way to spell the subcommand leaves "commit" once quotes,
   # backslashes and line breaks are removed.
@@ -89,7 +90,7 @@ blocks_direct_commit() {
 
   tokenize "$1"
   local -a toks nest
-  local count=${#TOKENS[@]} i j begin shell_re='(^|/)(bash|sh|zsh|dash)$' git_re='(^|/)git$' flags_re='^-[a-z]*c[a-z]*$'
+  local count=${#TOKENS[@]} i j shell_re='(^|/)(bash|sh|zsh|dash)$' git_re='(^|/)git$' flags_re='^-[a-z]*c[a-z]*$'
   ((count > 0)) && toks=("${TOKENS[@]}")
   ((${#NESTED[@]} > 0)) && nest=("${NESTED[@]}")
 
@@ -112,10 +113,7 @@ blocks_direct_commit() {
         *) j=$((j + 1)) ;;
       esac
     done
-    [[ ${toks[j]} == commit || ${toks[j]} == commit-tree ]] || continue
-    begin=$i
-    while ((begin > 0)) && [[ ${toks[begin - 1]} != ";" ]]; do begin=$((begin - 1)); done
-    if ((i - begin != 1)) || [[ ${toks[begin]} != "__GIT_COMMIT_PLUGIN__=1" ]]; then return 0; fi
+    [[ ${toks[j]} == commit || ${toks[j]} == commit-tree ]] && return 0
   done
   return 1
 }

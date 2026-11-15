@@ -168,35 +168,7 @@ is a failure.
 
 ### Check 6: Subjects Conform to Style
 
-Resolve the active style file:
-
-1. Read `.claude/git-commit.local.md` and extract the `commit_style` value
-   from its YAML frontmatter
-2. If missing, default to `classic`
-3. Locate the installed `commit-tools:commit` skill and set `COMMIT_SKILL_DIR` to
-   its absolute directory. Style file: `$COMMIT_SKILL_DIR/styles/<style>.md`.
-   If missing, report a blocker rather than guessing a working-repo path.
-
-Then for each commit in `$BASE..HEAD`, run the shared style check:
-
-```bash
-SCRIPT="$COMMIT_SKILL_DIR/lib/style-check.sh"
-for h in $(git rev-list --reverse $BASE..HEAD); do
-  subj=$(git log -1 --format=%s "$h")
-  if ! reason=$(bash "$SCRIPT" "$subj" "$STYLE_FILE" 2>&1); then
-    echo "  ✗ $h '$subj' — $reason"
-  fi
-done
-```
-
-The script enforces the loaded style's rules. For `classic` these are:
-≤50 chars, leading uppercase, no trailing period, no `word:` type prefix,
-imperative mood (best-effort denylist of common past/3rd-person/gerund
-forms). For `conventional`: ≤72 chars and the standard `type(scope)?: description`
-format.
-
-- **Pass:** Every subject conforms
-- **Fail:** List each non-conforming commit hash, subject, and reason
+Read `references/style-check.md` and follow it.
 
 ### Check 7: No Tracker-ID Leaks
 
@@ -253,31 +225,7 @@ If ANY fail: "Post-commit validation failed." followed by the results.
 
 ## Auto-Fix: AI Co-Author
 
-If Check 3 fails AND all other checks pass (or the user wants to fix
-incrementally), offer to auto-fix:
-
-With `--unattended`, do not ask. Take the default safe choice: do not modify
-commits, record `{"gate":"ai-coauthor-autofix","chose":"no","why":"unattended default"}`,
-write the failed Check 3 detail to the result file, and exit non-zero.
-
-Use AskUserQuestion:
-```
-Fix automatically? (amends the affected commit to remove the AI co-author line)
-○ Yes — remove the co-author line
-○ No — I'll handle it
-```
-
-If "Yes":
-- For each affected commit (most recent first):
-  - Get the full commit message: `git log -1 --format=%B <hash>`
-  - Remove the offending `Co-Authored-By:` line(s)
-  - If the commit is HEAD: `git commit --amend -m "<cleaned message>"`
-  - If the commit is NOT HEAD: use interactive rebase is not possible
-    in this context, so report: "Commit <hash> is not HEAD. To fix,
-    run: `git rebase -i <hash>^` and edit the commit message manually."
-- Re-run Check 3 to confirm the fix worked
-
-If "No": Report the failure and let the user handle it.
+Read `references/auto-fix.md` and follow it.
 
 ## No Other Auto-Fixes
 

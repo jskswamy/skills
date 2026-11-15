@@ -27,21 +27,7 @@ else echo "TYPST_MISSING"; fi
 - `TYPST_AVAILABLE` or `NIX_AVAILABLE` (Nix supplies Typst without installing Typst globally): continue to Settings.
 - `TYPST_MISSING`: **FAIL. Do not continue with the task** - no template questions, no content gathering, no source generation. Print:
 
-> **Typst is not installed, so this task cannot run.**
->
-> Install it with one of:
-> - macOS (Homebrew): `brew install typst`
-> - Nix: `nix-env -iA nixpkgs.typst`
-> - Cargo: `cargo install --locked typst-cli`
-> - Windows: `winget install --id Typst.Typst`
-> - Other: download a binary from https://github.com/typst/typst/releases
->
-> Verify with `typst --version`, then run this command again.
-> I can also install it for you - just say so.
-
-Then use AskUserQuestion to offer: "Install Typst for you now?" with options "Yes, install it" / "No, I'll install it myself".
-  - **Yes**: pick the installer for the platform (`brew` on macOS, `nix-env` if Nix is present, else `cargo` if present, else `winget` on Windows). Show the exact command and run it. Re-run the check above; if `typst --version` succeeds, continue the task. If the install fails or no installer exists, report the error, show the manual steps, and stop.
-  - **No**: stop. Do not proceed with the task.
+Read `references/typst-missing.md` and follow it: the message to print and the offer to install Typst.
 
 ## Settings
 
@@ -105,7 +91,7 @@ If there's additional content description from the user, incorporate it.
 
 ### Step 5: Analyze Content
 
-Delegate to the `content-analyzer` agent with:
+Delegate to the `typst-notes:content-analyzer` agent with:
 - The raw content gathered in Step 4
 - The selected template name
 - Any user instructions about what to emphasize
@@ -118,7 +104,7 @@ The agent returns structured content including:
 
 ### Step 6: Generate Typst Source
 
-Delegate to the `typst-generator` agent with:
+Delegate to the `typst-notes:typst-generator` agent with:
 - The structured content from Step 5
 - The template name
 - The theme name

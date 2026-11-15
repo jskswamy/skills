@@ -1,5 +1,5 @@
 ---
-name: content-extractor
+name: study-content-extractor
 description: Use this agent to extract content from URLs (research papers, YouTube videos, web articles) or local files (PDF, markdown, text) for use in a coaching session.
 ---
 

@@ -35,62 +35,11 @@ in chat and wait; unattended runs return a blocker instead of asking.
 
 ## Unattended Mode Contract
 
-When `--unattended` is set, this skill is safe for agents running with no
-human attached:
-
-1. It never calls AskUserQuestion. Analysis gates choose the option marked
-   recommended/default and record the decision. Commit approval is separate:
-   invoke `commit-tools:commit` for the exact full plan. Without explicit approval
-   already supplied for that plan, write reason: `confirmation-required`
-   and stop before any history rewrite.
-2. It stays within the current branch scope: never check out another branch,
-   never merge, never delete a branch, never remove a worktree, never tag
-   (ignore `--tag`), and never push.
-3. It never blocks on setup. `--base <ref>` is required; missing base fails
-   with reason: `no-base`. First-time style setup is skipped. Style is read
-   from `--style`, then `.claude/git-commit.local.md`, then `classic`.
-4. It never invokes `/codebase:index`. Layer 3 semantic checks run only when
-   an existing fresh index is available; otherwise Layer 3 is skipped and the
-   skip is recorded in `decisions`.
-5. It fails loudly, not interactively. Rebase conflicts run
-   `git rebase --abort`, restore the original HEAD, write reason: `conflict`
-   with conflicting files, and exit non-zero. Test failures write reason:
-   `tests`. Revalidation drift without a saved message writes reason: `drift`.
-6. It enforces the tree invariant after rewriting: `git diff <original HEAD> HEAD`
-   must be empty. If not, restore the original HEAD, write reason:
-   `tree-mismatch`, and exit non-zero.
-
-Before starting, record `originalHead=$(git rev-parse HEAD)` and resolve
-`base=$(git rev-parse --verify "$BASE_REF")`. If base resolution fails in
-unattended mode, write the result with reason: `no-base` and exit non-zero.
-
-add `.review-commits/` to `.git/info/exclude` before writing the default result
-path so the result file is not accidentally tracked.
-
-### Result File
-
-Write `--result <path>` in every outcome:
-
-The result file is JSON with keys `outcome` (`done | failed`), `reason`, `base`, `originalHead`, `newHead`, `decisions`, `plan`, `validation`, `detail`; the full schema is in `references/result-file.md` (read it before writing the file).
-
-Exit code 0 only when `outcome` is `done`.
+Read `references/unattended-mode.md` and follow it.
 
 ## Precondition
 
-Require a clean worktree. Run:
-
-```bash
-git status --porcelain
-```
-
-If output is non-empty:
-
-- With `--unattended`, or when only untracked files exist, or when `command -v git-absorb` is unavailable, refuse to proceed:
-
-      Your worktree has uncommitted changes. Please commit or stash them
-      before running review-commits.
-
-- In interactive mode when tracked files have staged modifications (and no unstaged or untracked files) and `command -v git-absorb >/dev/null 2>&1` is available, resolve `$base` (`--base` or `git merge-base HEAD main`) and run `git absorb --base "$base" --dry-run`. Only if the dry run succeeds and leaves no unabsorbed staged hunks, ask via AskUserQuestion whether to run `git absorb --base "$base"` (creating `fixup!` commits to be folded during Step 6's approved rebase) or abort so the user can commit/stash manually. Never pass `--and-rebase` here so no history is rewritten before the `commit-tools:commit` approval gate; if the dry run cannot absorb every hunk cleanly, refuse with the message above without creating any commits.
+Read `references/precondition.md` and follow it.
 
 ## Auto-Detection
 
@@ -108,19 +57,7 @@ semantics on the current branch. Do not show the Main Flow options menu.
 
 ## Test Detection (Shared)
 
-Before either flow, if `--test-cmd <cmd>` was provided, use it as the test
-command. Otherwise detect the project's test command by checking for project
-files in the working directory root:
-
-| File | Command |
-|------|---------|
-| `go.mod` | `go test ./...` |
-| `package.json` | `npm test` |
-| `Cargo.toml` | `cargo test` |
-| `pyproject.toml` | `pytest` |
-
-Check files in this order. Use the first match. If no project file is
-found, skip testing and warn: "No test command detected. Skipping tests."
+Read `references/test-detection.md` and follow it.
 
 ## Codebase Index Resolution (Shared)
 
@@ -155,34 +92,7 @@ v2 has no settings.
 
 ## Commit Hygiene Analysis (Shared)
 
-Analyze commits in the range `$base..HEAD` for hygiene issues. This analysis
-runs in both Branch Flow and Main Flow (Rebase option) before the rebase plan
-is built. It is performed inline by the main agent using the checklist in
-`lib/synthesizer-prompt.md`.
-
-Four detection layers run in order. Each layer adds findings to a shared list.
-
-Read `references/hygiene-layers.md` and run the four layers in order: Layer 1 (subject-based introduce-then-fix pairs, mandatory fixup), Layer 2 (file-structural non-atomic, test-with-impl, and unrelated-commit findings), Layer 3 (semantic verification via codebase-memory, only when `$SEMANTIC_AVAILABLE=true`), and Layer 4 (tracker-ID leak detection via `lib/detect-tracker-leaks.sh`). Each layer adds findings to a shared list.
-
-### Present Hygiene Findings
-
-After all layers complete, present findings using AskUserQuestion if any
-issues were found:
-
-Use the dialog template in `references/hygiene-findings-dialog.md`: list pairs, non-atomic commits, unrelated changes, and tracking-system references, then offer Accept all suggestions / Review one by one / Dismiss all. Introduce-then-fix pairs are mandatory fixups. Tracker subject-prefix and narrative findings require rewording; trailer and parenthetical findings can usually be stripped while preserving the surrounding prose.
-
-If "Review one by one": walk through each non-mandatory finding with
-AskUserQuestion offering accept/dismiss per finding.
-
-With `--unattended`, choose "Accept all suggestions". Mandatory
-introduce-then-fix pairs remain mandatory. Record
-`{"gate":"hygiene-findings","chose":"accept-all","why":"unattended default"}`.
-
-If no issues detected, display:
-```
-Commit hygiene analysis: all commits are clean and atomic. ✓
-```
-And proceed directly to the rebase plan.
+Read `references/hygiene-analysis.md` and follow it.
 
 ## Logical Clustering (Shared)
 
@@ -221,34 +131,7 @@ If `--base` was provided, use that instead of detection.
 
 ### Step 3: Review Options
 
-Use AskUserQuestion:
-```
-What would you like to do?
-○ Validate only — check for issues without changing commits
-○ Rebase — run hygiene analysis and interactive rebase to clean up
-○ Reword — amend commit messages using saved style
-```
-
-**Validate only:**
-Invoke the `validate-commits` skill. Done.
-
-**Rebase:**
-Run the same analysis and rebase workflow as Branch Flow Steps 4-7:
-1. Ensure Codebase Index (set `$SEMANTIC_AVAILABLE`)
-2. Run Commit Hygiene Analysis against `$base..HEAD`
-3. Plan and review (Steps 4-5 of Branch Flow)
-4. Execute (Step 6 of Branch Flow)
-5. Revalidate (Step 7 of Branch Flow)
-
-All steps work identically to the Branch Flow — the only difference is that
-there is no merge step afterward (commits are already on main).
-
-**Reword:**
-Walk through commits oldest-to-newest. Let the user select which commits
-to reword via AskUserQuestion. Build a plan where all selected commits have
-`action: reword` and all others have `action: pick`. Execute via the same
-Steps 4-7 of Branch Flow (the synthesizer authors the new messages, the
-executor replays them, the revalidator confirms style).
+Read `references/review-options.md` and follow it.
 
 ### Step 4: Optional Tag
 
@@ -261,20 +144,7 @@ Step 3, which already ran it).
 
 ## Failure Handling
 
-After any unattended rebase/rewrite that appears successful, verify the tree
-invariant with `git diff <original HEAD> HEAD`. If the diff is non-empty,
-restore the original HEAD, write `outcome: failed`, reason: `tree-mismatch`,
-and exit non-zero.
-
-| Failure | Response |
-|---------|----------|
-| A reader subagent fails on one commit | Synthesizer treats that commit as `pick` and adds a note. The user sees the note in plan review and can override the action. |
-| Both MCP and CLI unavailable | Skip Layer 3 entirely. Layers 1+2 still run. Set `$SEMANTIC_AVAILABLE=false`. |
-| Synthesizer cannot author a message for an action | Surface the gap before plan review. The user chooses: accept the original message (downgrades the action to `pick`) or abort the run. |
-| Rebase conflict during execute | Interactive: stop, list conflicting files, await `git rebase --continue`. Unattended: run `git rebase --abort`, restore original HEAD, write reason: `conflict`, exit non-zero. |
-| Revalidator finds a drifted subject AND has a saved message | Auto-amend with the saved message. No user intervention. |
-| Revalidator finds a drifted subject AND has NO saved message | Interactive: print a warning to stderr listing the drifted hash and subject. Unattended: restore original HEAD, write reason: `drift`, exit non-zero. |
-| Revalidator finds a planned action that did not materialize (missing hash, wrong split count) | Warn loudly to the user. Do not auto-fix; the user must decide whether to redo the run. |
+Read `references/failure-handling.md` and follow it.
 
 ## Integration
 

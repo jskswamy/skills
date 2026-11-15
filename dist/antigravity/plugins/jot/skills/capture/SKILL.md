@@ -52,7 +52,7 @@ Store `review` value as `REVIEW` (default: `both`).
 
 If `raw_args` contains a URL (`https?://`) or a local file path:
 
-Delegate to the `jot:content-extractor` subagent:
+Delegate to the `jot-content-extractor` subagent:
 - Provide: input type (`url` or `file`), the URL or resolved file path
 - Receive: `CONTENT { title, description, body, raw_source }` (map: Content Summary → description, Source URL → raw_source)
 

@@ -17,12 +17,7 @@ Turn an idea, promoted wisp, or design doc into an approved markdown spec and th
    - Establish the feature scope and check existing capability/seam evidence against relevant current source using the Evidence contract below. If unchanged and sufficient, reuse it without invoking analysis. Investigate only missing, changed or uncertain coverage: invoke `codebase:capabilities` for relevant behavior and `codebase:seams` for affected boundaries. Whole-repo discovery is only needed when the feature cannot be located.
    - Carry reuse opportunities, owning modules, shared dependencies, public contracts, dependency direction, testing boundaries and gaps into ideation and the spec. Distinguish observed structure from proposed changes; metrics alone do not justify redesign.
 2. **Acquire Specification (Fast-Path or Ideation)**:
-   - **Fast-Path**: Read an existing file or already-approved spec; it still passes grounding and the review gate before slicing. Propose material changes for approval rather than silently changing an approved design.
-   - **Ideation Selector**: Otherwise (unless `--with` is set), ask the user to pick from available ideation skills:
-     - `egm`: Run `/egm-brainstorm` → `/egm-draft` → `docs/designs/<slug>.md`. **Caller Override**: EGM draft Step 5 detailed task/TDD planning is deferred to `craft:build`; retain high-level architecture, contracts, risks and testing strategy.
-     - `superpowers`: Run `superpowers:brainstorming` → `docs/superpowers/specs/YYYY-MM-DD-<slug>-design.md`.
-     - `grill-me`: Run `/grill-me` → `docs/specs/YYYY-MM-DD-<slug>-design.md`.
-     - **Fallback** (if none installed): Ask 3 Socratic questions (goal, scope, edge cases) one at a time and write `docs/specs/YYYY-MM-DD-<slug>-design.md`.
+   - Read `references/ideation.md` and follow it: the Fast-Path for an existing spec, or the Ideation Selector.
    - **All ideation paths** return with a candidate spec to Step 3, before detailed planning or execution. Do not copy or modify the delegated skills.
 3. **Spec Review Depth & Approval**:
    - Choose per spec, independent of ideation: **Full (default)** runs `/egm-review` plus `/ponytail-review`; **Lightweight** requires explicit user selection and runs `/ponytail-review` only. Recommend Lightweight with a concrete scope-based reason when work fits existing capabilities and boundaries. Architecture grounding and Ponytail are mandatory in both modes.

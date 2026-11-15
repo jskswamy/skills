@@ -67,9 +67,9 @@ User: $typst-notes:publish --source jot:inbox/meeting-2024-01-15.md
 3. Read the jot file at resolved path
 4. Parse frontmatter for metadata
 5. Analyze content type and suggest template (if not specified)
-6. Pass content to content-analyzer agent
-7. content-analyzer structures it for the template
-8. typst-generator produces the .typ file
+6. Pass content to the `typst-notes:content-analyzer` agent
+7. The agent structures it for the template
+8. The `typst-notes:typst-generator` agent produces the .typ file
 9. Compile to PDF/HTML
 10. Report output path
 ```

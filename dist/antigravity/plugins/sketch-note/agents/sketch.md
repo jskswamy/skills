@@ -1,5 +1,5 @@
 ---
-name: sketch
+name: sketch-note-sketch
 description: Use this agent proactively when users want to visualize, diagram, sketch or mind-map conversations, code architecture or concepts. Generates Excalidraw sketch notes with hand-drawn styling.
 ---
 

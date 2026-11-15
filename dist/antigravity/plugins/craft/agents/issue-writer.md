@@ -1,5 +1,5 @@
 ---
-name: issue-writer
+name: craft-issue-writer
 description: Executes batched bd CLI commands to create an epic, thin vertical-slice stories with --spec-id pointers, swimlane labels, and dependencies from an approved craft:shape plan.
 ---
 

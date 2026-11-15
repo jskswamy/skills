@@ -1,5 +1,5 @@
 ---
-name: typst-generator
+name: typst-notes-typst-generator
 description: Generates complete Typst source files from structured content using templates and themes.
 ---
 

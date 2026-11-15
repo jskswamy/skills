@@ -40,36 +40,7 @@ Print a count of removed scans and exit. Do not run any scan.
 
 ### Step 0b: Resume Detection
 
-If `--scope` is `package` or `all`, check for an in-flight working dir:
-
-```bash
-ls -1d .refactor-scan/*/ 2>/dev/null | sort -r | head -1
-```
-
-If a directory exists, inspect its state:
-
-| State on disk | Detected stage | Resume action |
-|---|---|---|
-| no `candidates/` or empty | `scanning` | restart scan in this dir |
-| `candidates/*.yaml` exist, no `findings.md` | `synthesis` | skip to Stage 2 |
-| `findings.md` exists, no `.proceeded` | `review-gate` | skip to Stage 3 (re-prompt) |
-| `.proceeded` exists, no `.completed` | `validating` | skip to Stage 4; cross-check `bd search` to skip already-created issues |
-| `.completed` exists | `done` | print `report.md` and suggest `--clean` |
-
-Use AskUserQuestion to prompt:
-
-```
-Found in-flight scan from <ts> (scope: <scope>)
-Stage: <detected stage>
-
-Resume this scan, or start fresh?
-○ Resume — pick up at <stage>
-○ Fresh — archive existing dir as .refactor-scan/<ts>.archived/ and start new
-```
-
-If `--fresh` is set, skip the prompt and archive immediately. Set `WORKING_DIR` to the resume target (or new dir) and proceed.
-
-If no in-flight dir exists (or scope is `diff`), `WORKING_DIR` is unset (diff scope skips the working dir entirely).
+Read `references/resume-detection.md` and follow it.
 
 ## Codebase Transport
 
@@ -84,17 +55,7 @@ Set `codebase_transport` to `mcp` or `cli`. All tool calls below use that transp
 
 ### Step 0c: Ensure Codebase is Indexed
 
-Required for all scopes (the diff scope already needed this).
-
-1. Resolve the transport above and call `list_projects`. Only if neither MCP nor CLI works, explain that semantic scanning requires either a configured MCP server or the installed `codebase-memory-mcp` CLI, then exit. Do not substitute a grep-only scan for semantic scanning.
-
-2. Determine the project name from the repo:
-   ```bash
-   basename $(git rev-parse --show-toplevel)
-   ```
-   If the project is not in `list_projects`, automatically run `/codebase:index`.
-
-3. For `--scope=package` or `--scope=all`, if `last_indexed` (from `.claude/codebase.local.md`) is missing or >24 hours old, run `/codebase:index` automatically. For `--scope=diff`, only re-index if the project is missing entirely (preserve current freshness behavior).
+Read `references/ensure-index.md` and follow it.
 
 ### Step 1: Determine Base SHA
 
@@ -117,38 +78,7 @@ No upstream branch detected. What SHA should I compare against?
 
 ### Step 2: Build Scanner Inputs
 
-Branch on scope:
-
-**scope=diff:**
-1. Resolve the base SHA per Step 1.
-2. Run `git diff BASE..HEAD` and scan for new function definitions (existing language patterns: Go `^+.*func `, Python `^+.*def `, TypeScript `^+.*(function |const .* = |=> )`).
-3. If no new function definitions found, print `No new function definitions in diff — skipping scan.` and exit cleanly.
-4. Set `SHARDS = [{scope: "diff", diff: <full diff>, output: "<WORKING_DIR_OR_TMP>/candidates/diff.yaml"}]` (where `WORKING_DIR_OR_TMP` is `WORKING_DIR` if set, otherwise a temp dir).
-
-**scope=package <path>:**
-1. Validate `<path>` is a real directory under the repo. If not, exit with an error.
-2. Set `SHARDS = [{scope: "package", package: "<path>", output: "<WORKING_DIR>/candidates/<path-with-slashes-as-dashes>.yaml"}]`.
-
-**scope=all:**
-1. Enumerate packages by querying `codebase-memory-mcp` `search_graph` with `label: "Folder"` and a generous `limit` (e.g. 200). The architecture API does NOT return a packages list; Folder nodes are the source of truth.
-2. From the returned Folder list, select package-level folders by filtering:
-   - Skip Folder names beginning with `.` (e.g. `.git`, `.beads`, `.claude-plugin`).
-   - Skip empty containers like `agents`, `commands`, `skills`, `hooks`, `templates`, `themes`, `styles`, `fixtures` when they appear directly under the project root — they are organizational, not packages.
-   - Prefer Folder nodes that contain at least one `File` node with a `Function` or `Method` defined (use `query_graph` or rely on the index's `DEFINES` edges to filter; if the runtime cost is too high, fall back to all non-skipped folders).
-   - For Go-style repos, package-level folders are typically direct children of `cmd/`, `internal/`, `pkg/`, or the project root.
-3. For each selected package, append `{scope: "all", package: "<file_path>", output: "<WORKING_DIR>/candidates/<path-with-slashes-as-dashes>.yaml"}` to `SHARDS`. Use the Folder node's `file_path` field as the package identifier.
-4. If filtering produces zero packages, fall back to "all non-dot top-level Folder nodes" so the scan still runs.
-
-Create `<WORKING_DIR>/candidates/` if it does not exist.
-
-Write `<WORKING_DIR>/meta.yaml`:
-```yaml
-scope: <scope>
-base_sha: <base SHA or "">
-project: <project>
-started_at: <ISO 8601>
-limit: <limit>
-```
+Read `references/scanner-inputs.md` and follow it.
 
 ### Step 3: Dispatch Scanner Subagents
 
@@ -210,73 +140,8 @@ If this step is reached during a resume from `.proceeded` already present, skip 
 
 ### Step 5: Validator (Stage 4)
 
-Branch on scope:
-
-**scope=diff (legacy path, preserved):**
-
-Dispatch a single `refactor-validator` agent with the legacy contract: pass the inline candidates from the single shard's yaml file (`<WORKING_DIR_OR_TMP>/candidates/diff.yaml`) reformatted as the legacy `CANDIDATES:` text block. The agent will run its old per-candidate flow.
-
-(This branch will be removed in a future cleanup once the validator's legacy path is retired. For now, the diff scope behavior is unchanged from the user's perspective.)
-
-**scope=package or scope=all:**
-
-1. Read `<WORKING_DIR>/findings.md`. Parse it into sections by splitting on `^## ` headings (skip the file's H1, skip the `## Singletons` table — it is not a section to file).
-
-2. For each architectural section, extract:
-   - `section_id` — the leading number from the heading (e.g. `## 1. Extract Class: ...` → `1`)
-   - `section_title` — the rest of the heading after the number
-   - `affected_packages` — comma-split from the `**Affected packages:**` line
-   - `confidence` — value of the `**Confidence:**` line
-   - `suggested_priority` — integer from the `**Suggested priority:**` line (`P2` → `2`)
-   - `evidence_refs` — comma-split from the `<!-- evidence-refs: ... -->` HTML comment
-   - `section_body` — the full markdown body from after the metadata lines through to the next `^## ` (or end of file)
-
-   If the user added a wholly new section by hand (no `evidence-refs` comment), set `evidence_refs = []`.
-
-3. Dispatch one `refactor-validator` subagent per section, in parallel batches of 3. Each subagent receives all of the parsed fields plus `working_dir`, `scope`, `project`, and `scan_timestamp` (from `meta.yaml`).
-
-4. During a resume from a `validating` state: before dispatching each section's subagent, run `bd search` with the section title's key terms. If a matching open issue exists, mark the section as `skip` (already-tracked) without dispatching.
-
-5. Collect each subagent's `SECTION VALIDATED` reply. Aggregate by `status`:
-   - `created` → `(issue_id, priority, title)`
-   - `skip` → `(reason, issue_id?)`
-   - `failed` → `(error)`
+Read `references/validator-stage.md` and follow it.
 
 ### Step 6: Report (Stage 5)
 
-Write `<WORKING_DIR>/report.md` (for `package`/`all`) or print directly (for `diff`) using this format:
-
-```
-Refactoring scan complete (scope: <scope>, scan: <ts>).
-
-Architectural issues created: <N>
-  <issue-id>  P<priority>  <title>
-  ...
-
-Singletons (review and file manually if needed): <M>
-  <pattern> in <file:func> — <reason no correlation>
-  ...
-
-Skipped (already tracked): <count>
-  <issue-id>  <title>
-  ...
-
-Failed: <count>
-  <section-title> — <error>
-  ...
-```
-
-For `package`/`all` scopes only, append:
-
-```
-Working directory: <WORKING_DIR>/
-  - findings.md (your reviewed version, preserved)
-  - candidates/*.yaml (full evidence)
-  - report.md (this report)
-
-Run /refactor:scan --clean to remove scans older than 30 days.
-```
-
-Print the report to the user. For `package`/`all` scopes, write a `<WORKING_DIR>/.completed` marker file (`touch`).
-
-For `diff` scope, no working dir to mark — exit cleanly.
+Read `references/report.md` and follow it.

@@ -51,7 +51,7 @@ Determine what the user passed:
 
 ### Step 4: Extract Content (URL or File Only)
 
-For URL or local file, delegate to the `content-extractor` agent:
+For URL or local file, delegate to the `study:content-extractor` agent:
 
 **Provide:**
 - Input type (url or file)

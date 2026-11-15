@@ -71,99 +71,12 @@ Call `list_projects`.
 
 ### Step 3a: Mode A — Capability Discovery (Architecture Recovery)
 
-1. For each resolved project, call `get_architecture` with:
-   - `project`: the resolved project name
-   - `aspects`: `["packages", "entry_points", "clusters", "layers", "routes"]`
-   *(Never request `system_structure`, which is an asynchronous web-UI aspect.)*
-2. Correlate `clusters` (`id`, `members`, `cohesion` $CF_i = \frac{2\mu_i}{2\mu_i + \varepsilon_i}$, `top_nodes`, `packages`) with `entry_points`, `routes`, and `packages`:
-   - Group high-cohesion clusters and their associated entry points into named **Capabilities**, inferring a domain/functional capability name from dominant symbols, routes, and package names. If $2\mu_i + \varepsilon_i = 0$, report cohesion as `0.00`.
-   - If `clusters` is empty (e.g., on a small or flat repository), group by `packages` + `entry_points` or query top-level symbols via `query_graph` (`MATCH (n) WHERE (n:Function OR n:Method OR n:Class OR n:Route) RETURN labels(n) AS type, n.name AS name, n.file_path AS file, n.qualified_name AS qn ORDER BY n.file_path LIMIT 100`).
-   - Identify shared utility/state clusters (overlapping nodes called by $\ge 2$ capability clusters).
-   - For up to **4 representative entry points** in single-index mode (or **2–3 per project** in multi-index mode) where symbol names alone are ambiguous, call `get_code_snippet`.
-3. **When $\ge 2$ projects are analyzed:**
-   - Check native cross-service links via `query_graph` on each project:
-     ```cypher
-     MATCH (a)-[r:CROSS_HTTP_CALLS|CROSS_GRPC_CALLS|CROSS_GRAPHQL_CALLS|CROSS_TRPC_CALLS|CROSS_ASYNC_CALLS|CROSS_CHANNEL]->(b)
-     RETURN a.qualified_name, a.file_path, type(r), b.qualified_name, b.file_path
-     LIMIT 100
-     ```
-   - Check cross-repo library/SDK links by matching `p1` outbound `IMPORTS`/`CALLS` against `p2`'s exported `packages` list from `get_architecture` (and vice versa).
-   - If both projects expose `routes` in `get_architecture` and 0 `CROSS_*` edges exist, note that running `$codebase:index --link <other-project>` materializes cross-service edges.
+Read `references/mode-a-discovery.md` and follow it.
 
 ### Step 3b: Mode B — Targeted Capability Inspection (Concern Graph & Feature Location)
 
-For each resolved project:
-
-1. **Seed Location:** Call `search_graph` with `semantic_query: ["<capability>"]` (`semantic_limit: 10`) and, if `<capability>` is an identifier token, `name_pattern: ".*<capability>.*"`.
-   - If multiple distinct clusters or entry points match `<capability>` ambiguously, present a numbered disambiguation list (`1..N`) with `file_path` and package context and ask the user to choose.
-2. **Cluster & Entry-Point Anchoring:** Call `get_architecture` with `aspects: ["entry_points", "clusters", "packages", "routes"]` to identify which cluster(s) and entry points anchor the matched symbols.
-3. **Concern Graph Expansion:** Select 1–3 primary seed entry points (route/handler/command nodes or lowest-inbound/highest-outbound degree symbols) and call `trace_path` with `direction: "outbound"`, `depth: <depth>`, `mode: "calls"`, plus `mode: "cross_service"` when cross-service edges or multiple projects are in scope.
-4. **Owned vs. Shared Scope:** Separate symbols and types belonging exclusively to this capability's cluster/package from shared utilities or state types referenced by other clusters.
-5. **Source Context:** Call `get_code_snippet` on the anchor entry point and 2–3 spine functions (capped at **4 snippets** in single-index mode and **2–3 snippets per project** in multi-index mode).
-6. **When $\ge 2$ projects are analyzed:**
-   - If `CROSS_*` edges or cross-project package imports connect Project A to Project B, stitch the trace into an end-to-end cross-index execution spine. If both projects expose `routes` but no `CROSS_*` edges exist, note that running `$codebase:index --link <other-project>` materializes cross-service edges.
-   - If the projects are independent or parallel implementations, present each project's Concern Graph and synthesize a side-by-side comparison of execution spines, types, and gaps.
+Read `references/mode-b-targeted.md` and follow it.
 
 ### Step 4: Present Results & Query Fallback
 
-**Zero Matches & Query Fallback:** If `search_graph`, `get_architecture`, or `query_graph` returns empty results for a target, attempt a single fallback pass using `ast-grep -p '<pattern>' -l <lang>` (if installed) or `rg`/`Grep` + `Read`. If still no match is found, output:
-
-```markdown
-No matching capability found for "[capability]" in [project_name(s)].
-
-Try:
-  - `$codebase:capabilities` (with no arguments) to discover available clusters and boundaries
-  - `$codebase:index` to refresh the index
-```
-
-**Mode A (Discovery) Output Format:**
-
-```markdown
-## Capability Map — [project_name(s)]
-
-### Summary
-- **Projects analyzed:** [project_1] ([N] nodes, [M] clusters)[, [project_2] ...]
-- **Capabilities identified:** [K]
-
-### Capabilities
-
-#### 1. [Capability Name] (cohesion: [0.XX], [N] symbols)
-- **Purpose:** [1-2 sentence synthesis of what this capability does]
-- **Entry Points:**
-  - `[file_path]:[symbol_name]` (line [L])
-- **Owned Scope (Packages & Core Symbols):** `[pkg_1]`, `[pkg_2]` — `[top_node_1]`, `[top_node_2]`, `[top_node_3]`
-- **Shared Utilities & Outbound Touchpoints:** [shared modules, state, or external services this capability depends on]
-
-...
-
-### Cross-Index Capability Links (when >= 2 projects)
-- **[Capability A] (`[project_1]`) <-> [Capability B] (`[project_2]`):** [Connected via CROSS_HTTP_CALLS | Shared SDK import | Parallel implementation — details]
-```
-
-**Mode B (Targeted) Output Format:**
-
-```markdown
-## Capability: [Capability Name] ([project_name(s)])
-
-[2-3 sentence synthesis of what this capability does, how it is triggered, and how data/control flows through its Concern Graph.]
-
-### Entry Points
-- `[file_path]:[symbol_name]` (line [L]) — [role]
-
-### Execution Spine
-1. `[file_path]:[symbol_1]` (line [L]) — [what step 1 does]
-   - `[file_path]:[symbol_2]` (line [L]) — [what step 2 does]
-     - `[file_path]:[symbol_3]` (line [L]) — [what step 3 does]
-
-### Cohesion & Scope Ownership
-- **Cluster Cohesion:** `[0.XX]` ([N] member symbols)
-- **Exclusively Owned Packages & Symbols:** `[pkg_1]` (`[SymbolA]`, `[SymbolB]`)
-- **Shared / Overlapping Types & State:** `[SharedType]`, `[SharedStore]` (shared with `[other_capability_or_pkg]`)
-
-### Outbound Seams (External Dependencies)
-- `[target_package_or_project]:[symbol]` — [why this capability calls out to it]
-
-### Cross-Index Analysis (when >= 2 projects)
-- **Relationship:** `[End-to-End Service Flow | Consumer/Provider SDK | Parallel Implementation]`
-- [Detailed trace across projects or side-by-side comparison of spine, types, and gaps]
-```
+Read `references/present-results.md` and follow it.
