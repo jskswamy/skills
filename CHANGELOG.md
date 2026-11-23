@@ -2,6 +2,27 @@
 
 All notable changes to this skills/plugins collection will be documented in this file.
 
+## [3.6.0] - 2026-11-23
+
+### Added
+
+- Add commit fixup mode and opt-in confirmation
+
+Route --fixup <sha> through commit-tools:commit so agents can fold
+review fixes into local or pushed ancestor commits while checking if
+the target commit message needs updating:
+
+- Add --fixup <sha> to lib/commit.sh with deterministic ancestor,
+  non-merge, and non-chained target checks, creating plain fixup!
+  commits or message-validated amend! commits via git commit --file=-.
+- Default interactive confirmation to off (confirm: false in
+  .claude/git-commit.local.md, opt-in via confirm: true or --confirm)
+  and skip heuristic auto-amend when confirm is false.
+- Recognize amend! commits in validate-commits and review-commits, and
+  update guard/action/snapshot tests, relay check, eval grader, README,
+  and Claude snapshot.
+
+Fixes #7
 ## [3.5.0] - 2026-11-15
 
 ### Added
@@ -20,7 +41,7 @@ other harnesses.
 The design went through six Full review rounds (major findings 18,
 14, 12, 7, 4, 2; no blockers since round 3). A claude -p probe settled
 the last open point: writes under .git are always refused, so the
-message file moves to a temp folder, allowed by an Edit rule.
+message file moves to a temp folder, allowed by an Edit rule. by @jskswamy
 - Add a staged-state snapshot for the commit drafter
 
 The planned commit drafter is read-only, so it cannot run git. The
@@ -38,7 +59,7 @@ cleans up only the caller's previous folder and folders older than a
 day, so another session's snapshot survives.
 
 The folder path is printed last because test repositories, like real
-ones, can have spaces in their paths.
+ones, can have spaces in their paths. by @jskswamy
 - Add an end-to-end check for the commit relay
 
 The relay depends on Claude Code behaviour no unit test can see:
@@ -49,7 +70,7 @@ a49bc4c's six files, a second change and a mixed one). It measures
 both flows and runs six turns covering a mid-flow git add, a resumed
 drafter and an inline hand-off. It costs money, so it runs by hand.
 
-The spec records the measured outcome and what the runs changed.
+The spec records the measured outcome and what the runs changed. by @jskswamy
 
 ### Changed
 
@@ -65,7 +86,7 @@ craft:build reads by name, stay inline. The largest generated copy is
 now 7.6 KB.
 
 The grounding test pins nearly every rule in shape, so it now reads
-SKILL.md plus its references and still checks all of them.
+SKILL.md plus its references and still checks all of them. by @jskswamy
 - Move Typst install help out of publish
 
 typst-notes:publish was 7,950 bytes in source, but the build's
@@ -78,7 +99,11 @@ preflight check and its FAIL rule stay inline, since a test pins the
 Nix fallback there. The largest generated copy is now 7.2 KB.
 
 A headless run with no typst or nix on PATH stopped at the preflight,
-read the reference and printed the install message.
+read the reference and printed the install message. by @jskswamy
+- Update CHANGELOG and README for v3.5.0
+
+Document all changes included in the v3.5.0 release.
+Regenerate plugins section in README from registry.json. by @jskswamy
 
 ### Other
 
@@ -97,7 +122,7 @@ review-commits' Codebase Transport section, which a test pins.
 
 The generated copies are now 7.0-7.3 KB on every harness. The
 commit-tools evals, which check message validation and confirmation
-survive, pass 15 of 15 runs.
+survive, pass 15 of 15 runs. by @jskswamy
 - Split bivouac:session under 8,000 bytes
 
 At 24.5 KB, bivouac:session was three times Codex's 8,000-byte $skill
@@ -112,7 +137,7 @@ invariants stay inline. The largest generated copy is now 7.7 KB.
 The bivouac test now reads SKILL.md plus its references, and checks
 the image-before-repo routing order inside the preflight reference
 where it now lives. A headless run of /bivouac:session image list
-opened the images and preflight references as intended.
+opened the images and preflight references as intended. by @jskswamy
 - Split devenv:manage under 8,000 bytes
 
 devenv:manage was 15.4 KB, almost all of it the two Step 2 branches,
@@ -126,7 +151,7 @@ direnv-instant is a flake input) stay inline. The largest generated
 copy is now 4.1 KB.
 
 A headless run in an empty folder took the initialize branch and
-read init-flow.md.
+read init-flow.md. by @jskswamy
 - Split three codebase skills under 8,000 bytes
 
 seams (14.9 KB), capabilities (11.9 KB) and ask (9.3 KB) were over
@@ -141,7 +166,7 @@ project resolution and mode selection stay inline; a test pins the
 transport section. The copies are now 5.6-7.1 KB on every harness.
 
 A headless codebase:ask run gave the same answer by the same route
-as the v3.4.1 skill.
+as the v3.4.1 skill. by @jskswamy
 - Split sketch-note skills under 8,000 bytes
 
 sketch (14.0 KB) and excalidraw-format (8.6 KB) were over Codex's
@@ -155,7 +180,7 @@ leaving the heading and a one-line pointer. The element and styling
 reference stays inline. Both copies are now about 7 KB on every
 harness.
 
-A headless custom-mode run read the moved steps in order.
+A headless custom-mode run read the moved steps in order. by @jskswamy
 - Split refactor:scan under 8,000 bytes
 
 At 13.9 KB, refactor:scan was over Codex's 8,000-byte $skill cut,
@@ -168,7 +193,7 @@ test pins, the synthesizer and the human review gate stay inline. The
 largest generated copy is now 6.9 KB.
 
 A headless run read the resume, index and scanner-input references in
-order.
+order. by @jskswamy
 - Fail validation on SKILL.md over 8,000 bytes
 
 Codex cuts a $skill body off at 8,000 bytes without warning. Every
@@ -179,7 +204,7 @@ skillSizeErrors walks the generated trees and reports each SKILL.md
 over 8,000 bytes by harness, plugin and skill; validate runs it on
 its fresh temp build. It checks the generated copies, not the source,
 because reference rewriting grows a copy by up to about 130 bytes:
-typst-notes:publish was 7,950 in source and 8,018 in one tree.
+typst-notes:publish was 7,950 in source and 8,018 in one tree. by @jskswamy
 - Record the 8,000-byte skill spec and its outcome
 
 Replace the parked stub with the approved spec: fresh size evidence
@@ -189,7 +214,7 @@ fixed findings and approval.
 
 Add the outcome: every generated SKILL.md is now at most 7.7 KB,
 craft:shape was moved rather than reworded because its test pins its
-rules, and the craft backlog-view eval failure predates this work.
+rules, and the craft backlog-view eval failure predates this work. by @jskswamy
 - Let the registry exclude an agent per harness
 
 The planned commit drafter must ship only on Claude Code: the other
@@ -203,7 +228,7 @@ harness only, right after runAdapters loads it, so neither the
 native agent nor its canonical copy is generated, and the build
 reports each one as excluded. Validation rejects a path the plugin
 does not list or an entry without a reason, and the listing-size test
-uses the same filter for its expected counts.
+uses the same filter for its expected counts. by @jskswamy
 - Draft commits in a per-task sub-agent
 
 Each commit put about 50k chars of workflow and diff into the main
@@ -222,7 +247,7 @@ literal one-line commands, and the message file goes to
 harnesses exclude the drafter and keep the inline flow.
 
 Measured on the same change: the parent's share falls to 39% of the
-inline flow for a task's first commit and 11% for later ones.
+inline flow for a task's first commit and 11% for later ones. by @jskswamy
 - Prefix Antigravity agent names with the plugin
 
 agy keeps one agent namespace across plugins, so jot's and study's
@@ -232,7 +257,7 @@ do, and rewrite plugin:agent references in skills and agents to
 match; plugin:skill references stay, and a skill keeps a name an
 agent shares. study:coach and the typst-notes publish skills named
 their agents bare, which resolved only by luck where agents are not
-namespaced; name them in full.
+namespaced; name them in full. by @jskswamy
 - Stop the commit token from unlocking git commit
 
 The commit guard let a direct git commit through when prefixed with
@@ -241,7 +266,7 @@ blocked, then set the token itself and committed. The workflow
 commits only through lib/commit.sh, which the guard never sees as
 git commit, so the exemption served no caller. Block every direct
 git commit; the executor call stays allowed. The guard is still a
-workflow guard, not a sandbox: git plumbing gets past it.
+workflow guard, not a sandbox: git plumbing gets past it. by @jskswamy
 - Ask for approval when a sandbox blocks a commit
 
 Codex's default workspace-write sandbox keeps .git/ read-only, so
@@ -250,13 +275,13 @@ Operation not permitted" and the skill stopped there. Rerun the
 same command once with the harness's request for elevated
 permissions so the user can approve it. Document this, and that
 the commit guard did not fire in a fresh CODEX_HOME, in the Codex
-README.
+README. by @jskswamy
 - Release v3.5.0
 
 Bump plugin versions: bivouac 1.3.0, devenv 2.3.0, commit-tools
 2.3.0, jot 3.3.0, craft 3.2.0, sketch-note 2.3.0, typst-notes
 2.3.0, codebase 1.4.0, study 2.3.0, refactor 1.3.0.
-Write every harness's output via npm run build:release.
+Write every harness's output via npm run build:release. by @jskswamy
 ## [3.4.1] - 2026-11-13
 
 ### Added
@@ -4415,6 +4440,7 @@ as a dependency.
 ### Removed
 
 - Remove welcome message from shell hook by @jskswamy
+[3.6.0]: https://github.com/jskswamy/skills/compare/v3.5.0..v3.6.0
 [3.5.0]: https://github.com/jskswamy/skills/compare/v3.4.1..v3.5.0
 [3.4.1]: https://github.com/jskswamy/skills/compare/v3.4.0..v3.4.1
 [3.4.0]: https://github.com/jskswamy/skills/compare/v3.3.1..v3.4.0
