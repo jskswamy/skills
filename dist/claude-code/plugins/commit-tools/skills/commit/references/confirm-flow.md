@@ -1,6 +1,8 @@
 # Step 8: Present and Confirm
 
-**When `AMEND_MODE=true` (explicit or detected), show the amend dialog instead:**
+**When `confirm` is `false` (default) and Step 7b passed:** Skip the confirmation dialog and proceed directly to Step 9 (`references/execute-commit.md`).
+
+**When `confirm` is `true` and `AMEND_MODE=true` (explicit or detected), show the amend dialog instead:**
 
 Show the amend dialog from `references/message-dialogs.md` (section "Amend dialog"): the regenerated message with options Amend / Edit message / New commit instead / Cancel.
 

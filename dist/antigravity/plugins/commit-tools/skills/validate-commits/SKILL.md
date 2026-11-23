@@ -154,16 +154,16 @@ grep -n '^<<<<<<< \|^>>>>>>>' <file>
 
 ### Check 5: No Squash Residue
 
-Check commit subjects for fixup/squash prefixes:
+Check commit subjects for fixup/amend/squash prefixes:
 
 ```bash
 git log --format=%s $BASE..HEAD
 ```
 
-Check each subject line. A subject starting with `fixup! ` or `squash! `
+Check each subject line. A subject starting with `fixup! `, `amend! `, or `squash! `
 is a failure.
 
-- **Pass:** No subjects start with `fixup!` or `squash!`
+- **Pass:** No subjects start with `fixup!`, `amend!`, or `squash!`
 - **Fail:** List each commit hash and subject
 
 ### Check 6: Subjects Conform to Style

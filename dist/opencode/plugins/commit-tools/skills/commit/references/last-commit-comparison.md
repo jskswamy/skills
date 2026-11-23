@@ -3,6 +3,7 @@
 ## Prerequisites, overlap heuristic, and LLM path
 
 **Prerequisites — skip entirely and set `AMEND_MODE=false` if any fail:**
+0. Confirmation is enabled (`confirm` is `true`). When `confirm` is `false`, skip heuristic auto-amend so `HEAD` is never silently rewritten without explicit `--amend`.
 1. Repo has at least one commit: `git log -1` exits 0
 2. Last commit was authored by the current user:
    - Current user email: `git config user.email`

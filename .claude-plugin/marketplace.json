@@ -52,7 +52,7 @@
     {
       "name": "commit-tools",
       "description": "End-to-end commit hygiene: write atomic commits with style enforcement, review and consolidate them before push, validate the final history",
-      "version": "2.3.0",
+      "version": "2.4.0",
       "author": {
         "name": "Krishnaswamy Subramanian"
       },

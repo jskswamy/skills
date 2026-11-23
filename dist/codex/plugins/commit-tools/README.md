@@ -26,14 +26,20 @@ Restart or reload Pi after updating the installed package.
 
 ## Workflow
 
-- `commit-tools:commit` owns every commit/amend, including agent-initiated task
-  completion. It validates atomicity and messages, then asks for confirmation.
+- `commit-tools:commit` owns every commit, amend, and fixup, including agent-initiated task
+  completion. It validates atomicity and messages; interactive confirmation is off by
+  default (`confirm: false`) and opt-in via `.claude/git-commit.local.md` (`confirm: true`)
+  or `--confirm`.
 - Classic style is the default. `--style conventional` overrides it; existing
   `.claude/git-commit.local.md` preferences remain optional.
 - `--amend` works with an empty index when only the message changes. Unrelated
   unstaged files are left alone. Known-published commits and other authors'
   commits cannot be amended. Published-state checks use local cached refs;
   there is no implicit fetch.
+- `--fixup <sha>` folds staged changes into any ancestor commit (including pushed
+  commits). It creates a plain `fixup!` commit when the target message still fits,
+  or a validated `amend!` commit when the target message should be updated; folding
+  with `git rebase -i --autosquash` and pushing stay with the user.
 - `$craft:build` and `$craft:debug` gather story or bug context and delegate commits to `commit-tools:commit` and `commit-tools:review-commits`.
 - `review-commits` plans history changes, then delegates full-message validation
   and approval to `commit-tools:commit`. Replay uses its shared executor. Unattended

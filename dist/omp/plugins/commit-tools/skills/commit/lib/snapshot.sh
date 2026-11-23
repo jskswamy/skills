@@ -1,7 +1,8 @@
 #!/bin/bash
 # Snapshot the staged state for the commit drafter, so the diff never enters
 # the parent's context. See docs/specs/2026-11-13-commit-relay-design.md §3.
-# Usage: snapshot.sh [--style <s>] [--prev <dir>]   write a snapshot; prints
+# Usage: snapshot.sh [--style <s>] [--prev <dir>] [--no-amend-check]
+#                                      write a snapshot; prints
 #                                      `snapshot <id> <nonce> <files> <dir>`
 #        snapshot.sh --id              print the current id only
 #        snapshot.sh --token <dir>     print that snapshot's token
@@ -34,6 +35,7 @@ skill_dir=$(cd -- "$(dirname -- "$0")/.." && pwd) || fail skill-not-found
 
 prev=""
 style=classic
+amend_check=1
 while [ $# -gt 0 ]; do
   case "$1" in
     --id)
@@ -47,6 +49,7 @@ while [ $# -gt 0 ]; do
       ;;
     --prev) prev=${2:-}; shift ;;
     --style) style=${2:-}; shift ;;
+    --no-amend-check) amend_check=0 ;;
     *) fail "unknown-option $1" ;;
   esac
   shift
@@ -77,7 +80,7 @@ write_snapshot() {
     git show --no-color --no-ext-diff HEAD >"$dir/last-commit.diff"
     email=$(git config user.email)
     # Amend only an own, unpushed commit: no remote-tracking branch may contain HEAD.
-    if [ -n "$email" ] && [ "$(git log -1 --format=%ae)" = "$email" ] && [ -z "$(git branch -r --contains HEAD 2>/dev/null)" ]; then
+    if [ "$amend_check" -eq 1 ] && [ -n "$email" ] && [ "$(git log -1 --format=%ae)" = "$email" ] && [ -z "$(git branch -r --contains HEAD 2>/dev/null)" ]; then
       echo yes >"$dir/amend-eligible.txt"
     else
       echo no >"$dir/amend-eligible.txt"

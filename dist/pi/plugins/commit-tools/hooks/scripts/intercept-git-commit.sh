@@ -9,7 +9,7 @@ command -v jq >/dev/null 2>&1 || exit 0
 export LC_ALL=C
 
 MAX_SCAN_BYTES=16384
-COMMIT_REQUIRED="Direct commit blocked. Load the commit-tools-commit skill, validate the message and get explicit confirmation before retrying. Leave commits local; do not push or sync."
+COMMIT_REQUIRED="Direct commit blocked. Load the commit-tools-commit skill to validate the message before committing. Leave commits local; do not push or sync."
 
 # Splits a command into shell-like words in TOKENS, with ";" for each command
 # separator, and the bodies of $(...) and `...` in NESTED.

@@ -5,17 +5,17 @@ Use the relay only when **all** of these hold; otherwise continue inline from St
 - the `commit-tools-commit-drafter` agent is in your agent list, and you have the Agent and SendMessage tools (SendMessage may need loading first);
 - your recorded drafter for this task is not `none`;
 - this commit was not already handed to the inline flow;
-- no explicit `--amend`, and something is staged after Step 1.
+- no explicit `--amend` or `--fixup`, and something is staged after Step 1.
 
 The drafter follows `references/draft.md`, from the copy in each snapshot. One drafter serves every commit of the current task (the user's current request, or the current `craft-build` story). A new commit request in the same conversation is the same task: resume the recorded drafter unless the user has moved on to unrelated work. It reads only the snapshot, never asks the user, and never changes the repository. You own every question, staging change and commit.
 
 ## 1. Before dispatching
 
 1. Steps 1, 2 and 6 run as usual (style name from Step 2, co-author from Step 6). Skip Steps 3–5 and 7–7b: the drafter does them.
-2. Take a snapshot, passing your previous snapshot folder in this task if any:
+2. Take a snapshot, passing your previous snapshot folder in this task if any (append `--no-amend-check` when `confirm` is `false` so the drafter does not bail to inline for heuristic auto-amend):
 
    ```bash
-   bash <COMMIT_SKILL_DIR>/lib/snapshot.sh --style <style> [--prev <last dir>]
+   bash <COMMIT_SKILL_DIR>/lib/snapshot.sh --style <style> [--prev <last dir>] [--no-amend-check]
    ```
 
    Run every script call in this file as its own one-line command, with literal unquoted paths and nothing chained before or after it, so permission rules can match it.
@@ -52,12 +52,14 @@ Add at most one of `regenerate: "<hint>"` or `edit: "<the full message>"`.
 
 ## 4. Confirm
 
-- **Draft:** check the subject with `bash <COMMIT_SKILL_DIR>/lib/style-check.sh "<subject>" <COMMIT_SKILL_DIR>/styles/<style>.md` (its own command, one line, literal paths; the tool result shows its exit status). If it fails, resend once with `regenerate: "subject failed the style check: <reason>"`; if it still fails, add Re-edit and "Commit anyway" to the dialog. Show the standard dialog from `message-dialogs.md`: Commit / Edit message / Regenerate / Cancel. Regenerate dispatches with `regenerate:`.
+- **Draft:** check the subject with `bash <COMMIT_SKILL_DIR>/lib/style-check.sh "<subject>" <COMMIT_SKILL_DIR>/styles/<style>.md` (its own command, one line, literal paths; the tool result shows its exit status). If it fails, resend once with `regenerate: "subject failed the style check: <reason>"`.
+  - **When `confirm` is `false` (default):** if `style-check.sh` passed (initially or after retry), skip the dialog and proceed directly to Section 5. If it still fails after retry, pause and offer Re-edit, "Commit anyway", and Cancel.
+  - **When `confirm` is `true`:** show the standard dialog from `message-dialogs.md`: Commit / Edit message / Regenerate / Cancel (adding Re-edit and "Commit anyway" if the style check still failed). Regenerate dispatches with `regenerate:`.
 - **Edit:** parse the user's text as the Edit prompt in `confirm-flow.md` describes, then dispatch `edit:` with it. On `checked`, the **text to commit** is the user's text with every exact occurrence of each `removed` item deleted (an item not found verbatim makes the reply malformed). Show both versions when `removed` is not empty; a removed item cannot be edited back in. Then run the style check on the text to commit. If it fails, offer Re-edit, Auto-fix (you rewrite only line 1 to satisfy the reported rule, then check again) and "Commit anyway". Every choice acts on the text to commit; commit it byte for byte.
 
 ## 5. Commit
 
-1. Run `bash <COMMIT_SKILL_DIR>/lib/snapshot.sh --id`. If it differs from the snapshot's id, the staged files changed: take a new snapshot and dispatch again (`edit:` with the current text to commit if the user edited, otherwise a plain dispatch), tell the user the staged files changed, and confirm again. If nothing is staged now, go back to Step 1, keeping any edit.
+1. Run `bash <COMMIT_SKILL_DIR>/lib/snapshot.sh --id`. If it differs from the snapshot's id, the staged files changed: take a new snapshot and dispatch again (`edit:` with the current text to commit if the user edited, otherwise a plain dispatch). When `confirm` is `true`, tell the user the staged files changed and confirm again. When `confirm` is `false`, re-check `snapshot.sh --id` once and commit directly if clean; on a second mismatch, pause and report to the user. If nothing is staged now, go back to Step 1, keeping any edit.
 2. Commit as `references/execute-commit.md` says.
 
 Never delete anything under `.git/` yourself: `snapshot.sh` removes your previous folder (`--prev`) and folders older than a day.

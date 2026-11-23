@@ -11,4 +11,4 @@ if [[ ! -f "$skill" ]]; then
   skill="$here/../../../skills/commit-tools/commit/SKILL.md"
 fi
 skill="$(cd -- "$(dirname -- "$skill")" && pwd)/SKILL.md"
-echo "Before creating or amending any Git commit, including automatic task completion and history replay, load and follow $skill. Validate the message and wait for explicit confirmation. No project configuration is needed. Leave commits local; pushing and remote synchronization belong to the user."
+echo "Before creating or amending any Git commit, including automatic task completion and history replay, load and follow $skill. Validate the message (and confirm if configured). No project configuration is needed. Leave commits local; pushing and remote synchronization belong to the user."

@@ -28,7 +28,7 @@
   "commands": [
     {
       "name": "commit-tools-commit",
-      "description": "Create a validated git commit. [--style classic|conventional] [--amend] [--pair] [context]",
+      "description": "Create a validated git commit. [--style classic|conventional] [--amend] [--fixup <sha>] [--confirm] [--pair] [context]",
       "path": "runtime/opencode/commands/commit-tools-commit.md"
     },
     {

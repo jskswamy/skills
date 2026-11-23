@@ -25,7 +25,7 @@ reason: "introduce-then-fix: <shared word>"
 action: fixup (mandatory)
 ```
 
-When `command -v git-absorb >/dev/null 2>&1` is available, you can also verify or discover fixup targets by patch commutation: if a trailing fix commit modifies lines introduced by an earlier commit in `$base..HEAD` without matching the subject keyword list above, pair it with the ancestor commit whose lines it commutes into. Any `fixup! <subject>` or `squash! <subject>` commit (including those created by `git absorb`) always pairs with its matching ancestor commit anywhere in `$base..HEAD`, independent of the 3-commit distance limit. When `git-absorb` is not installed, rely on the subject keyword heuristic above plus Layer 2 (`git diff-tree`) and Layer 3 semantic checks.
+When `command -v git-absorb >/dev/null 2>&1` is available, you can also verify or discover fixup targets by patch commutation: if a trailing fix commit modifies lines introduced by an earlier commit in `$base..HEAD` without matching the subject keyword list above, pair it with the ancestor commit whose lines it commutes into. Any `fixup! <subject>`, `amend! <subject>`, or `squash! <subject>` commit (including those created by `git absorb` or `commit-tools-commit --fixup`) always pairs with its matching ancestor commit anywhere in `$base..HEAD`, independent of the 3-commit distance limit; for an `amend! <subject>` commit, its body supplies `fixup_target_message`. When `git-absorb` is not installed, rely on the subject keyword heuristic above plus Layer 2 (`git diff-tree`) and Layer 3 semantic checks.
 
 ### Layer 2: File-Structural (always runs)
 

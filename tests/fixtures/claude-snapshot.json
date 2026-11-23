@@ -1,5 +1,5 @@
 {
-  ".claude-plugin/marketplace.json": "6dfcdeca48d264a182c3cb4dfe523265dedc4fe1aeb617abf379ff5ec00bd7a4",
+  ".claude-plugin/marketplace.json": "2a17eee05d3182cc94a3a4d23db2bd3c3ac6e4cd2d8399f288a40ab4b51d3cbd",
   "dist/claude-code/plugins/bivouac/.claude-plugin/plugin.json": "408611cf50ba60bc5735bb487088c7977727b53b04f154c511ee4aba340d7d7d",
   "dist/claude-code/plugins/bivouac/README.md": "c8a378511baaf9eb190f4e7b6e4a1f13befe31edfc1c257865125a98750143f0",
   "dist/claude-code/plugins/bivouac/skills/session/SKILL.md": "74483d0627fc9f7abc11e6d91ef2520965e9a6dfa3cd2ab657e907c9beacd142",
@@ -41,7 +41,7 @@
   "dist/claude-code/plugins/codebase/skills/seams/references/mode-b-targeted.md": "89dcd9874b310a26ee888c4c6f6fea36634489e7a2520fc210473c03a0a39586",
   "dist/claude-code/plugins/codebase/skills/seams/references/mode-c-multi-index.md": "ad549b7f85a685df144bab50d24caf8bba57b300dd3dacbcdb0ee65bc1da18ae",
   "dist/claude-code/plugins/codebase/skills/seams/references/present-results.md": "df806898ecbcf9ca91b417bf5fdb88cd6af28797018ff155876e662406439e8c",
-  "dist/claude-code/plugins/commit-tools/.claude-plugin/plugin.json": "77dfa2d835329a4a030b3414cd1636f4e2538bd5a7dd092c1565cae6685036f0",
+  "dist/claude-code/plugins/commit-tools/.claude-plugin/plugin.json": "a4d18ad4b3af370c4e5fa08868e3740fe43701c0a298a631fa749599ed7119c1",
   "dist/claude-code/plugins/commit-tools/README.md": "01e154fed27af447441b8d9ca2686718790b1cb4d4a705ed8dbdd25aa4876787",
   "dist/claude-code/plugins/commit-tools/agents/commit-drafter.md": "8d105ab31b3fe75115b6a8d24bf969b82f9cc44eebef8dd484fd5e85e3e9e100",
   "dist/claude-code/plugins/commit-tools/hooks/hooks.json": "bb4a3d3f01604e3e967e4f34ae009a3c407a52f4fa962cad23ebe21d2874003b",
