@@ -31,6 +31,8 @@ test("Claude guard blocks compound, nested and option-prefixed direct commits", 
     // A model can set the workflow token itself, so it never unlocks a direct commit.
     "__GIT_COMMIT_PLUGIN__=1 git commit -m test",
     "git status; __GIT_COMMIT_PLUGIN__=1 git commit --amend -F /tmp/message",
+    "git commit --fixup HEAD",
+    "git commit --fixup=amend:HEAD",
   ]) {
     const result = check(command);
     assert.equal(result.status, 2, `${command}: ${result.stderr}`);
@@ -43,6 +45,7 @@ test("guard permits read-only Git and the skill's executor", () => {
     "git status", "git log -1 --format=%B", "git show HEAD", "git diff --cached",
     "git log --grep='git commit'", "git -C /tmp/repo log -1",
     "__GIT_COMMIT_PLUGIN__=1 bash /plugins/commit-tools/skills/commit/lib/commit.sh --message-file /tmp/commit-tools-msg/m.txt --style classic",
+    "__GIT_COMMIT_PLUGIN__=1 bash /plugins/commit-tools/skills/commit/lib/commit.sh --fixup abc1234",
   ]) {
     const result = check(command);
     assert.equal(result.status, 0, `${command}: ${result.stderr}`);

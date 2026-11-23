@@ -228,3 +228,16 @@ test("an unknown style fails cleanly", async (t) => {
   assert.notEqual(r.status, 0);
   assert.equal(r.stdout.trim(), "snapshot-failed bad-style");
 });
+
+test("--no-amend-check marks amend-eligible as no even for an own unpushed HEAD", async (t) => {
+  const { git, write, snap, parse } = await repo(t);
+  await write("a.txt", "one\n");
+  git("add", "a.txt");
+  git("commit", "-q", "-m", "Seed");
+  await write("a.txt", "two\n");
+  git("add", "a.txt");
+  const s1 = parse(snap().stdout);
+  assert.equal((await readFile(join(s1.dir, "amend-eligible.txt"), "utf8")).trim(), "yes");
+  const s2 = parse(snap(["--no-amend-check"]).stdout);
+  assert.equal((await readFile(join(s2.dir, "amend-eligible.txt"), "utf8")).trim(), "no");
+});

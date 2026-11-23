@@ -53,6 +53,7 @@ test("Pi blocks direct and codemode-nested bash commits and direct MCP commits",
     { toolName: "bash", input: { command: "git commit --amend --no-edit" }, toolCallId: "code1/1", parentToolCallId: "code1" },
     { toolName: "mcp__git__git_commit", input: { message: "Skip workflow" }, toolCallId: "code1/2", parentToolCallId: "code1" },
     { toolName: "bash", input: { command: "__GIT_COMMIT_PLUGIN__=1 git commit -m test" }, toolCallId: "c3" },
+    { toolName: "bash", input: { command: "git commit --fixup HEAD" }, toolCallId: "c5" },
   ]) {
     const result = await handler(event, ctx);
     assert.equal(result?.block, true, event.toolCallId);

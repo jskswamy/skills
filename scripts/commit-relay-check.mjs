@@ -142,7 +142,7 @@ const showMessage = (repo, label) => console.log(`\n--- ${label} ---\n${repo.git
 
 function commitOnce(repo, label, { session, extra } = {}) {
   const before = commits(repo);
-  const t1 = turn(repo, "/commit-tools:commit", { session, extra });
+  const t1 = turn(repo, "/commit-tools:commit --confirm", { session, extra });
   const t2 = turn(repo, APPROVE, { session: t1.session, extra });
   noDenials(t1, `${label} draft turn`);
   noDenials(t2, `${label} approve turn`);
@@ -182,7 +182,7 @@ try {
     // --- behavior run T1–T6 ------------------------------------------------
     const repo = freshRepo("behavior");
     apply(repo, "change-a");
-    const t1 = turn(repo, "/commit-tools:commit");
+    const t1 = turn(repo, "/commit-tools:commit --confirm");
     noDenials(t1, "T1");
     check(drafterStarts(t1) === 1 && commits(repo) === 1, "T1: drafter started, draft shown, nothing committed");
     apply(repo, "change-a-extra");
@@ -196,7 +196,7 @@ try {
     showMessage(repo, "T3 message");
     repo.git("push", "-q", "origin", "main");
     apply(repo, "change-b");
-    const t4 = turn(repo, "/commit-tools:commit", { session: t3.session ?? t1.session });
+    const t4 = turn(repo, "/commit-tools:commit --confirm", { session: t3.session ?? t1.session });
     noDenials(t4, "T4");
     check(drafterStarts(t4) === 0 && sends(t4) >= 1, "T4: the same drafter resumed");
     const t5 = turn(repo, APPROVE, { session: t4.session ?? t1.session });
