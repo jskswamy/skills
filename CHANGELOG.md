@@ -2,6 +2,23 @@
 
 All notable changes to this skills/plugins collection will be documented in this file.
 
+## [3.6.1] - 2026-11-24
+
+### Other
+
+- Emit .antigravity-plugin/marketplace.json for Antigravity plugins
+
+Write .antigravity-plugin/marketplace.json in the Antigravity adapter
+generateRoot() pointing to ./dist/antigravity/plugins/<name>, enforce
+all-or-none enablement in validateRegistryShape, register the catalog in
+MARKETPLACES and release staging docs, and add adapter test coverage.
+- Release v3.6.1
+
+Bump plugin versions: bivouac 1.3.0 → 1.3.1, devenv 2.3.0 → 2.3.1,
+commit-tools 2.4.0 → 2.4.1, jot 3.3.0 → 3.3.1, craft 3.2.0 → 3.2.1,
+sketch-note 2.3.0 → 2.3.1, typst-notes 2.3.0 → 2.3.1,
+codebase 1.4.0 → 1.4.1, study 2.3.0 → 2.3.1, refactor 1.3.0 → 1.3.1.
+Write every harness's output via npm run build:release.
 ## [3.6.0] - 2026-11-23
 
 ### Added
@@ -22,7 +39,21 @@ the target commit message needs updating:
   update guard/action/snapshot tests, relay check, eval grader, README,
   and Claude snapshot.
 
-Fixes #7
+Fixes #7 by @jskswamy
+
+### Changed
+
+- Update CHANGELOG and README for v3.6.0
+
+Document all changes included in the v3.6.0 release.
+Regenerate plugins section in README from registry.json. by @jskswamy
+
+### Other
+
+- Release v3.6.0
+
+Bump plugin versions: commit-tools 2.3.0 -> 2.4.0.
+Write every harness's output via npm run build:release. by @jskswamy
 ## [3.5.0] - 2026-11-15
 
 ### Added
@@ -4440,6 +4471,7 @@ as a dependency.
 ### Removed
 
 - Remove welcome message from shell hook by @jskswamy
+[3.6.1]: https://github.com/jskswamy/skills/compare/v3.6.0..v3.6.1
 [3.6.0]: https://github.com/jskswamy/skills/compare/v3.5.0..v3.6.0
 [3.5.0]: https://github.com/jskswamy/skills/compare/v3.4.1..v3.5.0
 [3.4.1]: https://github.com/jskswamy/skills/compare/v3.4.0..v3.4.1
