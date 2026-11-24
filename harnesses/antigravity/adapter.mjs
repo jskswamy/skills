@@ -55,9 +55,26 @@ const EVENT_LIMITS = {
 };
 const UNVERIFIED = "agy 1.4.1 ran no JSON hooks without a signed-in account; carried per its documented contract, unverified at runtime";
 
-export async function generateRoot({ outRoot, registry }) {
+export async function generateRoot({ outRoot, registry, plugins = [] }) {
   // Rebuilt whole, so a plugin that loses the harness loses its tree.
   await removeDir(join(outRoot, pluginsDir));
+  await removeDir(join(outRoot, ".antigravity-plugin"));
+  if (plugins.length > 0) {
+    await writeJson(join(outRoot, ".antigravity-plugin", "marketplace.json"), {
+      name: registry.marketplace.name,
+      owner: registry.marketplace.owner,
+      metadata: { description: registry.marketplace.description },
+      plugins: plugins.map((plugin) => ({
+        name: plugin.name,
+        description: plugin.description,
+        version: plugin.version,
+        author: plugin.author,
+        source: `./${pluginsDir}/${plugin.name}`,
+        category: plugin.category,
+        tags: plugin.tags ?? [],
+      })),
+    });
+  }
   // agy keeps one flat agent namespace across plugins, so agents are named
   // plugin-agent and references to them are rewritten; a skill keeps its
   // plugin:skill name and wins a name an agent shares.

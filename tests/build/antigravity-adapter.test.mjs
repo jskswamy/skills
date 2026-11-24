@@ -110,7 +110,21 @@ function runShim(pluginRoot, hookId, input, env = process.env) {
 }
 
 test("plugin tree: manifest, skills without tests, picker flag, mapped agents, templates", async (t) => {
-  const { out } = await fixture(t, [ONE]);
+  const { repoRoot, out } = await fixture(t, [ONE]);
+  assert.deepEqual(await readJson(join(repoRoot, ".antigravity-plugin/marketplace.json")), {
+    name: "mp",
+    metadata: { description: "d" },
+    plugins: [
+      {
+        name: "one",
+        description: "one plugin",
+        version: "1.2.3",
+        author: { name: "me" },
+        source: "./dist/antigravity/plugins/one",
+        tags: [],
+      },
+    ],
+  });
   assert.deepEqual(await readJson(out("one", ".antigravity-plugin/plugin.json")), { name: "one", version: "1.2.3", description: "one plugin" });
   assert.deepEqual((await readdir(out("one", "skills"))).sort(), ["backlog", "quiet"], "no -cmd- wrapper skills");
   assert.equal(existsSync(out("one", "skills/backlog/tests")), false);

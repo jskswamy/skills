@@ -227,6 +227,7 @@ test("all adapters co-exist in dist/<harness>/plugins/<plugin> without manifest 
   const outside = files.filter((f) => !/^dist\/(claude-code|antigravity|opencode|pi|omp|codex)\//.test(f));
   assert.deepEqual(outside.sort(), [
     ".agents/plugins/marketplace.json",
+    ".antigravity-plugin/marketplace.json",
     ".claude-plugin/marketplace.json",
     ".omp-plugin/marketplace.json",
     ".plugin/marketplace.json",

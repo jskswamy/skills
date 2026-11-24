@@ -25,13 +25,14 @@ package.json                          # Repository dev/test script runner
 .agents/plugins/marketplace.json      # Codex marketplace; sources point into dist/codex/plugins
 .plugin/marketplace.json              # Skillshare OpenCode catalog; sources point into dist/opencode/plugins
 .omp-plugin/marketplace.json          # omp and Skillshare omp catalog; sources point into dist/omp/plugins
+.antigravity-plugin/marketplace.json  # Skillshare Antigravity catalog; sources point into dist/antigravity/plugins
 marketplace.json                      # Skillshare Pi catalog; sources point into dist/pi/plugins
 dist/<harness>/plugins/<plugin>/      # One generated tree per harness: claude-code, codex, antigravity, opencode, pi, omp, agent-plugins (portable skills + MCP only)
 ```
 
 ## Source-of-Truth Rules
 
-- Edit sources, never generated output. Everything under `dist/`, `.claude-plugin/marketplace.json`, `.agents/plugins/marketplace.json`, `.plugin/marketplace.json`, `.omp-plugin/marketplace.json`, and `marketplace.json` is generated.
+- Edit sources, never generated output. Everything under `dist/`, `.claude-plugin/marketplace.json`, `.agents/plugins/marketplace.json`, `.plugin/marketplace.json`, `.omp-plugin/marketplace.json`, `.antigravity-plugin/marketplace.json`, and `marketplace.json` is generated.
 - `npm run build` writes into a temp dir and prints it; it never writes into the repo. Only the release (`npm run build:release`) writes `dist/` and the root marketplace catalogs, so never commit those outside a release. `main` therefore always installs the last release.
 - Update `registry.json` when adding/removing plugin resources, changing plugin metadata, or enabling a harness (`harnesses.<id>.enabled`).
 - A hook a harness cannot carry fails the build unless `harnesses.<id>.optional` names it with a reason.

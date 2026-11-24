@@ -215,6 +215,7 @@ dist/<harness>/plugins/<plugin>/  # One generated tree per harness: claude-code,
 .agents/plugins/marketplace.json  # Codex marketplace, pointing into dist/codex/plugins
 .plugin/marketplace.json          # OpenCode marketplace, pointing into dist/opencode/plugins
 .omp-plugin/marketplace.json      # omp marketplace, pointing into dist/omp/plugins
+.antigravity-plugin/marketplace.json  # Antigravity marketplace, pointing into dist/antigravity/plugins
 marketplace.json                  # Pi marketplace, pointing into dist/pi/plugins
 ```
 

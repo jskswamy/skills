@@ -20,6 +20,7 @@ export const MARKETPLACES = [
   ".agents/plugins/marketplace.json",
   ".plugin/marketplace.json",
   ".omp-plugin/marketplace.json",
+  ".antigravity-plugin/marketplace.json",
   "marketplace.json",
 ];
 
