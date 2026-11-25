@@ -8,6 +8,7 @@ const ref = (s, f) => readFile(`skills/codebase/${s}/references/${f}`, "utf8");
 
 // Skills that check index freshness, and skills that offer a shareable snapshot.
 const FRESH = ["ask", "graph", "impact", "explore", "capabilities", "seams"];
+const SHARE = ["ask", "graph", "impact", "capabilities", "seams"];
 
 test("freshness copies are identical", async () => {
   const canonical = await ref("ask", "freshness.md");
@@ -47,4 +48,28 @@ test("index records commit and dirty hash", async () => {
   const text = await skill("index");
   assert.match(text, /last_indexed_commit/);
   assert.match(text, /dirty_hash/);
+});
+
+test("share copies are identical", async () => {
+  const canonical = await ref("ask", "share.md");
+  for (const s of SHARE) assert.equal(await ref(s, "share.md"), canonical, s);
+});
+
+test("share stamps snapshots and keeps them away from agents", async () => {
+  const text = await ref("ask", "share.md");
+  assert.match(text, /Want a shareable copy\?/);
+  assert.match(text, /Snapshot of <repo>@<short-sha>/);
+  assert.match(text, /agents must re-run the skill instead of reading this/);
+  assert.match(text, /Mermaid/);
+  assert.match(text, /Artifact/);
+  assert.match(text, /invoked by another skill or a subagent.*skip/i);
+  assert.match(text, /never write.*into the repo unless/i);
+});
+
+test("explore and index never offer sharing", async () => {
+  for (const s of ["explore", "index"]) assert.doesNotMatch(await skill(s), /share\.md|shareable/, s);
+});
+
+test("report skills point to share", async () => {
+  for (const s of SHARE) assert.match(await skill(s), /references\/share\.md/, s);
 });

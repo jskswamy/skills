@@ -129,6 +129,10 @@ The contextual explanation should cover:
 - Any patterns worth noting (e.g., "used as the standard response writer across all handlers")
 ```
 
+### Step 6: Offer a Shareable Copy
+
+Read `references/share.md` and follow it.
+
 ## Context
 
 Codebase plugin at `plugins/codebase/`. Commands directory already has `index.md`, `ask.md`, `impact.md`.

@@ -127,3 +127,7 @@ The contextual explanation for each item should cover:
 - What specifically changed (from the risk label context)
 - Why it matters (how many things depend on it, what breaks if it's wrong)
 - Test coverage gaps if any
+
+### Step 6: Offer a Shareable Copy
+
+Read `references/share.md` and follow it.

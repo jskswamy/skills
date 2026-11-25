@@ -74,3 +74,7 @@ Read `references/mode-b-targeted.md` and follow it.
 ### Step 4: Present Results & Query Fallback
 
 Read `references/present-results.md` and follow it.
+
+### Step 5: Offer a Shareable Copy
+
+Read `references/share.md` and follow it.
