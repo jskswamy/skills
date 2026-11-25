@@ -558,7 +558,8 @@
           "codebase/seams",
           "codebase/architecture",
           "codebase/tour",
-          "codebase/domain"
+          "codebase/domain",
+          "codebase/hotspots"
         ],
         "agents": [],
         "hooks": [
