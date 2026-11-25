@@ -35,7 +35,7 @@ Resolve the transport above. Only if neither MCP nor CLI works, explain that imp
 
 ### Step 0b: Check Index Freshness
 
-Follow the same auto-index flow as `codebase:ask` Step 0b. Read `.claude/codebase.local.md`, respect `auto_index` preference, warn on staleness.
+Read `references/freshness.md` and follow it for every project in scope.
 
 ### Step 1: Determine Base SHA
 

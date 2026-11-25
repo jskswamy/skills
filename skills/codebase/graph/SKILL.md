@@ -48,7 +48,7 @@ Resolve the transport above. Only if neither MCP nor CLI works, explain that gra
 
 ### Step 0b: Check Index Freshness
 
-Follow the same auto-index flow as `codebase:ask` Step 0b.
+Read `references/freshness.md` and follow it for every project in scope.
 
 ### Step 1: Determine Project Name
 

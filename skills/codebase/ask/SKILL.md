@@ -53,15 +53,7 @@ Resolve the transport above, then call `index_status` with that derived project 
 
 ### Step 0b: Check Index Freshness
 
-Read `.claude/codebase.local.md`. Determine two things: `auto_index` setting and whether the index is **stale** (`last_indexed` missing or >24 hours ago).
-
-| Condition | Action |
-|-----------|--------|
-| Not indexed, or `last_indexed` missing | `auto_index: always` → call `index_repository` with the saved `index_mode` (default `moderate`). `auto_index: never` → print the `codebase:index` hint and fall back to grep/glob/read. Otherwise (`ask` or file missing) ask the user using the harness's question mechanism (AskUserQuestion in Claude Code; in Pi, ask in chat and wait): Yes always / Yes once / No (manual). Save the preference if chosen. |
-| Stale (`last_indexed` >24 hours ago) | `auto_index: always` → reindex, print `⟳ Index is stale — reindexing…`, update `last_indexed`. `auto_index: ask` → ask: Yes always / Yes once / No, use stale index; on No print `⚠ Using stale index (last indexed: [time ago]). Results may be incomplete.` and proceed. `auto_index: never` → print `⚠ Index may be stale (last indexed: [time ago]). Run /codebase:index to refresh.` and proceed. |
-| Fresh | Proceed. |
-
-Never index or refresh without the permission above. The server's `index_status` is the source of truth for whether a project is indexed; `last_indexed` in the preference file only drives the staleness check.
+Read `references/freshness.md` and follow it for every project in scope.
 
 ### Step 1: Determine the Project Name
 
