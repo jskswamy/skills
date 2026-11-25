@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 
 // Instruction contracts for the codebase plugin (spec: 2026-11-25-codebase-architecture-design).
 const skill = (s) => readFile(`skills/codebase/${s}/SKILL.md`, "utf8");
@@ -9,6 +9,15 @@ const ref = (s, f) => readFile(`skills/codebase/${s}/references/${f}`, "utf8");
 // Skills that check index freshness, and skills that offer a shareable snapshot.
 const FRESH = ["ask", "graph", "impact", "explore", "capabilities", "seams"];
 const SHARE = ["ask", "graph", "impact", "capabilities", "seams"];
+// Skills added by the 2026-11-25 design; each checks freshness and offers sharing.
+const NEW = ["architecture"];
+FRESH.push(...NEW);
+SHARE.push(...NEW);
+const refs = async (s) => {
+  const dir = `skills/codebase/${s}/references`;
+  const names = (await readdir(dir)).filter((f) => f.endsWith(".md")).sort();
+  return (await Promise.all(names.map((f) => readFile(`${dir}/${f}`, "utf8")))).join("\n");
+};
 
 test("freshness copies are identical", async () => {
   const canonical = await ref("ask", "freshness.md");
@@ -72,4 +81,43 @@ test("explore and index never offer sharing", async () => {
 
 test("report skills point to share", async () => {
   for (const s of SHARE) assert.match(await skill(s), /references\/share\.md/, s);
+});
+
+test("new skills are registered", async () => {
+  const registry = JSON.parse(await readFile("registry.json", "utf8"));
+  const skills = registry.plugins.find((p) => p.name === "codebase").resources.skills;
+  for (const s of NEW) assert.ok(skills.includes(`codebase/${s}`), s);
+});
+
+test("architecture ignores prose and handles missing rules", async () => {
+  const text = await refs("architecture");
+  assert.match(text, /only.*codebase-rules.*block/i);
+  assert.match(text, /prose.*never.*(?:rules|fact)/i);
+  assert.match(text, /no rules (?:file|block).*recover only.*offer.*draft/i);
+});
+
+test("check reports dead components and violations with why", async () => {
+  const text = await ref("architecture", "check.md");
+  assert.match(text, /matches no files/);
+  assert.match(text, /file:line/);
+  assert.match(text, /why/);
+  assert.match(text, /never edits? .*ARCHITECTURE\.md/i);
+  assert.match(text, /forbid/);
+  assert.match(text, /allow-only/);
+});
+
+test("recover produces components, dependencies, layers, cycles, diagram", async () => {
+  const text = await ref("architecture", "recover.md");
+  for (const re of [/get_architecture/, /edge count/i, /layer/i, /cycle/i, /mermaid/i]) assert.match(text, re);
+});
+
+test("multi-project checks each repo against its own rules", async () => {
+  const text = await ref("architecture", "multi-project.md");
+  assert.match(text, /own (?:ARCHITECTURE\.md|rules)/i);
+  assert.match(text, /not linked/i);
+  assert.match(text, /cross-repo rules.*out of scope/i);
+});
+
+test("check runs automatically when a rules block exists", async () => {
+  assert.match(await skill("architecture"), /automatic.*rules block|rules block.*automatic/i);
 });

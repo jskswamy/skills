@@ -555,7 +555,8 @@
           "codebase/impact",
           "codebase/graph",
           "codebase/capabilities",
-          "codebase/seams"
+          "codebase/seams",
+          "codebase/architecture"
         ],
         "agents": [],
         "hooks": [
