@@ -559,7 +559,8 @@
           "codebase/architecture",
           "codebase/tour",
           "codebase/domain",
-          "codebase/hotspots"
+          "codebase/hotspots",
+          "codebase/dead-code"
         ],
         "agents": [],
         "hooks": [

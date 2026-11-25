@@ -4,7 +4,7 @@ import { readFile } from "node:fs/promises";
 
 const consumers = [
   "skills/refactor/scan/SKILL.md",
-  ...["ask", "graph", "impact", "index", "explore", "capabilities", "seams", "architecture", "tour", "domain", "hotspots"].map(name => `skills/codebase/${name}/SKILL.md`),
+  ...["ask", "graph", "impact", "index", "explore", "capabilities", "seams", "architecture", "tour", "domain", "hotspots", "dead-code"].map(name => `skills/codebase/${name}/SKILL.md`),
   "skills/commit-tools/review-commits/SKILL.md",
   "agents/refactor/scanner.md",
 ];

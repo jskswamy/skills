@@ -10,7 +10,7 @@ const ref = (s, f) => readFile(`skills/codebase/${s}/references/${f}`, "utf8");
 const FRESH = ["ask", "graph", "impact", "explore", "capabilities", "seams"];
 const SHARE = ["ask", "graph", "impact", "capabilities", "seams"];
 // Skills added by the 2026-11-25 design; each checks freshness and offers sharing.
-const NEW = ["architecture", "tour", "domain", "hotspots"];
+const NEW = ["architecture", "tour", "domain", "hotspots", "dead-code"];
 FRESH.push(...NEW);
 SHARE.push(...NEW);
 const refs = async (s) => {
@@ -142,4 +142,9 @@ test("domain maps entities to owners and create/modify/read", async () => {
 test("hotspots ranks churn by risk", async () => {
   const text = await ref("hotspots", "ranking.md");
   for (const re of [/git log --since/, /6 months/, /15/, /fan-in/i, /file length.*fallback|fallback.*file length/i, /bd.*offer|offer.*beads/i]) assert.match(text, re);
+});
+
+test("dead-code verifies candidates and never deletes", async () => {
+  const text = await ref("dead-code", "candidates.md");
+  for (const re of [/no inbound/i, /entry point/i, /export/i, /test/i, /\brg\b/, /likely dead/, /unsure: /, /never delete/i]) assert.match(text, re);
 });
