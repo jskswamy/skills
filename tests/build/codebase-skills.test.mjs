@@ -10,7 +10,7 @@ const ref = (s, f) => readFile(`skills/codebase/${s}/references/${f}`, "utf8");
 const FRESH = ["ask", "graph", "impact", "explore", "capabilities", "seams"];
 const SHARE = ["ask", "graph", "impact", "capabilities", "seams"];
 // Skills added by the 2026-11-25 design; each checks freshness and offers sharing.
-const NEW = ["architecture", "tour"];
+const NEW = ["architecture", "tour", "domain"];
 FRESH.push(...NEW);
 SHARE.push(...NEW);
 const refs = async (s) => {
@@ -129,4 +129,12 @@ test("tour orders entry points, core, edges", async () => {
   assert.match(text, /why.*next/i);
   const at = (w) => text.search(new RegExp(w, "i"));
   assert.ok(at("entry") < at("core") && at("core") < at("edge"), "entry < core < edge");
+});
+
+test("domain maps entities to owners and create/modify/read", async () => {
+  const text = await ref("domain", "entities.md");
+  assert.match(text, /reference count/i);
+  assert.match(text, /exclud.*util/i);
+  assert.match(text, /own/i);
+  assert.match(text, /creat.*modif.*read/i);
 });
