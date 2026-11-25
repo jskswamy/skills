@@ -556,7 +556,8 @@
           "codebase/graph",
           "codebase/capabilities",
           "codebase/seams",
-          "codebase/architecture"
+          "codebase/architecture",
+          "codebase/tour"
         ],
         "agents": [],
         "hooks": [

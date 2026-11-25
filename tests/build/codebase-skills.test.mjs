@@ -10,7 +10,7 @@ const ref = (s, f) => readFile(`skills/codebase/${s}/references/${f}`, "utf8");
 const FRESH = ["ask", "graph", "impact", "explore", "capabilities", "seams"];
 const SHARE = ["ask", "graph", "impact", "capabilities", "seams"];
 // Skills added by the 2026-11-25 design; each checks freshness and offers sharing.
-const NEW = ["architecture"];
+const NEW = ["architecture", "tour"];
 FRESH.push(...NEW);
 SHARE.push(...NEW);
 const refs = async (s) => {
@@ -120,4 +120,13 @@ test("multi-project checks each repo against its own rules", async () => {
 
 test("check runs automatically when a rules block exists", async () => {
   assert.match(await skill("architecture"), /automatic.*rules block|rules block.*automatic/i);
+});
+
+test("tour orders entry points, core, edges", async () => {
+  const text = await ref("tour", "tour-steps.md");
+  assert.match(text, /entry point/i);
+  assert.match(text, /fan-in/i);
+  assert.match(text, /why.*next/i);
+  const at = (w) => text.search(new RegExp(w, "i"));
+  assert.ok(at("entry") < at("core") && at("core") < at("edge"), "entry < core < edge");
 });
