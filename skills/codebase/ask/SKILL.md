@@ -1,6 +1,6 @@
 ---
 name: ask
-description: "Use when the user asks a direct natural-language question about the codebase: 'where does X happen', 'how does X work', 'anything similar to X', 'what should I know before adding X'. Not for ambient context during brainstorming/planning (use codebase:explore), call graphs of a named symbol (use codebase:graph), what a diff affects (use codebase:impact), capability mapping (use codebase:capabilities), or boundary/seam inspection (use codebase:seams)."
+description: "Use when the user asks a direct natural-language question about the codebase: 'where does X happen', 'how does X work', 'anything similar to X', 'what should I know before adding X'. Not for ambient context during brainstorming/planning (use codebase:explore), call graphs of a named symbol (use codebase:graph), what a diff affects (use codebase:impact), capability mapping (use codebase:capabilities), boundary/seam inspection (use codebase:seams), the whole-system architecture or its rules (use codebase:architecture), or a reading order (use codebase:tour)."
 argument-hint: "<question>"
 metadata:
   short-description: "Ask a question about the codebase. <question>"

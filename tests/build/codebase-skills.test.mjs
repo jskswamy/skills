@@ -1,6 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { readdir, readFile } from "node:fs/promises";
+import { chmod, mkdtemp, readdir, readFile, writeFile } from "node:fs/promises";
+import { execFileSync } from "node:child_process";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
 // Instruction contracts for the codebase plugin (spec: 2026-11-25-codebase-architecture-design).
 const skill = (s) => readFile(`skills/codebase/${s}/SKILL.md`, "utf8");
@@ -147,4 +150,37 @@ test("hotspots ranks churn by risk", async () => {
 test("dead-code verifies candidates and never deletes", async () => {
   const text = await ref("dead-code", "candidates.md");
   for (const re of [/no inbound/i, /entry point/i, /export/i, /test/i, /\brg\b/, /likely dead/, /unsure: /, /never delete/i]) assert.match(text, re);
+});
+
+const description = async (s) => (await skill(s)).match(/^description: "(.*)"$/m)[1];
+
+test("neighbour routing", async () => {
+  assert.match(await description("explore"), /codebase:tour/);
+  assert.match(await description("capabilities"), /codebase:domain/);
+  assert.match(await description("seams"), /codebase:architecture/);
+  assert.match(await description("impact"), /codebase:hotspots/);
+  assert.match(await description("impact"), /codebase:dead-code/);
+  assert.match(await description("ask"), /codebase:architecture/);
+});
+
+test("explore includes live rule check", async () => {
+  const text = await skill("explore");
+  assert.match(text, /codebase-rules/);
+  assert.match(text, /codebase:architecture/);
+});
+
+test("hooks mention architecture", async () => {
+  const bin = await mkdtemp(join(tmpdir(), "cbm-stub-"));
+  await writeFile(join(bin, "codebase-memory-mcp"), "#!/bin/sh\n");
+  await chmod(join(bin, "codebase-memory-mcp"), 0o755);
+  const env = { ...process.env, PATH: `${bin}:${process.env.PATH}` };
+  const run = (f) => execFileSync("bash", [`hooks/codebase/${f}`], { env, encoding: "utf8" });
+  assert.match(run("session-reminder.sh"), /codebase:architecture/);
+  const sub = JSON.parse(run("subagent-reminder.sh"));
+  assert.match(sub.hookSpecificOutput.additionalContext, /codebase:architecture/);
+});
+
+test("README lists all twelve skills", async () => {
+  const text = await readFile("templates/codebase/README.md", "utf8");
+  for (const s of NEW) assert.match(text, new RegExp(`/codebase:${s}`), s);
 });

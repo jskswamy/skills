@@ -1,6 +1,6 @@
 ---
 name: capabilities
-description: "Use when the user wants to discover or inspect functional capabilities in one or more codebases: 'what capabilities exist', 'map capabilities', 'how is capability X structured', 'trace capability X across repos', 'compare capabilities between project A and B'. Not for a single symbol's immediate callers/callees (use codebase:graph) or boundary coupling inspection (use codebase:seams)."
+description: "Use when the user wants to discover or inspect functional capabilities in one or more codebases: 'what capabilities exist', 'map capabilities', 'how is capability X structured', 'trace capability X across repos', 'compare capabilities between project A and B'. Not for a single symbol's immediate callers/callees (use codebase:graph), domain entities and their owners (use codebase:domain), or boundary coupling inspection (use codebase:seams)."
 argument-hint: "[<capability>] [--project <name>[,<name>...]] [--depth 1-5]"
 metadata:
   short-description: "Map functional capabilities and execution corridors. [<capability>] [--project <name>...] [--depth 1-5]"

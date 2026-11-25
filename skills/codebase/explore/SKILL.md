@@ -1,6 +1,6 @@
 ---
 name: explore
-description: "Use when gathering background codebase context as part of a larger workflow, such as the brainstorming or planning explore step, or before modifying unfamiliar code to understand architecture and structure. Not for a direct one-off question (use codebase:ask), a named symbol's callers/callees (use codebase:graph), the effect of a diff (use codebase:impact), capability mapping (use codebase:capabilities), or boundary/seam inspection (use codebase:seams)."
+description: "Use when gathering background codebase context as part of a larger workflow, such as the brainstorming or planning explore step, or before modifying unfamiliar code to understand architecture and structure. Not for a direct one-off question (use codebase:ask), a named symbol's callers/callees (use codebase:graph), the effect of a diff (use codebase:impact), capability mapping (use codebase:capabilities), boundary/seam inspection (use codebase:seams), the architecture map or rules (use codebase:architecture), or a guided reading order (use codebase:tour)."
 user-invocable: false
 ---
 
@@ -32,6 +32,10 @@ Resolve the transport above. If either MCP or CLI works, continue to Step 2. Onl
 Call `list_projects` and match the project whose `root_path` equals `git rev-parse --show-toplevel` (the name is the root path with the leading `/` removed and `/` replaced by `-`). Do not match on the directory basename: worktrees and renamed repos share basenames. Use `index_status` on that name to confirm it is indexed.
 
 Read `references/freshness.md` and follow it. This skill never blocks a workflow: when the index stays not fresh, continue with labelled source inspection as that reference says.
+
+### Step 2b: Architecture Rules
+
+If `ARCHITECTURE.md` at the repo root has a `codebase-rules` block, follow the `codebase:architecture` skill with `--check` (skip its snapshot offer) and include every violation and dead component, with the rule's `why`, in the context. Agents planning a change must see the rules it could break.
 
 ### Step 3: Context-Dependent Exploration
 

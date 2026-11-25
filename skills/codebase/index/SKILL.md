@@ -1,6 +1,6 @@
 ---
 name: index
-description: "Use when the codebase index must be built, refreshed, or linked across repositories: 'index this repo', 'reindex', 'index is stale', 'link repos', or when other codebase skills report no index. This only builds or links the index; to answer questions use codebase:ask, codebase:graph, codebase:impact, codebase:capabilities, or codebase:seams."
+description: "Use when the codebase index must be built, refreshed, or linked across repositories: 'index this repo', 'reindex', 'index is stale', 'link repos', or when other codebase skills report no index. This only builds or links the index; to answer questions use the other codebase skills (ask, graph, impact, architecture, tour, and so on)."
 argument-hint: "[--mode full|moderate|fast|cross-repo-intelligence] [--link <project|*>]"
 metadata:
   short-description: "Build, refresh, or link the codebase index. [--mode full|moderate|fast|cross-repo-intelligence] [--link <project|*>]"

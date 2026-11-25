@@ -1,6 +1,6 @@
 ---
 name: seams
-description: "Use when the user wants to identify, inspect, or audit architectural seams and boundaries within a codebase or across indexed repositories: 'what are the seams', 'find leaky seams', 'show the boundary between X and Y', 'where can we split or decouple X', 'how does repo A integrate with repo B'. Not for tracing a single symbol's call tree (use codebase:graph) or diff blast radius (use codebase:impact)."
+description: "Use when the user wants to identify, inspect, or audit architectural seams and boundaries within a codebase or across indexed repositories: 'what are the seams', 'find leaky seams', 'show the boundary between X and Y', 'where can we split or decouple X', 'how does repo A integrate with repo B'. Not for tracing a single symbol's call tree (use codebase:graph) diff blast radius (use codebase:impact), or the whole-system component map and rules (use codebase:architecture)."
 argument-hint: "[<source> [<target>]] [--project <name>[,<name>...]]"
 metadata:
   short-description: "Inspect architectural seams and coupling across packages or repos. [<source> [<target>]] [--project <name>...]"

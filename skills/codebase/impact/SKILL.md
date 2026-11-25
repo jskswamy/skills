@@ -1,6 +1,6 @@
 ---
 name: impact
-description: "Use when the user asks what recent code changes affect: 'what did my changes break', 'blast radius of this diff', 'what might break', 'which tests are affected'. Works from a git diff or base SHA. Not for questions about code that has not changed (use codebase:ask) or one symbol's callers (use codebase:graph)."
+description: "Use when the user asks what recent code changes affect: 'what did my changes break', 'blast radius of this diff', 'what might break', 'which tests are affected'. Works from a git diff or base SHA. Not for questions about code that has not changed (use codebase:ask) one symbol's callers (use codebase:graph), risky frequently changed code (use codebase:hotspots), or unused code (use codebase:dead-code)."
 argument-hint: "[--base <sha>]"
 metadata:
   short-description: "Show what your recent changes affect. [--base <sha>]"
