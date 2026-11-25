@@ -271,6 +271,8 @@ codebase:impact
 codebase:graph
 codebase:capabilities
 codebase:seams
+codebase:architecture
+# plus 4 more skills in registry.json
 ```
 [View documentation](./templates/codebase/README.md)
 

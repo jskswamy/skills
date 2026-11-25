@@ -2,7 +2,225 @@
 
 All notable changes to this skills/plugins collection will be documented in this file.
 
+## [3.7.0] - 2026-11-25
+
+### Added
+
+- Add codebase architecture skill
+
+Agents making cross-repo changes or exploring a codebase need to
+know its logical architecture and the rules a change must not break.
+The new architecture skill reports components, responsibilities,
+dependencies, layers and cycles, with no stale information.
+
+Every run recovers the architecture from the live index, or from
+labelled source inspection when the index is not fresh. Nothing
+derived is saved. The only persisted input is a hand-written
+codebase-rules block in ARCHITECTURE.md: components as path globs,
+plus forbid and allow-only rules that each need a why. Prose outside
+the block is never read as rules.
+
+The check runs automatically when a rules block exists. It reports
+dead components (globs that match no files) and violations with
+file:line and the rule's why. It never edits ARCHITECTURE.md.
+
+With --project, each repo is checked against its own rules and
+cross-repo edges are shown. Cross-repo rules are out of scope for
+now.
+
+The skill is registered in registry.json with a trigger eval, and
+it shares the freshness and share references with the other
+codebase skills.
+- Add codebase tour skill
+
+Someone new to a repo or an area needs to know what to read and in
+what order. The new tour skill produces an ordered reading list:
+entry points first, then the most depended-on core, then the edges
+such as adapters and tests. Each step gives a file:line, why to read
+it next and what to notice.
+
+The tour is derived from the live index on every run and nothing is
+saved, so it cannot go stale. Its description separates it from
+explore, which gathers background context for other workflows, and
+from ask, which answers specific questions.
+
+The skill is registered in registry.json with a trigger eval, and
+the picker-line skill counts are bumped. It shares the freshness and
+share references with the other codebase skills.
+- Add codebase domain skill
+
+Both people making changes and people learning a codebase need to
+know which entities the code is built around. The new domain skill
+maps the main domain entities: types, records and schemas ranked by
+reference count, leaving out utilities and plumbing. For each one it
+shows the component that owns it and which components create,
+modify and read it. An entity modified by several components is
+flagged as shared mutable state.
+
+The output is a table plus a Mermaid classDiagram. Given a concept
+argument, the skill goes deep on that one entity.
+
+Everything is derived from the live index on every run and nothing
+is saved. The description separates the skill from capabilities,
+which covers behaviour corridors, and from graph.
+
+The skill is registered in registry.json with a trigger eval, and
+the picker counts are bumped. It shares the freshness and share
+references with the other codebase skills.
+- Add codebase hotspots skill
+
+An agent or person about to change code needs to know how careful to
+be. The new hotspots skill ranks files by how often they change
+(git log churn since a date, default 6 months, leaving out
+generated, vendored and lock files) times how much depends on them
+(fan-in from the live graph, with file length as a labelled
+fallback).
+
+It shows the top 15 with churn, fan-in, last touched date, owning
+component and a test coverage hint. It offers, but never files on
+its own, issues for the top 3.
+
+Everything is derived live on every run and nothing is saved. The
+description separates the skill from impact, which looks at one
+diff, and from dead-code.
+
+The skill is registered in registry.json with a trigger eval, and
+the picker counts are bumped. It shares the freshness and share
+references with the other codebase skills.
+- Add codebase dead-code skill
+
+An agent making changes should know what it can delete instead of
+update. The new dead-code skill lists symbols that have no inbound
+call, import, use, implement or inherit edges in the live graph. It
+leaves out entry points, exported public API, tests and
+framework-registered handlers.
+
+The graph cannot see dynamic dispatch, config or reflection, so each
+candidate is also searched with rg across code and non-code files. A
+hit labels the candidate unsure and shows the location. No hit
+labels it likely dead.
+
+The skill never deletes anything. It offers a review or a single
+issue instead.
+
+The skill is registered in registry.json with a trigger eval, and
+the picker counts are bumped. It shares the freshness and share
+references with the other codebase skills.
+
+### Fixed
+
+- Fix stale-index gaps found in branch review
+
+Several paths let the codebase skills report an index as fresh or a
+rule as passing when neither was true.
+
+- git diff HEAD ignores untracked files, so a file an agent had just
+  created left the index looking fresh and sat outside every
+  component. The dirty hash now also covers untracked, non-ignored
+  files, component globs expand with git ls-files -co
+  --exclude-standard, and the share stamp counts untracked files.
+- The dirty hash is taken before indexing, so an edit made during
+  indexing reads as not fresh.
+- Rule and dependency queries used STARTS WITH on globs. That cannot
+  work for globs and fails if the graph stores absolute paths, which
+  made every rule pass. Components now expand to file lists matched
+  by path suffix. A component with files but no graph nodes is
+  unverifiable and never passes. Checking by source inspection is
+  now spelled out.
+- --check with no rules block now reports and stops instead of
+  drafting rules from nothing.
+- allow-only also flags dependencies on repo files outside every
+  component.
+- dead-code searches hidden folders (rg --hidden), where config wires
+  code by name, and counts only non-test inbound edges, so
+  test-only symbols are reported as unsure. It says when results hit
+  the 200 limit.
+
+### Other
+
+- Judge index freshness by commit and edits
+
+The codebase skills treated an index as stale only after 24 hours.
+That let answers come from a graph that no longer matched the code,
+which is a problem when exploring or making cross-repo changes.
+
+An index is now fresh only when the indexed commit equals HEAD and
+the hash of git diff HEAD equals the recorded dirty_hash. Time alone
+no longer decides. The index skill records both values after each
+run.
+
+When only uncommitted edits changed and the repo is already indexed,
+the skills refresh in fast mode without asking, so answers made
+mid-change stay current. auto_index: never still blocks any
+refresh. Otherwise the existing consent rules apply. If a refresh
+is declined or fails, answers come from source inspection and are
+labelled as such.
+
+Other repos are tracked under projects: in the current repo's local
+settings and are never written to.
+
+The procedure lives in an identical references/freshness.md in each
+skill, because every skill folder ships on its own and the ask and
+explore SKILL.md files are near Codex's 8,000-byte limit. A test
+checks that the copies match.
+- Offer a shareable copy of codebase results
+
+Users and agents need to hand codebase results on to other people.
+After presenting results, the ask, graph, impact, capabilities and
+seams skills now offer once: "Want a shareable copy?"
+
+The copy is Markdown with Mermaid diagrams, written to a path the
+user picks (outside the repo by default). Each repo is stamped with
+its commit sha, an uncommitted-changes flag and the date. A line in
+the file tells agents to re-run the skill instead of reading the
+snapshot, so a saved copy never becomes stale agent input. Claude
+Code can also publish it as an HTML page through the Artifact tool.
+
+The offer is skipped when another skill or a subagent invoked the
+skill. The explore and index skills never make it.
+
+The procedure lives in an identical references/share.md in each
+skill, because every skill folder ships on its own. A test checks
+that the copies match, and the Claude snapshot fixture is
+regenerated.
+- Route agents to the new codebase skills
+
+With 12 codebase skills, similar ones could be picked wrongly. The
+descriptions now name their nearest neighbours: ask and explore
+point to architecture and tour, capabilities to domain, seams to
+architecture, and impact to hotspots and dead-code. The index skill
+refers to the other codebase skills generically.
+
+Agents planning a change must see the rules it could break. The
+session and subagent reminder hooks now tell agents to run
+codebase:architecture before changing code across components or
+repos. The explore skill runs the architecture check, without the
+snapshot offer, when ARCHITECTURE.md has a codebase-rules block.
+
+The README documents the new skills, the rules format, the
+always-current freshness rules, the new settings fields and the
+shareable snapshot. Tests run the hooks with a stub binary and check
+their output.
+- Release v3.7.0
+
+Bump plugin versions: devenv 2.3.1 → 2.4.0, codebase 1.4.1 → 1.5.0.
+Write every harness's output via npm run build:release.
+
+### Removed
+
+- Remove bundled nixos MCP from devenv plugin
+
+Drop templates/devenv/.mcp.json and its registry entry so mcp-nixos is
+supplied by a global or 1mcp server rather than spawned per session via
+legacy nix-shell inside agent sandboxes.
 ## [3.6.1] - 2026-11-24
+
+### Changed
+
+- Update CHANGELOG and README for v3.6.1
+
+Document all changes included in the v3.6.1 release.
+Regenerate plugins section in README from registry.json. by @jskswamy
 
 ### Other
 
@@ -11,14 +229,14 @@ All notable changes to this skills/plugins collection will be documented in this
 Write .antigravity-plugin/marketplace.json in the Antigravity adapter
 generateRoot() pointing to ./dist/antigravity/plugins/<name>, enforce
 all-or-none enablement in validateRegistryShape, register the catalog in
-MARKETPLACES and release staging docs, and add adapter test coverage.
+MARKETPLACES and release staging docs, and add adapter test coverage. by @jskswamy
 - Release v3.6.1
 
 Bump plugin versions: bivouac 1.3.0 → 1.3.1, devenv 2.3.0 → 2.3.1,
 commit-tools 2.4.0 → 2.4.1, jot 3.3.0 → 3.3.1, craft 3.2.0 → 3.2.1,
 sketch-note 2.3.0 → 2.3.1, typst-notes 2.3.0 → 2.3.1,
 codebase 1.4.0 → 1.4.1, study 2.3.0 → 2.3.1, refactor 1.3.0 → 1.3.1.
-Write every harness's output via npm run build:release.
+Write every harness's output via npm run build:release. by @jskswamy
 ## [3.6.0] - 2026-11-23
 
 ### Added
@@ -4471,6 +4689,7 @@ as a dependency.
 ### Removed
 
 - Remove welcome message from shell hook by @jskswamy
+[3.7.0]: https://github.com/jskswamy/skills/compare/v3.6.1..v3.7.0
 [3.6.1]: https://github.com/jskswamy/skills/compare/v3.6.0..v3.6.1
 [3.6.0]: https://github.com/jskswamy/skills/compare/v3.5.0..v3.6.0
 [3.5.0]: https://github.com/jskswamy/skills/compare/v3.4.1..v3.5.0
