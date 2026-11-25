@@ -9,9 +9,9 @@ For a repository at `<root>` (the current repo: `git rev-parse --show-toplevel`;
 Run both in `<root>` (or with `git -C <root>`):
 
 - `head` = `git rev-parse HEAD`
-- `dirty` = `git diff HEAD | git hash-object --stdin`
+- `dirty` = `{ git diff HEAD; git ls-files -o --exclude-standard -z | xargs -0 git hash-object --; } | git hash-object --stdin` (tracked changes plus the content of untracked, non-ignored files)
 
-The index is **fresh** only when `head` equals the recorded `last_indexed_commit` **and** `dirty` equals the recorded `dirty_hash`. Any change to tracked files since indexing makes it not fresh, even outside the area asked about. Time alone never makes an index fresh or stale; `last_indexed` is informational.
+The index is **fresh** only when `head` equals the recorded `last_indexed_commit` **and** `dirty` equals the recorded `dirty_hash`. Any change since indexing, including a new file not yet added to git, makes it not fresh, even outside the area asked about. Time alone never makes an index fresh or stale; `last_indexed` is informational.
 
 ## Where the record lives
 
@@ -44,7 +44,7 @@ Use `index_status` (via the resolved transport) as the source of truth for wheth
 
 For a `--project` repo, the current repo's `auto_index` applies. After re-indexing a repo that has cross-repo links, re-run linking (`index_repository` with `mode: "cross-repo-intelligence"`, as `codebase:index --link` does) for the affected projects so cross-repo edges are current.
 
-After every successful refresh, record `last_indexed`, `last_indexed_commit` = `head` and `dirty_hash` = `dirty` (recomputed after indexing) for that repo.
+Compute `head` and `dirty` immediately before indexing (just before the `index_repository` call), and after a successful refresh record those values as `last_indexed_commit` and `dirty_hash` (plus `last_indexed`) for that repo. An edit made while indexing then makes the next check not fresh, as it should.
 
 ## When it stays not fresh
 

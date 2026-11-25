@@ -64,7 +64,7 @@ Unless `--check` was given, read `references/recover.md` and follow it. With two
 
 ### Step 4: Check
 
-The check runs automatically whenever a repo has a rules block, and always with `--check`. Read `references/check.md` and follow it. With no rules block, skip the check, say that no rules exist, and offer to draft a rules block from the recovered components for the user to edit (show it; write it only if they ask).
+The check runs automatically whenever a repo has a rules block, and always with `--check`. Read `references/check.md` and follow it. With `--check` and no rules block, report `no rules block` and stop (there is no recovery to draft rules from; suggest running without `--check`). Without `--check` and with no rules block, skip the check, say that no rules exist, and offer to draft a rules block from the recovered components for the user to edit (show it; write it only if they ask).
 
 ### Step 5: Present Results
 

@@ -81,7 +81,7 @@ Indexing codebase (moderate)...
 Run the `codebase:ask` skill to explore your codebase.
 ```
 
-Write or update `.claude/codebase.local.md` with the current timestamp, mode, commit and uncommitted-edit hash (`git rev-parse HEAD` and `git diff HEAD | git hash-object --stdin`, computed after indexing):
+Write or update `.claude/codebase.local.md` with the current timestamp, mode, commit and uncommitted-edit hash (`git rev-parse HEAD` and `{ git diff HEAD; git ls-files -o --exclude-standard -z | xargs -0 git hash-object --; } | git hash-object --stdin`, computed immediately before calling `index_repository`):
 
 ```yaml
 ---
@@ -89,7 +89,7 @@ auto_index: ask
 index_mode: moderate
 last_indexed: [current ISO 8601 timestamp]
 last_indexed_commit: [HEAD sha]
-dirty_hash: [hash of git diff HEAD]
+dirty_hash: [hash of tracked and untracked changes]
 ---
 ```
 

@@ -27,7 +27,7 @@ rules:
 - `components`: name → list of path globs, relative to the repo root. A file belongs to every component whose glob matches it.
 - `rules`: each entry has exactly one of
   - `forbid: A -> B` — no file in A may depend on a file in B;
-  - `allow-only: A -> [B, C]` — files in A may depend only on files in A, B or C (dependencies on files outside every component are ignored).
+  - `allow-only: A -> [B, C]` — files in A may depend only on files in A, B or C. A dependency on a repo file outside every component also counts as a violation; dependencies on external packages are not checked.
 - `why` is required on every rule. It is what an agent is shown when its change would break the rule.
 - A dependency is an `IMPORTS` or `CALLS` edge from a symbol or file in A to one in B.
 

@@ -30,7 +30,7 @@ test("freshness copies are identical", async () => {
 test("freshness defines dirty_hash from git diff HEAD", async () => {
   const text = await ref("ask", "freshness.md");
   assert.match(text, /last_indexed_commit/);
-  assert.match(text, /git diff HEAD \| git hash-object --stdin/);
+  assert.match(text, /\{ git diff HEAD; git ls-files -o --exclude-standard -z \| xargs -0 git hash-object --; \} \| git hash-object --stdin/);
   assert.match(text, /time alone never/i);
 });
 
@@ -183,4 +183,42 @@ test("hooks mention architecture", async () => {
 test("README lists all twelve skills", async () => {
   const text = await readFile("templates/codebase/README.md", "utf8");
   for (const s of NEW) assert.match(text, new RegExp(`/codebase:${s}`), s);
+});
+
+test("untracked files make the index stale and count in components", async () => {
+  assert.match(await skill("index"), /git ls-files -o --exclude-standard/);
+  assert.match(await ref("architecture", "check.md"), /git ls-files -co --exclude-standard/);
+  assert.match(await ref("ask", "share.md"), /git ls-files -o --exclude-standard/);
+});
+
+test("dirty hash is taken before indexing", async () => {
+  const text = await ref("ask", "freshness.md");
+  assert.match(text, /before (?:calling )?(?:index_repository|indexing)/i);
+  assert.doesNotMatch(text, /recomputed after indexing/);
+});
+
+test("rule edges match expanded files, never path prefixes", async () => {
+  for (const f of ["recover.md", "check.md"]) {
+    const text = await ref("architecture", f);
+    assert.doesNotMatch(text, /STARTS WITH/, f);
+    assert.match(text, /git ls-files/, f);
+  }
+  assert.match(await ref("architecture", "check.md"), /no graph nodes.*unverifiable/i);
+});
+
+test("--check without rules reports and stops", async () => {
+  assert.match(await skill("architecture"), /With `--check` and no rules block, report `no rules block` and stop/);
+});
+
+test("allow-only counts files outside every component", async () => {
+  const text = await ref("architecture", "rules-format.md");
+  assert.doesNotMatch(text, /outside every component are ignored/);
+  assert.match(text, /allow-only.*outside every component.*violat/i);
+});
+
+test("dead-code searches hidden files and finds test-only symbols", async () => {
+  const text = await ref("dead-code", "candidates.md");
+  assert.match(text, /rg --hidden/);
+  assert.match(text, /used only by tests/);
+  assert.match(text, /source is not a test file|not from a test file|excluding edges from test files/i);
 });

@@ -15,6 +15,6 @@ On Yes:
    > Snapshot for people; agents must re-run the skill instead of reading this.
    ```
 
-   `<short-sha>` is `git rev-parse --short HEAD` in that repo. Include `(+ uncommitted changes)` only when `git diff HEAD` is not empty there.
+   `<short-sha>` is `git rev-parse --short HEAD` in that repo. Include `(+ uncommitted changes)` only when `git diff HEAD` or `git ls-files -o --exclude-standard` is not empty there.
 4. In Claude Code, also offer to publish the same content as an HTML page with the Artifact tool. Other harnesses get the file only.
 5. Print the saved path (and the published link, if any).

@@ -5,12 +5,13 @@ Derive everything from the fresh index (or source inspection, labelled), never f
 1. Call `get_architecture` with `aspects: ["packages", "entry_points", "layers", "boundaries", "cycles", "clusters"]`. *(Never request `system_structure`.)*
 2. **Components.** When the rules block declares `components`, use exactly those (and list files matching none of them as `unassigned`). Otherwise infer them: top-level packages or directories, merged or split using `clusters` so each component is a cohesive unit; name each after its dominant directory or concept.
 3. **Responsibility.** For each component, one line built from its entry points and most-called public symbols (`search_graph` by file path; `get_code_snippet` on at most 2 ambiguous symbols per component).
-4. **Dependencies.** For each ordered component pair, count edges with a sanitized `query_graph`:
+4. **Dependencies.** Expand each component to its file list with `git ls-files -co --exclude-standard -- <globs>` (repo-relative paths). Graph `file_path` values may be absolute, so match a node to a file when its `file_path` ends with `/<repo-relative path>` (or equals it). For each ordered component pair, count edges with a sanitized `query_graph`, passing the two file lists:
    ```cypher
    MATCH (a)-[r:CALLS|IMPORTS]->(b)
-   WHERE a.file_path STARTS WITH '<pathA>' AND b.file_path STARTS WITH '<pathB>' AND a.file_path <> b.file_path
+   WHERE any(f IN <filesA> WHERE a.file_path ENDS WITH f) AND any(f IN <filesB> WHERE b.file_path ENDS WITH f) AND a.file_path <> b.file_path
    RETURN count(r) AS edges
    ```
+   For large components, query in batches of about 50 files and sum.
    Report the edge count for every non-zero pair. If the graph has no line numbers for an edge you need to cite, find the import or call with `rg` and cite that `file:line`.
 5. **Layers.** Order components by dependency direction (use `layers` fan-in/fan-out): components nothing depends on at the top (entry), components everything depends on at the bottom (core). Flag any edge pointing upward as a layer inversion.
 6. **Cycles.** From `cycles`, plus any component pair with edges in both directions. Name the edges that close each cycle.
