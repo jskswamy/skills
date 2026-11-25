@@ -1,6 +1,6 @@
 ---
 name: explore
-description: "Use when gathering background codebase context as part of a larger workflow, such as the brainstorming or planning explore step, or before modifying unfamiliar code to understand architecture and structure. Not for a direct one-off question (use codebase:ask), a named symbol's callers/callees (use codebase:graph), the effect of a diff (use codebase:impact), capability mapping (use codebase:capabilities), or boundary/seam inspection (use codebase:seams)."
+description: "Use when gathering background codebase context as part of a larger workflow, such as the brainstorming or planning explore step, or before modifying unfamiliar code to understand architecture and structure. Not for a direct one-off question (use codebase:ask), a named symbol's callers/callees (use codebase:graph), the effect of a diff (use codebase:impact), capability mapping (use codebase:capabilities), boundary/seam inspection (use codebase:seams), the architecture map or rules (use codebase:architecture), or a guided reading order (use codebase:tour)."
 user-invocable: false
 ---
 
@@ -31,39 +31,11 @@ Resolve the transport above. If either MCP or CLI works, continue to Step 2. Onl
 
 Call `list_projects` and match the project whose `root_path` equals `git rev-parse --show-toplevel` (the name is the root path with the leading `/` removed and `/` replaced by `-`). Do not match on the directory basename: worktrees and renamed repos share basenames. Use `index_status` on that name to confirm it is indexed.
 
-Read `.claude/codebase.local.md` if it exists. Resolve the `auto_index` preference (`always`, `never`, `ask`; default `ask`) and `index_mode` (default `moderate`).
+Read `references/freshness.md` and follow it. This skill never blocks a workflow: when the index stays not fresh, continue with labelled source inspection as that reference says.
 
-Decide what to do:
+### Step 2b: Architecture Rules
 
-- **No matching indexed project (index missing):** treat as needing an index.
-  - `auto_index: always` → call `index_repository` with the resolved mode, then continue.
-  - `auto_index: ask` (or file missing) → ask the user using the harness question mechanism:
-    ```
-    The codebase isn't indexed yet. Index now?
-
-    ○ Yes, always (save preference)
-    ○ Yes, just this once
-    ○ No (fall back to grep/glob)
-    ```
-    If a "save" option is selected, write the preference to `.claude/codebase.local.md`. If "Yes", call `index_repository`, then continue. If "No", fall back to grep/glob/read.
-  - `auto_index: never` → print `Codebase is not yet indexed. Run $codebase:index to build the index.` and fall back to grep/glob/read.
-
-- **Index exists but `last_indexed` is missing or >24h old (stale):**
-  - `auto_index: always` → call `index_repository` with the resolved mode to refresh, then continue.
-  - `auto_index: ask` → ask the user using the harness question mechanism:
-    ```
-    Codebase index is stale (last indexed: [time ago]). Refresh now?
-
-    ○ Yes, always (save preference)
-    ○ Yes, just this once
-    ○ No, use stale index
-    ```
-    If "Yes", refresh then continue. If "No", continue with stale data after printing `⚠ Using stale index (last indexed: [time ago]). Results may be incomplete.`
-  - `auto_index: never` → print `⚠ Index may be stale (last indexed: [time ago]). Run $codebase:index to refresh.` and continue with stale data.
-
-- **Index exists and is fresh:** continue.
-
-After a successful auto-index, update `last_indexed` in `.claude/codebase.local.md` (preserving other fields).
+If `ARCHITECTURE.md` at the repo root has a `codebase-rules` block, follow the `codebase:architecture` skill with `--check` (skip its snapshot offer) and include every violation and dead component, with the rule's `why`, in the context. Agents planning a change must see the rules it could break.
 
 ### Step 3: Context-Dependent Exploration
 

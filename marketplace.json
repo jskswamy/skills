@@ -30,7 +30,7 @@
     {
       "name": "devenv",
       "description": "Initialize and manage Nix flake development environments with auto-detection and security tooling",
-      "version": "2.3.1",
+      "version": "2.4.0",
       "author": {
         "name": "Krishnaswamy Subramanian"
       },
@@ -165,7 +165,7 @@
     {
       "name": "codebase",
       "description": "Intelligent codebase exploration powered by codebase-memory-mcp. Natural language queries, change impact analysis, symbol graph traversal, and automatic brainstorming/planning integration.",
-      "version": "1.4.1",
+      "version": "1.5.0",
       "author": {
         "name": "Krishnaswamy Subramanian"
       },

@@ -1,6 +1,6 @@
 ---
 name: impact
-description: "Show what your recent changes affect. [--base <sha>] Use when the user asks what recent code changes affect: 'what did my changes break', 'blast radius of this diff', 'what might break', 'which tests are affected'. Works from a git diff or base SHA. Not for questions about code that has not changed (use codebase:ask) or one symbol's callers (use codebase:graph)."
+description: "Show what your recent changes affect. [--base <sha>] Use when the user asks what recent code changes affect: 'what did my changes break', 'blast radius of this diff', 'what might break', 'which tests are affected'. Works from a git diff or base SHA. Not for questions about code that has not changed (use codebase:ask) one symbol's callers (use codebase:graph), risky frequently changed code (use codebase:hotspots), or unused code (use codebase:dead-code)."
 argument-hint: "[--base <sha>]"
 metadata:
   short-description: "Show what your recent changes affect. [--base <sha>]"
@@ -35,7 +35,7 @@ Resolve the transport above. Only if neither MCP nor CLI works, explain that imp
 
 ### Step 0b: Check Index Freshness
 
-Follow the same auto-index flow as `codebase:ask` Step 0b. Read `.claude/codebase.local.md`, respect `auto_index` preference, warn on staleness.
+Read `references/freshness.md` and follow it for every project in scope.
 
 ### Step 1: Determine Base SHA
 
@@ -127,3 +127,7 @@ The contextual explanation for each item should cover:
 - What specifically changed (from the risk label context)
 - Why it matters (how many things depend on it, what breaks if it's wrong)
 - Test coverage gaps if any
+
+### Step 6: Offer a Shareable Copy
+
+Read `references/share.md` and follow it.

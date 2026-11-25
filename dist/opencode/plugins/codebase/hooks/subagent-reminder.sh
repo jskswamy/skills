@@ -11,5 +11,5 @@ if command -v duckdb >/dev/null 2>&1; then
   EXTRA="${EXTRA} Prefer duckdb for querying .jsonl/.csv/.parquet/.sqlite data."
 fi
 cat <<REMINDER
-{"hookSpecificOutput":{"hookEventName":"SubagentStart","additionalContext":"Code discovery: prefer codebase-memory-mcp tools (search_graph, trace_path, get_code_snippet, query_graph, get_architecture, search_code) over grep/file-read for navigating code. Use Grep/Glob/Read for text, configs, and non-code files.${EXTRA}"}}
+{"hookSpecificOutput":{"hookEventName":"SubagentStart","additionalContext":"Code discovery: prefer codebase-memory-mcp tools (search_graph, trace_path, get_code_snippet, query_graph, get_architecture, search_code) over grep/file-read for navigating code. Use Grep/Glob/Read for text, configs, and non-code files. Before changing code across components or repos, run codebase-architecture (ARCHITECTURE.md codebase-rules are checked live).${EXTRA}"}}
 REMINDER

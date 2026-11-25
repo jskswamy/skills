@@ -1,6 +1,6 @@
 ---
 name: index
-description: "Build, refresh, or link the codebase index. [--mode full|moderate|fast|cross-repo-intelligence] [--link <project|*>] Use when the codebase index must be built, refreshed, or linked across repositories: 'index this repo', 'reindex', 'index is stale', 'link repos', or when other codebase skills report no index. This only builds or links the index; to answer questions use codebase:ask, codebase:graph, codebase:impact, codebase:capabilities, or codebase:seams."
+description: "Build, refresh, or link the codebase index. [--mode full|moderate|fast|cross-repo-intelligence] [--link <project|*>] Use when the codebase index must be built, refreshed, or linked across repositories: 'index this repo', 'reindex', 'index is stale', 'link repos', or when other codebase skills report no index. This only builds or links the index; to answer questions use the other codebase skills (ask, graph, impact, architecture, tour, and so on)."
 argument-hint: "[--mode full|moderate|fast|cross-repo-intelligence] [--link <project|*>]"
 metadata:
   short-description: "Build, refresh, or link the codebase index. [--mode full|moderate|fast|cross-repo-intelligence] [--link <project|*>]"
@@ -81,19 +81,21 @@ Indexing codebase (moderate)...
 Run the `codebase:ask` skill to explore your codebase.
 ```
 
-Write or update `.claude/codebase.local.md` with the current timestamp and mode:
+Write or update `.claude/codebase.local.md` with the current timestamp, mode, commit and uncommitted-edit hash (`git rev-parse HEAD` and `{ git diff HEAD; git ls-files -o --exclude-standard -z | xargs -0 git hash-object --; } | git hash-object --stdin`, computed immediately before calling `index_repository`):
 
 ```yaml
 ---
 auto_index: ask
 index_mode: moderate
 last_indexed: [current ISO 8601 timestamp]
+last_indexed_commit: [HEAD sha]
+dirty_hash: [hash of tracked and untracked changes]
 ---
 ```
 
-Preserve any existing `auto_index` value if the file already existed. Only update `last_indexed` and `index_mode`.
+Preserve any existing `auto_index` value and `projects:` map if the file already existed. Only update `last_indexed`, `last_indexed_commit`, `dirty_hash` and `index_mode`.
 
-**On cross-repo linking success**, do **not** overwrite `index_mode` or `last_indexed` in `.claude/codebase.local.md` on a link-only run (only update `.claude/codebase.local.md` if Step 3 also ran a standard `full|moderate|fast` index). Print:
+**On cross-repo linking success**, do **not** overwrite `index_mode`, `last_indexed`, `last_indexed_commit` or `dirty_hash` in `.claude/codebase.local.md` on a link-only run (only update `.claude/codebase.local.md` if Step 3 also ran a standard `full|moderate|fast` index). Print:
 
 ```
 ✓ Linked [current_project] with [target_projects] ([N] cross-repo edges)

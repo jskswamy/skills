@@ -1,0 +1,7 @@
+# Map the Entities
+
+1. **Candidates.** Use `search_graph` for type-like nodes (`Class`, `Interface`, `Struct`, `Type`, `Enum`, and schema/record definitions such as JSON schemas, ORM models, protobuf messages; in untyped code, factory functions and object shapes returned by loaders and parsers). With `<concept>`, use `search_graph` / `search_code` for that name and its synonyms instead.
+2. **Rank** candidates by reference count (inbound `USES`/`CALLS`/`IMPORTS` edges, or `rg -c` on the name when the graph has none). Exclude utilities and plumbing: generic helpers, error types, logging, config loaders, test fixtures, and framework base classes. Keep the top 8–12 (one entity in depth with `<concept>`).
+3. **Owner.** The owning component is where the entity is defined and where most writes happen. Use the components from `codebase:architecture`'s rules block if the repo has one, otherwise the top-level package or directory.
+4. **Lifecycle.** For each entity, find the functions that create it (constructors, factories, parsers), modify it (assignments to its fields, mutators), and read it (consumers), grouped by component. Use `trace_path` inbound from the constructor or factory and `get_code_snippet` on at most 4 ambiguous sites. Flag entities modified by more than one component: that is shared mutable state an agent must coordinate.
+5. **Relations.** Entities that hold or reference other entities (fields, generic parameters, foreign keys) become `classDiagram` associations.

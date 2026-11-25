@@ -1,6 +1,6 @@
 ---
 name: capabilities
-description: "Map functional capabilities and execution corridors. [<capability>] [--project <name>...] [--depth 1-5] Use when the user wants to discover or inspect functional capabilities in one or more codebases: 'what capabilities exist', 'map capabilities', 'how is capability X structured', 'trace capability X across repos', 'compare capabilities between project A and B'. Not for a single symbol's immediate callers/callees (use codebase:graph) or boundary coupling inspection (use codebase:seams)."
+description: "Map functional capabilities and execution corridors. [<capability>] [--project <name>...] [--depth 1-5] Use when the user wants to discover or inspect functional capabilities in one or more codebases: 'what capabilities exist', 'map capabilities', 'how is capability X structured', 'trace capability X across repos', 'compare capabilities between project A and B'. Not for a single symbol's immediate callers/callees (use codebase:graph), domain entities and their owners (use codebase:domain), or boundary coupling inspection (use codebase:seams)."
 argument-hint: "[<capability>] [--project <name>[,<name>...]] [--depth 1-5]"
 metadata:
   short-description: "Map functional capabilities and execution corridors. [<capability>] [--project <name>...] [--depth 1-5]"
@@ -45,13 +45,7 @@ Resolve the transport above. Only if neither MCP nor CLI works, explain that cap
 
 ### Step 0b: Check Index Freshness
 
-1. For the current workspace's project, read `.claude/codebase.local.md` if it exists (`auto_index: always | ask | never`, default `ask`; `index_mode: full | moderate | fast`, default `moderate`).
-2. If the current workspace project is in scope and is not indexed or `last_indexed` is missing:
-   - `auto_index: always` → run `index_repository` with the configured `index_mode` and update `.claude/codebase.local.md`.
-   - `auto_index: never` → print a hint to run `/codebase:index` and fall back or exit.
-   - `auto_index: ask` → prompt the user (`Yes, always` / `Yes, once` / `No`) using the harness question mechanism (AskUserQuestion in Claude Code; direct chat prompt in Pi).
-3. If `last_indexed` is $>24$ hours old (stale): refresh if `always`, warn and proceed if `never`, or prompt (`Yes, always` / `Yes, once` / `No, use stale index`) if `ask`.
-4. For external projects specified via `--project`, verify each via `index_status`; warn and skip any unindexed external project while proceeding with indexed ones.
+Read `references/freshness.md` and follow it for every project in scope. For external projects given via `--project`, verify each via `index_status`; warn and skip any unindexed external project while proceeding with indexed ones.
 
 ### Step 1: Resolve Project(s)
 
@@ -80,3 +74,7 @@ Read `references/mode-b-targeted.md` and follow it.
 ### Step 4: Present Results & Query Fallback
 
 Read `references/present-results.md` and follow it.
+
+### Step 5: Offer a Shareable Copy
+
+Read `references/share.md` and follow it.

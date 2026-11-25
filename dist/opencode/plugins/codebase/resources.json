@@ -3,25 +3,25 @@
     {
       "id": "codebase-explore",
       "name": "codebase-explore",
-      "description": "Use when gathering background codebase context as part of a larger workflow, such as the brainstorming or planning explore step, or before modifying unfamiliar code to understand architecture and structure. Not for a direct one-off question (use codebase-ask), a named symbol's callers/callees (use codebase-graph), the effect of a diff (use codebase-impact), capability mapping (use codebase-capabilities), or boundary/seam inspection (use codebase-seams).",
+      "description": "Use when gathering background codebase context as part of a larger workflow, such as the brainstorming or planning explore step, or before modifying unfamiliar code to understand architecture and structure. Not for a direct one-off question (use codebase-ask), a named symbol's callers/callees (use codebase-graph), the effect of a diff (use codebase-impact), capability mapping (use codebase-capabilities), boundary/seam inspection (use codebase-seams), the architecture map or rules (use codebase-architecture), or a guided reading order (use codebase-tour).",
       "path": "skills/explore/SKILL.md"
     },
     {
       "id": "codebase-ask",
       "name": "codebase-ask",
-      "description": "Use when the user asks a direct natural-language question about the codebase: 'where does X happen', 'how does X work', 'anything similar to X', 'what should I know before adding X'. Not for ambient context during brainstorming/planning (use codebase-explore), call graphs of a named symbol (use codebase-graph), what a diff affects (use codebase-impact), capability mapping (use codebase-capabilities), or boundary/seam inspection (use codebase-seams).",
+      "description": "Use when the user asks a direct natural-language question about the codebase: 'where does X happen', 'how does X work', 'anything similar to X', 'what should I know before adding X'. Not for ambient context during brainstorming/planning (use codebase-explore), call graphs of a named symbol (use codebase-graph), what a diff affects (use codebase-impact), capability mapping (use codebase-capabilities), boundary/seam inspection (use codebase-seams), the whole-system architecture or its rules (use codebase-architecture), or a reading order (use codebase-tour).",
       "path": "skills/ask/SKILL.md"
     },
     {
       "id": "codebase-index",
       "name": "codebase-index",
-      "description": "Use when the codebase index must be built, refreshed, or linked across repositories: 'index this repo', 'reindex', 'index is stale', 'link repos', or when other codebase skills report no index. This only builds or links the index; to answer questions use codebase-ask, codebase-graph, codebase-impact, codebase-capabilities, or codebase-seams.",
+      "description": "Use when the codebase index must be built, refreshed, or linked across repositories: 'index this repo', 'reindex', 'index is stale', 'link repos', or when other codebase skills report no index. This only builds or links the index; to answer questions use the other codebase skills (ask, graph, impact, architecture, tour, and so on).",
       "path": "skills/index/SKILL.md"
     },
     {
       "id": "codebase-impact",
       "name": "codebase-impact",
-      "description": "Use when the user asks what recent code changes affect: 'what did my changes break', 'blast radius of this diff', 'what might break', 'which tests are affected'. Works from a git diff or base SHA. Not for questions about code that has not changed (use codebase-ask) or one symbol's callers (use codebase-graph).",
+      "description": "Use when the user asks what recent code changes affect: 'what did my changes break', 'blast radius of this diff', 'what might break', 'which tests are affected'. Works from a git diff or base SHA. Not for questions about code that has not changed (use codebase-ask) one symbol's callers (use codebase-graph), risky frequently changed code (use codebase-hotspots), or unused code (use codebase-dead-code).",
       "path": "skills/impact/SKILL.md"
     },
     {
@@ -33,14 +33,44 @@
     {
       "id": "codebase-capabilities",
       "name": "codebase-capabilities",
-      "description": "Use when the user wants to discover or inspect functional capabilities in one or more codebases: 'what capabilities exist', 'map capabilities', 'how is capability X structured', 'trace capability X across repos', 'compare capabilities between project A and B'. Not for a single symbol's immediate callers/callees (use codebase-graph) or boundary coupling inspection (use codebase-seams).",
+      "description": "Use when the user wants to discover or inspect functional capabilities in one or more codebases: 'what capabilities exist', 'map capabilities', 'how is capability X structured', 'trace capability X across repos', 'compare capabilities between project A and B'. Not for a single symbol's immediate callers/callees (use codebase-graph), domain entities and their owners (use codebase-domain), or boundary coupling inspection (use codebase-seams).",
       "path": "skills/capabilities/SKILL.md"
     },
     {
       "id": "codebase-seams",
       "name": "codebase-seams",
-      "description": "Use when the user wants to identify, inspect, or audit architectural seams and boundaries within a codebase or across indexed repositories: 'what are the seams', 'find leaky seams', 'show the boundary between X and Y', 'where can we split or decouple X', 'how does repo A integrate with repo B'. Not for tracing a single symbol's call tree (use codebase-graph) or diff blast radius (use codebase-impact).",
+      "description": "Use when the user wants to identify, inspect, or audit architectural seams and boundaries within a codebase or across indexed repositories: 'what are the seams', 'find leaky seams', 'show the boundary between X and Y', 'where can we split or decouple X', 'how does repo A integrate with repo B'. Not for tracing a single symbol's call tree (use codebase-graph) diff blast radius (use codebase-impact), or the whole-system component map and rules (use codebase-architecture).",
       "path": "skills/seams/SKILL.md"
+    },
+    {
+      "id": "codebase-architecture",
+      "name": "codebase-architecture",
+      "description": "Use when the user wants the whole-system architecture of a codebase or several linked repos, or wants a planned change checked against architecture rules: 'show the architecture', 'what are the components and layers', 'does this break our architecture rules', 'check ARCHITECTURE.md'. Not for one boundary's coupling in depth (use codebase-seams), behaviour corridors (use codebase-capabilities), or a symbol's callers (use codebase-graph).",
+      "path": "skills/architecture/SKILL.md"
+    },
+    {
+      "id": "codebase-tour",
+      "name": "codebase-tour",
+      "description": "Use when the user asks where to start reading a codebase or wants a guided reading order: 'give me a tour', 'where do I start', 'onboard me to this repo', 'walk me through the X area'. Not for background context inside another workflow (use codebase-explore), a specific question (use codebase-ask), or the component map (use codebase-architecture).",
+      "path": "skills/tour/SKILL.md"
+    },
+    {
+      "id": "codebase-domain",
+      "name": "codebase-domain",
+      "description": "Use when the user wants the main concepts or entities of a codebase and who owns them: 'what are the core domain types', 'explain the data model', 'who creates or changes X', 'which component owns X'. Not for behaviour or execution corridors (use codebase-capabilities), one symbol's call graph (use codebase-graph), or the component map (use codebase-architecture).",
+      "path": "skills/domain/SKILL.md"
+    },
+    {
+      "id": "codebase-hotspots",
+      "name": "codebase-hotspots",
+      "description": "Use when the user wants the risky, frequently changed parts of a codebase: 'where are the hotspots', 'what code changes most', 'what is riskiest to touch', 'where should we refactor first'. Not for what a specific diff affects (use codebase-impact) or unused code (use codebase-dead-code).",
+      "path": "skills/hotspots/SKILL.md"
+    },
+    {
+      "id": "codebase-dead-code",
+      "name": "codebase-dead-code",
+      "description": "Use when the user wants unused code found: 'find dead code', 'what can I delete', 'unused functions or exports', 'is X still used anywhere'. Not for what a diff affects (use codebase-impact) or risky frequently changed code (use codebase-hotspots).",
+      "path": "skills/dead-code/SKILL.md"
     }
   ],
   "commands": [
@@ -73,6 +103,31 @@
       "name": "codebase-seams",
       "description": "Inspect architectural seams and coupling across packages or repos. [<source> [<target>]] [--project <name>...]",
       "path": "runtime/opencode/commands/codebase-seams.md"
+    },
+    {
+      "name": "codebase-architecture",
+      "description": "Recover the architecture and check it against your rules. [--check] [--project <name>...]",
+      "path": "runtime/opencode/commands/codebase-architecture.md"
+    },
+    {
+      "name": "codebase-tour",
+      "description": "Get a guided reading order for a codebase or area. [<area>]",
+      "path": "runtime/opencode/commands/codebase-tour.md"
+    },
+    {
+      "name": "codebase-domain",
+      "description": "Map the main domain entities and who owns them. [<concept>]",
+      "path": "runtime/opencode/commands/codebase-domain.md"
+    },
+    {
+      "name": "codebase-hotspots",
+      "description": "Rank files by churn and risk. [--since <date>] [<path>]",
+      "path": "runtime/opencode/commands/codebase-hotspots.md"
+    },
+    {
+      "name": "codebase-dead-code",
+      "description": "Find code nothing uses, with each candidate verified. [<path>]",
+      "path": "runtime/opencode/commands/codebase-dead-code.md"
     }
   ],
   "agents": []

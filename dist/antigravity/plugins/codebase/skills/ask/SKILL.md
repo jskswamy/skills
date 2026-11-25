@@ -1,6 +1,6 @@
 ---
 name: ask
-description: "Ask a question about the codebase. <question> Use when the user asks a direct natural-language question about the codebase: 'where does X happen', 'how does X work', 'anything similar to X', 'what should I know before adding X'. Not for ambient context during brainstorming/planning (use codebase:explore), call graphs of a named symbol (use codebase:graph), what a diff affects (use codebase:impact), capability mapping (use codebase:capabilities), or boundary/seam inspection (use codebase:seams)."
+description: "Ask a question about the codebase. <question> Use when the user asks a direct natural-language question about the codebase: 'where does X happen', 'how does X work', 'anything similar to X', 'what should I know before adding X'. Not for ambient context during brainstorming/planning (use codebase:explore), call graphs of a named symbol (use codebase:graph), what a diff affects (use codebase:impact), capability mapping (use codebase:capabilities), boundary/seam inspection (use codebase:seams), the whole-system architecture or its rules (use codebase:architecture), or a reading order (use codebase:tour)."
 argument-hint: "<question>"
 metadata:
   short-description: "Ask a question about the codebase. <question>"
@@ -53,15 +53,7 @@ Resolve the transport above, then call `index_status` with that derived project 
 
 ### Step 0b: Check Index Freshness
 
-Read `.claude/codebase.local.md`. Determine two things: `auto_index` setting and whether the index is **stale** (`last_indexed` missing or >24 hours ago).
-
-| Condition | Action |
-|-----------|--------|
-| Not indexed, or `last_indexed` missing | `auto_index: always` → call `index_repository` with the saved `index_mode` (default `moderate`). `auto_index: never` → print the `codebase:index` hint and fall back to grep/glob/read. Otherwise (`ask` or file missing) ask the user using the harness's question mechanism (AskUserQuestion in Claude Code; in Pi, ask in chat and wait): Yes always / Yes once / No (manual). Save the preference if chosen. |
-| Stale (`last_indexed` >24 hours ago) | `auto_index: always` → reindex, print `⟳ Index is stale — reindexing…`, update `last_indexed`. `auto_index: ask` → ask: Yes always / Yes once / No, use stale index; on No print `⚠ Using stale index (last indexed: [time ago]). Results may be incomplete.` and proceed. `auto_index: never` → print `⚠ Index may be stale (last indexed: [time ago]). Run /codebase:index to refresh.` and proceed. |
-| Fresh | Proceed. |
-
-Never index or refresh without the permission above. The server's `index_status` is the source of truth for whether a project is indexed; `last_indexed` in the preference file only drives the staleness check.
+Read `references/freshness.md` and follow it for every project in scope.
 
 ### Step 1: Determine the Project Name
 
@@ -109,3 +101,7 @@ Format the answer with:
 Do NOT dump raw MCP JSON. Synthesize the results into a clear narrative.
 
 If `codebase-memory-mcp` returns no results or empty results for any query, fall back to available search/read tools for that specific sub-query: `ast-grep -p '<pattern>' -l <lang>` (if `command -v ast-grep >/dev/null 2>&1` succeeds; otherwise `rg`/`Grep` + `Read`) for structural syntax queries, `duckdb -c "SELECT ..."` (if `command -v duckdb >/dev/null 2>&1` succeeds; otherwise `jq`/`sqlite3`/`python3`) for structured data files (`.jsonl`, `.csv`, `.parquet`, `.sqlite`), and `Grep`/`Glob`/`Read` in Claude Code or `rg`/`grep`/`find`/`read`/`bash` in Pi for literal text and files. Do not fail silently — try the fallback and include those results in the answer.
+
+### Step 5: Offer a Shareable Copy
+
+Read `references/share.md` and follow it.

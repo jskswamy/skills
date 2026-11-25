@@ -19,6 +19,11 @@ Pi and OpenCode have no namespace and use `/codebase-*`:
 | Graph | `$codebase:graph <symbol> ...` | `/codebase-graph <symbol> ...` |
 | Capabilities | `$codebase:capabilities [<capability>] [--project <name>...] [--depth 1-5]` | `/codebase-capabilities [<capability>] [--project <name>...] [--depth 1-5]` |
 | Seams | `$codebase:seams [<source> [<target>]] [--project <name>...]` | `/codebase-seams [<source> [<target>]] [--project <name>...]` |
+| Architecture | `$codebase:architecture [--check] [--project <name>...]` | `/codebase-architecture [--check] [--project <name>...]` |
+| Tour | `$codebase:tour [<area>]` | `/codebase-tour [<area>]` |
+| Domain | `$codebase:domain [<concept>]` | `/codebase-domain [<concept>]` |
+| Hotspots | `$codebase:hotspots [--since <date>] [<path>]` | `/codebase-hotspots [--since <date>] [<path>]` |
+| Dead code | `$codebase:dead-code [<path>]` | `/codebase-dead-code [<path>]` |
 | Explore | auto-triggered skill | auto-triggered skill |
 
 ### `$codebase:index [--mode full|moderate|fast|cross-repo-intelligence] [--link <project|*>]`
@@ -85,6 +90,75 @@ $codebase:seams internal/api internal/db
 $codebase:seams api-gateway billing-service
 ```
 
+### `$codebase:architecture [--check] [--project <name>[,<name>...]]`
+
+Recover the logical architecture (components, responsibilities, dependencies with edge counts, layers, cycles, a Mermaid diagram) and check it against your rules. The check runs automatically when `ARCHITECTURE.md` has a `codebase-rules` block.
+
+```
+$codebase:architecture
+$codebase:architecture --check
+$codebase:architecture --project api-gateway,billing-service
+```
+
+### `$codebase:tour [<area>]`
+
+A guided reading order: entry points, then the core everything depends on, then the edges, each with why to read it next.
+
+```
+$codebase:tour
+$codebase:tour scripts/lib
+```
+
+### `$codebase:domain [<concept>]`
+
+The main domain entities, the component that owns each, and who creates, modifies and reads them.
+
+```
+$codebase:domain
+$codebase:domain PluginModel
+```
+
+### `$codebase:hotspots [--since <date>] [<path>]`
+
+Files ranked by churn (git history, default 6 months) times fan-in: where a change is most likely to break something.
+
+```
+$codebase:hotspots
+$codebase:hotspots --since 2026-01-01 scripts/lib
+```
+
+### `$codebase:dead-code [<path>]`
+
+Symbols nothing uses, each verified with a text search and labelled `likely dead` or `unsure`. Never deletes anything.
+
+```
+$codebase:dead-code
+$codebase:dead-code scripts/lib
+```
+
+## Architecture Rules
+
+Code shows what depends on what; only you can say what is *allowed*. Write those decisions in one `codebase-rules` block in `ARCHITECTURE.md` at the repo root. Prose around it is yours and is never read as rules.
+
+````markdown
+```codebase-rules
+components:
+  transforms: ["scripts/lib/transforms/**"]
+  adapters:   ["harnesses/*/adapter.mjs"]
+rules:
+  - forbid: transforms -> adapters
+    why: transforms stay harness-agnostic
+```
+````
+
+`forbid: A -> B` bans dependencies from A to B; `allow-only: A -> [B, C]` limits A to those. Every rule needs a `why`. Each run checks every rule against the live code and reports violations with `file:line` and components whose globs match no files. The skills never edit this file on their own.
+
+## Always Current
+
+Nothing these skills derive is saved for later. Before any graph query, each skill checks that the index matches the repo's current commit and uncommitted edits (in every repo in scope). If only your uncommitted edits changed, it re-indexes in `fast` mode without asking; otherwise it follows `auto_index`. If the index cannot be refreshed, answers come from source inspection and say so.
+
+Report skills offer a shareable Markdown copy (Mermaid diagrams; also an HTML page through the Artifact tool in Claude Code). Each copy is stamped with the commit and date and marked as a snapshot for people: agents re-run the skill instead of reading it.
+
 ## Explore Skill
 
 The plugin includes an auto-trigger skill that activates during brainstorming and planning sessions. When superpowers brainstorming reaches "Explore project context", the skill queries the codebase index for relevant architecture and code, providing grounded context for the session.
@@ -101,4 +175,7 @@ Stored in `.claude/codebase.local.md` (not committed). Created automatically on 
 |---------|--------|---------|-------------|
 | `auto_index` | `always`, `never`, `ask` | `ask` | Auto-index before queries |
 | `index_mode` | `full`, `moderate`, `fast` | `moderate` | Default indexing mode |
-| `last_indexed` | ISO timestamp | — | Last successful index time |
+| `last_indexed` | ISO timestamp | — | Last successful index time (informational) |
+| `last_indexed_commit` | commit SHA | — | `HEAD` when last indexed |
+| `dirty_hash` | hash | — | Hash of `git diff HEAD` when last indexed |
+| `projects` | map | — | Same two fields for other repos used with `--project` |

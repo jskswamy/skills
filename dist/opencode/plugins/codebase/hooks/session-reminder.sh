@@ -16,6 +16,7 @@ Code Discovery Protocol:
 2. Use Grep/Glob/Read freely for text, configs, non-code files, and
    always Read a file before editing it.
 3. If a project is not indexed yet, follow the codebase-index or codebase-explore flow: ask before indexing unless auto_index is always, and never index when it is never.
+   Before changing code across components or repos, run codebase-architecture; ARCHITECTURE.md codebase-rules are checked live.
 REMINDER
 if command -v ast-grep >/dev/null 2>&1; then
   echo "4. Use ast-grep (-p '<pattern>' -l <lang>) for structural AST search and multi-file syntax rewrites (-r '<rewrite>' -U); fall back to rg/Edit when text-only."

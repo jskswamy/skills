@@ -123,9 +123,8 @@ This plugin integrates with [mcp-nixos](https://github.com/utensils/mcp-nixos) f
 ### How It Works
 
 When you search for packages, the plugin tries in order:
-1. **Global/project mcp-nixos** - If you already have mcp-nixos configured (avoids duplicates)
-2. **Plugin's bundled mcp-nixos** - Runs via `nix-shell -p uv` (no extra setup needed)
-3. **Bash fallback** - Uses `nix search` if MCP is unavailable
+1. **Global/project mcp-nixos** (or 1mcp) - Uses your configured `mcp-nixos` MCP server
+2. **Bash fallback** - Uses `nix search` if MCP is unavailable
 
 ### Disabling MCP
 
