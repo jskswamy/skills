@@ -95,10 +95,6 @@
         "templates": [],
         "extra": [
           {
-            "from": "templates/devenv/.mcp.json",
-            "to": ".mcp.json"
-          },
-          {
             "from": "templates/devenv/README.md",
             "to": "README.md"
           }
